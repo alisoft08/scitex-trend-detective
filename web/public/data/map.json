@@ -1,0 +1,52 @@
+{
+  "bbox": [
+    -76.15,
+    -14.55,
+    -75.35,
+    -13.6
+  ],
+  "crs": "EPSG:4326 (equirectangular PNG)",
+  "images": {
+    "landsat_2004": {
+      "file": "img/landsat_2004.jpg",
+      "source": "Landsat 5 TM Collection 2 Level-2, 2004 median, true color"
+    },
+    "landsat_2024": {
+      "file": "img/landsat_2024.jpg",
+      "source": "Landsat 8/9 OLI Collection 2 Level-2, 2024 median, true color"
+    },
+    "ndvi_trend": {
+      "file": "img/ndvi_trend.jpg",
+      "source": "Sen slope of annual max NDVI (MODIS MOD13Q1 v6.1), 2004-2024, over SRTM relief",
+      "units": "NDVI per decade",
+      "min": -0.3,
+      "max": 0.3,
+      "palette": [
+        "#3f3e3d",
+        "#71706f",
+        "#b0afae",
+        "#f5f6f8",
+        "#b4cce6",
+        "#7fa6d6",
+        "#3c78bb"
+      ],
+      "note": "Changes smaller than 0.04 per decade are left as relief. Magnitude only; per-pixel significance is not tested in this MVP."
+    }
+  },
+  "hero": {
+    "bbox": [
+      -76.45,
+      -14.4,
+      -75.25,
+      -13.72
+    ],
+    "before": {
+      "file": "img/hero_2004.jpg",
+      "source": "Landsat 5 TM Collection 2 Level-2, 2004 median, true color"
+    },
+    "after": {
+      "file": "img/hero_2024.jpg",
+      "source": "Landsat 8/9 OLI Collection 2 Level-2, 2024 median, true color"
+    }
+  }
+}
