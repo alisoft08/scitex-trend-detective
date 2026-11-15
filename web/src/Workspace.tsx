@@ -30,7 +30,7 @@ function Prediction({ refCase }: { refCase: CaseRef }) {
   const [revealed, setRevealed] = useState(false);
   const choices = ["Going up", "Going down", "Evidence may be unclear"];
   const conclusion = refCase.verdict === "confirmed" || refCase.verdict === "likely"
-    ? `The full-period estimate points ${(refCase.sen_per_decade ?? 0) > 0 ? "up" : "down"}. The evidence is ${refCase.verdict === "confirmed" ? "strong under the Oasis Paradox rule" : "suggestive"}.`
+    ? `The full-period estimate points ${(refCase.sen_per_decade ?? 0) > 0 ? "up" : "down"}. The verdict is ${refCase.verdict === "confirmed" ? "a confirmed trend under the pre-registered rule" : "a likely trend"}.`
     : "The available evidence leaves the direction uncertain. Look at the estimate and the conclusions from the two approaches.";
   return (
     <details className="research-details prediction-note">

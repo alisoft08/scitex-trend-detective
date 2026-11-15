@@ -5,6 +5,8 @@ import { Workspace } from "./Workspace";
 import { ComparisonDesk } from "./ComparisonDesk";
 import { Lab } from "./Lab";
 import { MapView } from "./MapView";
+import { Sources } from "./Sources";
+import { ImpactBand } from "./ImpactBand";
 import { useJSON } from "./data";
 import { LEVELS, useLevel, type Level } from "./levels";
 import type { Manifest } from "./types";
@@ -16,12 +18,13 @@ const VIEWS = [
   { id: "map", label: "Evidence map" },
   { id: "method", label: "Trend lab" },
   { id: "compare", label: "Compare cases" },
+  { id: "sources", label: "Sources" },
 ] as const;
 
 function readRoute() {
   const [hash, query] = location.hash.slice(1).split("?");
   const params = new URLSearchParams(query);
-  const aliases: Record<string, string> = { evidence: "investigate", why: "map", where: "map", methods: "method", sources: "investigate" };
+  const aliases: Record<string, string> = { evidence: "investigate", why: "map", where: "map", methods: "method", about: "sources" };
   const view = /^(mission|explorer)(-[0-5])?$/.test(hash) ? "investigate" : Object.prototype.hasOwnProperty.call(aliases, hash) ? aliases[hash] : hash;
   return { view, params, mission: /^(mission|explorer)(-[0-5])?$/.test(hash) };
 }
@@ -105,6 +108,7 @@ export default function App() {
       {manifest && selectedCase && (
         <main className={`research-app lv-${level}`}>
           {isHome && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
+          {isHome && <ImpactBand m={manifest} onOpen={navigate} />}
           {view === "investigate" && <Workspace m={manifest} level={level} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} startWithLead={route.mission} onLead={followLead} />}
           {view === "map" && <MapView m={manifest} level={level} onCase={selectCase} />}
@@ -112,6 +116,7 @@ export default function App() {
             <div className="research-heading"><p className="eyebrow">Simulation</p><h1>Put the tests on trial</h1></div>
             <Lab level={level} onCase={() => selectCase("ZW_gws")} />
           </section>}
+          {view === "sources" && <Sources m={manifest} />}
           {view === "compare" && <ComparisonDesk manifest={manifest} level={level} pair={pair} onPair={selectPair} onCase={selectCase} href={pairLink(pair)} />}
         </main>
       )}

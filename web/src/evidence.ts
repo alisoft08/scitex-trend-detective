@@ -3,16 +3,16 @@ import { DATA_TYPE_TEXT, fmt, signed } from "./format";
 import type { CaseFile, Verdict } from "./types";
 
 export const EVIDENCE_TEXT: Record<Verdict, string> = {
-  confirmed: "Strong evidence",
-  likely: "Suggestive evidence",
+  confirmed: "Confirmed trend",
+  likely: "Likely trend",
   inconclusive: "Inconclusive",
   insufficient_data: "Insufficient data",
 };
 
 export const EVIDENCE_SUMMARY: Record<Verdict, string> = {
-  confirmed: "The result meets the Oasis Paradox criteria for a trend.",
+  confirmed: "The change passes every check of the pre-registered Oasis Paradox rule.",
   likely: "The tests suggest a trend, with less agreement across the checks.",
-  inconclusive: "The data leave the existence of a trend uncertain.",
+  inconclusive: "Not proven: the data cannot tell yet. That is not the same as “no change”.",
   insufficient_data: "This series has too few valid observations to judge a trend.",
 };
 

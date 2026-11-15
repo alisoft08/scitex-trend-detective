@@ -5,7 +5,6 @@ import { useJSON } from "./data";
 import { fmt, pfull, signed } from "./format";
 import { Validation } from "./Validation";
 import { ShareLink } from "./ShareLink";
-import { downloadCase } from "./reproduction";
 import { casePeriod, caseUnits, dataKind, describes, EVIDENCE_SUMMARY, EVIDENCE_TEXT, interval } from "./evidence";
 import type { Level } from "./levels";
 import type { CaseFile, CaseRef, CriterionKey, Manifest, Window } from "./types";
@@ -148,6 +147,13 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
         <span>95% interval for the slope <strong className="num">{interval(tr.sen_ci95_block_bootstrap)}</strong></span>
         <EffectBar est={tr.sen_per_decade} limits={tr.sen_ci95_block_bootstrap} />
       </div>}
+      {cf.verdict !== "confirmed" && tr.years_to_detect !== null && tr.years_to_detect < 200 && (
+        <p className="case-years">
+          {explorer
+            ? <>Not proven yet. With this much natural variation, a change this size needs about <strong>{Math.round(tr.years_to_detect)} years</strong> of data to show up; we have {Math.round(cf.n / 12)}.</>
+            : <>Years to detect (Weatherhead et al., 1998): a trend of this size, with this noise and memory, needs about <strong className="num">{Math.round(tr.years_to_detect)}</strong> years of data; the record has {Math.round(cf.n / 12)}.</>}
+        </p>
+      )}
       <p className="case-limit">{limit}</p>
       <p className="case-source">
         <strong>{dataKind(cf)}</strong> · {cf.source.agency} {cf.source.product} {cf.source.version}
@@ -192,7 +198,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
       <p>Download the published case, original analysis inputs, geographic mask rules, engine settings and Python runner.</p>
       <button className="btn primary" disabled={exportState === "Preparing…"} onClick={() => {
         setExportState("Preparing…");
-        void downloadCase(cf, manifest.generated_at).then(() => setExportState("Download ready."), () => setExportState("Export failed. Try again."));
+        void import("./reproduction").then(({ downloadCase }) => downloadCase(cf, manifest.generated_at)).then(() => setExportState("Download ready."), () => setExportState("Export failed. Try again."));
       }}>Download evidence ZIP</button>
       {exportState && <p className="small" role="status">{exportState}</p>}
     </details>}
