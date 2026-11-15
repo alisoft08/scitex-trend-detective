@@ -4,6 +4,7 @@ import { strToU8, zipSync } from "fflate";
 import series from "../../data/processed/series_long.csv?raw";
 import climate from "../../data/processed/climate_indices.csv?raw";
 import zones from "../../config/zones.geojson?raw";
+import comparisonZones from "../../config/comparison_zones.geojson?raw";
 import config from "../../config/verdict.yaml?raw";
 import trend from "../../engine/trend.py?raw";
 import verdict from "../../engine/verdict.py?raw";
@@ -19,6 +20,7 @@ const inputFiles = {
   "data/processed/series_long.csv": series,
   "data/processed/climate_indices.csv": climate,
   "config/zones.geojson": zones,
+  "config/comparison_zones.geojson": comparisonZones,
   "config/verdict.yaml": config,
   "engine/trend.py": trend,
   "engine/verdict.py": verdict,

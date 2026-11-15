@@ -4,7 +4,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { detectAll } from "tinyld";
 import {
-  CHAT_STREAM_TYPE, MAX_CHAT_CONTEXT_BYTES, MAX_CHAT_MESSAGES, MAX_CHAT_MESSAGE_CHARS,
+  CHAT_PAGES, CHAT_STREAM_TYPE, MAX_CHAT_CONTEXT_BYTES, MAX_CHAT_MESSAGES, MAX_CHAT_MESSAGE_CHARS,
   type ChatContext, type ChatEvent, type ChatMessage,
 } from "../src/chat-contract";
 import { OASIS_MANUAL } from "./chat-manual";
@@ -67,10 +67,23 @@ function isValues(value: unknown): value is ChatContext["values"] {
     && typeof value.totalMonths === "number" && Number.isSafeInteger(value.totalMonths) && value.totalMonths >= value.validMonths;
 }
 
+function parsePageContext(value: Record<string, unknown>) {
+  const { view, pageId, title, facts, language } = value;
+  if (!CHAT_PAGES.some((item) => item === view) || !isText(pageId, 180) || !isText(title, 160)
+    || !Array.isArray(facts) || facts.length > 12 || (language !== "en" && language !== "es")) return null;
+  const cleanFacts: { label: string; value: string }[] = [];
+  for (const fact of facts) {
+    if (!record(fact) || !isText(fact.label, 160) || !isText(fact.value, 160)) return null;
+    cleanFacts.push({ label: fact.label, value: fact.value });
+  }
+  return { view, pageId, title, facts: cleanFacts, language };
+}
+
 function parseContext(value: unknown) {
   if (!record(value) || new TextEncoder().encode(JSON.stringify(value)).byteLength >= MAX_CHAT_CONTEXT_BYTES) return null;
+  if ("view" in value) return parsePageContext(value);
   const { caseId, studyArea, nasaVariable, dataset, period, verdict, slope, confidenceInterval95, pValue,
-    userLevel, chartMode, sensitivityWindow, desertComparison, hoveredPoint, values, language } = value;
+    userLevel, chartMode, sensitivityWindow, selectedPeriod, referenceArea, desertComparison, hoveredPoint, values, language } = value;
   if (typeof caseId !== "string" || !/^[A-Za-z0-9_]{1,80}$/.test(caseId)
     || !isText(studyArea, 120) || !isText(nasaVariable, 180) || !isDataset(dataset) || !isText(period, 40)
     || (verdict !== "confirmed" && verdict !== "likely" && verdict !== "inconclusive" && verdict !== "insufficient_data")
@@ -80,6 +93,10 @@ function parseContext(value: unknown) {
     || (userLevel !== "Explorer" && userLevel !== "Analyst" && userLevel !== "Expert")
     || (chartMode !== "Anomalies" && chartMode !== "Original values")
     || !isWindow(sensitivityWindow) || !isPoint(hoveredPoint) || !isValues(values)
+    || (referenceArea !== undefined && !isText(referenceArea, 120))
+    || (selectedPeriod !== undefined && (!record(selectedPeriod) || !isWindow(selectedPeriod)
+      || !Number.isSafeInteger(selectedPeriod.n) || !isNullableNumber(selectedPeriod.p_arma)
+      || !["both", "one", "none", "insufficient"].some((result) => result === selectedPeriod.result)))
     || desertComparison !== (values.kind === "standardized-gap") || (language !== "en" && language !== "es")) return null;
 
   const { agency, product, version, doi, resolution } = dataset;
@@ -91,7 +108,11 @@ function parseContext(value: unknown) {
     sensitivityWindow: window && {
       start: window.start, end: window.end, sen_per_decade: window.sen_per_decade, p_block_bootstrap: window.p_block_bootstrap,
     },
-    desertComparison,
+    selectedPeriod: record(selectedPeriod) ? {
+      start: selectedPeriod.start, end: selectedPeriod.end, n: selectedPeriod.n, sen_per_decade: selectedPeriod.sen_per_decade,
+      p_block_bootstrap: selectedPeriod.p_block_bootstrap, p_arma: selectedPeriod.p_arma, result: selectedPeriod.result,
+    } : undefined,
+    referenceArea, desertComparison,
     hoveredPoint: point && {
       chart: point.chart, date: point.date, value: point.value, unit: point.unit, referenceValue: point.referenceValue,
     },

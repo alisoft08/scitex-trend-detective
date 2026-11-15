@@ -1,5 +1,5 @@
 // AI-assisted: Codex (OpenAI).
-import type { CaseFile, Verdict, Window } from "./types";
+import type { CaseFile, PeriodGrid, Verdict, Window } from "./types";
 
 export const MAX_CHAT_MESSAGES = 13;
 export const MAX_CHAT_MESSAGE_CHARS = 4_000;
@@ -27,6 +27,8 @@ export type ChatContext = {
   userLevel: "Explorer" | "Analyst" | "Expert";
   chartMode: "Anomalies" | "Original values";
   sensitivityWindow: Window | null;
+  selectedPeriod?: PeriodGrid["periods"][number];
+  referenceArea?: string;
   desertComparison: boolean;
   hoveredPoint?: HoveredPoint;
   values: {
@@ -41,6 +43,17 @@ export type ChatContext = {
   language: "en" | "es";
 };
 
+export const CHAT_PAGES = ["aquifer", "ica", "map", "method", "compare", "sources"] as const;
+export type ChatPage = typeof CHAT_PAGES[number];
+
+export type PageChatContext = {
+  view: ChatPage;
+  pageId: string;
+  title: string;
+  facts: { label: string; value: string }[];
+  language: "en" | "es";
+};
+
 export type ChatMessage = { role: "user" | "assistant"; content: string };
-export type ChatRequest = { messages: ChatMessage[]; uiContext: ChatContext };
+export type ChatRequest = { messages: ChatMessage[]; uiContext: ChatContext | PageChatContext };
 export type ChatEvent = { type: "delta"; text: string } | { type: "done" } | { type: "error" };

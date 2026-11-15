@@ -28,3 +28,17 @@ export function numberFormat(language: "en" | "es") {
   const pct = (fraction: number, places = 0) => `${fixed(fraction * 100, places)}${language === "es" ? " %" : "%"}`;
   return { fmt, fixed, signed, signedFixed, pfull, pct };
 }
+
+export function fmt(x: number | null | undefined, digits = 3): string {
+  if (x === null || x === undefined || !Number.isFinite(x)) return "n/a";
+  const a = Math.abs(x);
+  if (a >= 100) return x.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  if (a >= 1) return x.toLocaleString("en-US", { maximumFractionDigits: 1 });
+  if (a === 0) return "0";
+  return x.toPrecision(digits).replace(/\.?0+$/, "");
+}
+
+export function signed(x: number | null | undefined, digits = 3): string {
+  if (x === null || x === undefined || !Number.isFinite(x)) return "n/a";
+  return (x > 0 ? "+" : x < 0 ? "−" : "") + fmt(Math.abs(x), digits);
+}

@@ -2,9 +2,10 @@
 import { lazy, Suspense, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { brandAsset } from "./data";
 import { useEvidence } from "./evidence";
+import { pageQuestions } from "./page-chat";
 import { useLocale } from "./i18n";
 import { CHAT_STREAM_TYPE, MAX_CHAT_MESSAGES, MAX_CHAT_MESSAGE_CHARS,
-  type ChatContext, type ChatEvent, type ChatMessage, type ChatRequest } from "./chat-contract";
+  type ChatContext, type ChatEvent, type ChatMessage, type ChatRequest, type PageChatContext } from "./chat-contract";
 import type { CaseRef } from "./types";
 import "./case-chat.css";
 
@@ -49,9 +50,10 @@ async function streamReply(payload: ChatRequest, signal: AbortSignal, onText: (t
   }
 }
 
-export function CaseChat({ selected, getContext }: {
-  selected: CaseRef;
-  getContext: () => ChatContext | undefined;
+export function CaseChat({ selected, page, getContext }: {
+  selected?: CaseRef;
+  page?: PageChatContext;
+  getContext: () => ChatContext | PageChatContext | undefined;
 }) {
   const { t } = useLocale();
   const { caseTitle, zoneName } = useEvidence();
@@ -68,15 +70,16 @@ export function CaseChat({ selected, getContext }: {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [pending, setPending] = useState<Turn | null>(null);
   const [issue, setIssue] = useState<{ code: ChatIssue; caseId: string } | null>(null);
-  const title = caseTitle(selected.variable, selected.zone, selected.label);
-  const area = zoneName(selected.zone, selected.zone_name);
-  const questions = [
+  const scopeId = selected?.id ?? page?.pageId;
+  const title = selected ? caseTitle(selected.variable, selected.zone, selected.label) : page?.title ?? "";
+  const area = selected ? zoneName(selected.zone, selected.zone_name) : undefined;
+  const questions = selected ? [
     t(`What does the verdict mean for ${area}?`, `¿Qué significa el veredicto para ${area}?`),
     t(`How do I read the chart for ${title}?`, `¿Cómo leo el gráfico de ${title}?`),
     selected.kind === "contrast"
-      ? t("What does the gap with the desert measure?", "¿Qué mide la brecha con el desierto?")
+      ? t("What does the gap with the reference area measure?", "¿Qué mide la brecha con el área de referencia?")
       : t("What differs between anomalies and original values?", "¿Qué cambia entre anomalías y valores originales?"),
-  ];
+  ] : page ? pageQuestions(page.view).map((question) => t(...question)) : [];
 
   useEffect(() => () => { activeRequest.current?.abort(); }, []);
   useLayoutEffect(() => {
@@ -103,8 +106,9 @@ export function CaseChat({ selected, getContext }: {
     const content = question.trim();
     if (!content || activeRequest.current) return;
     const context = getContext();
-    if (!context || context.caseId !== selected.id) {
-      setIssue({ code: "loading", caseId: selected.id });
+    if (!scopeId) return;
+    if (!context || ("caseId" in context ? context.caseId : context.pageId) !== scopeId) {
+      setIssue({ code: "loading", caseId: scopeId });
       return;
     }
     const messages: ChatMessage[] = turns.slice(-Math.floor(MAX_CHAT_MESSAGES / 2)).flatMap(({ question, answer }) => [
@@ -113,7 +117,7 @@ export function CaseChat({ selected, getContext }: {
     messages.push({ role: "user", content });
     const request = new AbortController();
     activeRequest.current = request;
-    const turn = { id: nextId.current++, caseId: selected.id, title, question: content, answer: "" };
+    const turn = { id: nextId.current++, caseId: scopeId, title, question: content, answer: "" };
     setIssue(null);
     setDraft("");
     setPending(turn);
@@ -132,7 +136,7 @@ export function CaseChat({ selected, getContext }: {
     }
   }
 
-  const error = issue?.caseId === selected.id ? issue.code : null;
+  const error = issue && issue.caseId === scopeId ? issue.code : null;
 
   return <div className={open ? "case-chat is-open" : "case-chat"}>
     <section className="case-chat-panel" ref={panel} id={id} aria-labelledby={`${id}-title`}
@@ -140,20 +144,20 @@ export function CaseChat({ selected, getContext }: {
       <header className="case-chat-header">
         <div>
           <h2 id={`${id}-title`}>{t("Datron assistant", "Asistente de Datron")}</h2>
-          <p>{area} · {title}</p>
+          <p>{area && `${area} · `}{title}</p>
         </div>
         <button type="button" className="case-chat-close" onClick={close} aria-label={t("Close chat", "Cerrar chat")}>×</button>
       </header>
       <div className="case-chat-log" ref={log} aria-label={t("Conversation", "Conversación")} aria-live="polite"
         aria-busy={pending !== null} tabIndex={0}>
         {[...turns, ...(pending ? [pending] : [])].map((turn) => <div key={turn.id} className="case-chat-turn">
-          {turn.caseId !== selected.id && <small>{turn.title}</small>}
+          {turn.caseId !== scopeId && <small>{turn.title}</small>}
           <p className="case-chat-user">{turn.question}</p>
           <div className="case-chat-answer">{turn.answer
             ? <Suspense fallback={<p>{turn.answer}</p>}>
                 <Markdown skipHtml unwrapDisallowed allowedElements={["p", "strong", "em", "ul", "ol", "li", "code", "br"]}>{turn.answer}</Markdown>
               </Suspense>
-            : <p>{t("Reading the case…", "Leyendo el expediente…")}</p>}</div>
+            : <p>{t("Reading the evidence…", "Revisando la evidencia…")}</p>}</div>
         </div>)}
       </div>
       <div className="case-chat-actions">
@@ -174,8 +178,8 @@ export function CaseChat({ selected, getContext }: {
                 void send(draft);
               }
             }}
-            aria-label={t("Ask about this case", "Pregunta sobre este expediente")}
-            placeholder={t("Ask about this case…", "Pregunta sobre este expediente…")} />
+            aria-label={selected ? t("Ask about this case", "Pregunta sobre este expediente") : t("Ask about this screen", "Pregunta sobre esta pantalla")}
+            placeholder={selected ? t("Ask about this case…", "Pregunta sobre este expediente…") : t("Ask about this screen…", "Pregunta sobre esta pantalla…")} />
           <button type="submit" className="btn primary" disabled={pending !== null || !draft.trim()}>{t("Send", "Enviar")}</button>
         </form>
       </div>

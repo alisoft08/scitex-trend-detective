@@ -1,9 +1,8 @@
 // AI-assisted: Codex (OpenAI). Pick a supported zone and NASA variable.
-import { useRef, useState } from "react";
-import { CaseChat } from "./CaseChat";
+import { useState, type MutableRefObject } from "react";
 import type { ChatContext } from "./chat-contract";
 import { CaseFileView } from "./CaseFile";
-import { useEvidence } from "./evidence";
+import { PLACES, useEvidence } from "./evidence";
 import { useLocale, type Translation } from "./i18n";
 import type { Level } from "./levels";
 import type { CaseRef, Manifest } from "./types";
@@ -40,7 +39,7 @@ function Prediction({ refCase }: { refCase: CaseRef }) {
     : t("The data leave the direction uncertain. Compare the estimate with the conclusions from each test.", "Los datos dejan incierta la dirección del cambio. Compara la estimación con las conclusiones de cada prueba.");
   return (
     <details className="research-details prediction-note">
-      <summary>{t("Make a prediction", "Haz una predicción")} <span>{t("optional", "opcional")}</span></summary>
+      <summary>{t("First look: does this series appear to have a trend?", "Primera impresión: ¿parece que esta serie tiene una tendencia?")}</summary>
       <p>{t("What do you expect the series to show?", "¿Qué esperas que muestre la serie?")}</p>
       <div className="toggle">
         {choices.map((label, index) => <button key={index} type="button" aria-pressed={choice === index} onClick={() => setChoice(index)}>{label}</button>)}
@@ -50,19 +49,19 @@ function Prediction({ refCase }: { refCase: CaseRef }) {
   );
 }
 
-export function Workspace({ m, level, selected, onCase, caseLink, startWithLead, onLead }: {
+export function Workspace({ m, level, selected, onCase, caseLink, startWithLead, onLead, chatContextRef }: {
   m: Manifest; level: Level; selected: CaseRef; onCase: (id: string) => void; caseLink: (id: string) => string;
+  chatContextRef: MutableRefObject<(() => ChatContext) | null>;
   startWithLead: boolean; onLead: (id: string, tool?: "map" | "lab") => void;
 }) {
   const { t } = useLocale();
   const { zoneName, variableName } = useEvidence();
   const [unavailable, setUnavailable] = useState("");
-  const readChatContext = useRef<(() => ChatContext) | null>(null);
   const variable = selected.variable.replace(/_contrast$/, "");
   const inZone = m.cases.filter((c) => c.zone === selected.zone && c.kind === "case");
   const base = inZone.find((c) => c.variable === variable);
-  const contrast = m.cases.find((c) => c.id === `${selected.zone}_vs_Z5_${variable}`);
-  const desert = m.cases.find((c) => c.id === `Z5_${variable}`);
+  const contrast = m.cases.find((c) => c.kind === "contrast" && c.zone === selected.zone && c.variable === `${variable}_contrast`);
+  const desert = contrast ? m.cases.find((c) => c.id === `${contrast.ref_zone ?? "Z5"}_${variable}`) : undefined;
   const missing = WITNESSES.find((w) => w.id === unavailable);
   const alternative = m.cases.find((c) => c.variable === unavailable && c.kind === "case");
 
@@ -76,7 +75,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
   return (
     <section className="wrap wide research-page">
       <div className="research-heading">
-        <p className="eyebrow">{t("Ica, Peru · NASA Earth observations", "Ica, Perú · Observaciones de la Tierra de NASA")}</p>
+        <p className="eyebrow">{m.cases.some((c) => c.id === selected.id) && <>{zoneName(selected.zone, selected.zone_name)} · {t("NASA Earth observations", "Observaciones de la Tierra de NASA")}</>}</p>
         <h1>{t("Detective desk", "Mesa de investigación")}</h1>
       </div>
 
@@ -125,7 +124,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
             })}
           </fieldset>
           {missing && <div role="status" className="research-note">
-            <strong>{witnessLabel(missing.id)}</strong><p>{t(missing.unavailable[0], missing.unavailable[1])}</p>
+            <strong>{witnessLabel(missing.id)}</strong><p>{PLACES[selected.zone] ? t(missing.unavailable[0], missing.unavailable[1]) : t("This variable has no series for the selected area.", "Esta variable no tiene una serie para el área seleccionada.")}</p>
             {alternative && <button className="text-button" onClick={() => { setUnavailable(""); onCase(alternative.id); }}>
               {t("Open", "Abrir")} {zoneName(alternative.zone, alternative.zone_name)} →
             </button>}
@@ -134,17 +133,16 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
             <label className="compare-toggle">
               <input type="checkbox" id="toggle-desert" checked={selected.kind === "contrast"}
                 onChange={(e) => onCase(e.target.checked ? contrast.id : base.id)} />
-              {t("Compare with desert reference", "Comparar con el desierto de referencia")}
+              {contrast.ref_zone && contrast.ref_zone !== "Z5" ? t("Compare with natural land", "Comparar con terrenos naturales") : t("Compare with desert reference", "Comparar con el desierto de referencia")}
             </label>
           )}
         </aside>
         <div className="research-stack">
-          {level === "explorer" && <Prediction key={selected.id} refCase={selected} />}
-          <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)} chatContextRef={readChatContext}
+          <Prediction key={`first-look-${selected.id}`} refCase={selected} />
+          <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)} chatContextRef={chatContextRef}
             comparison={selected.kind === "contrast" && base && desert ? { field: base, desert } : undefined} />
         </div>
       </div>
-      {location.protocol !== "file:" && <CaseChat selected={selected} getContext={() => readChatContext.current?.()} />}
     </section>
   );
 }

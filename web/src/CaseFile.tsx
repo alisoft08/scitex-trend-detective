@@ -6,11 +6,10 @@ import { TrendChart } from "./charts";
 import { useJSON } from "./data";
 import { Validation, hasExtractionCheck } from "./Validation";
 import { ShareLink } from "./ShareLink";
-import { downloadCase } from "./reproduction";
 import { useEvidence } from "./evidence";
 import { useLocale, type Translation } from "./i18n";
 import type { Level } from "./levels";
-import type { CaseFile, CaseRef, CriterionKey, Manifest, Window } from "./types";
+import type { CaseFile, CaseRef, CriterionKey, Manifest, PeriodGrid, Window } from "./types";
 
 const criteria: [CriterionKey, Translation][] = [
   ["C0", ["Valid observations in at least 80% of months and 15 years", "Observaciones válidas en al menos el 80 % de los meses y en 15 años"]],
@@ -57,7 +56,7 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
       tone={cf.witness === "greenness" ? "green" : cf.witness === "heat" ? "heat" : cf.witness === "water" ? "water" : "climate"} window={window} />
     <figcaption className="plot-legend small">
       <span><i className="plot-key" />{label}</span>
-      {reference && <span><i className="plot-key dashed" />{zoneName("Z5")}</span>}
+      {reference && <span><i className="plot-key dashed" />{zoneName(reference.zone.id, reference.zone.name)}</span>}
       {mode === "anomaly" && <span><i className="plot-key trend" />{t("Full-period trend", "Tendencia del periodo completo")}</span>}
       {missing > 0 && <span><i className="plot-key gap" />{t(`${missing} missing months`, `${missing} meses sin datos`)}</span>}
     </figcaption>
@@ -69,8 +68,8 @@ function FieldComparison({ field, desert, onInspect }: { field: CaseRef; desert:
   const a = useJSON<CaseFile>(field.path), b = useJSON<CaseFile>(desert.path);
   return <div className="panel analysis-panel">
     <div className="panel-heading">
-      <h3>{t("Field and desert reference", "Campo y desierto de referencia")}</h3>
-      <p>{t("The same variable in two areas on one scale. Compare when they move together and when their records diverge.",
+      <h3>{desert.zone === "Z5" ? t("Field and desert reference", "Campo y desierto de referencia") : t("Cropland and natural land", "Cultivos y terrenos naturales")}</h3>
+      <p>{t("The same variable in two areas on one scale. Compare when the records move together and when they diverge.",
         "La misma variable en dos áreas y en la misma escala. Compara cuándo ambas series se mueven juntas y cuándo se separan.")}</p>
     </div>
     {a.error || b.error ? <p className="error" role="alert">{t("Could not load the field and desert records.", "No se pudieron cargar las series del campo y el desierto.")}</p>
@@ -154,12 +153,19 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
   const { casePeriod, caseTitle, caseUnits, perDecade, zoneName, interval, verdictText, verdictSummary, dataKind, describes, resolution, mask } = useEvidence();
   const { data: cf, error } = useJSON<CaseFile>(caseRef.path);
   const [mode, setMode] = useState<"anomaly" | "value">("anomaly");
-  const [periodIndex, setPeriodIndex] = useState(-1);
+  const { data: grid } = useJSON<PeriodGrid>(`periods/${caseRef.id}.json`);
+  const [start, setStart] = useState<number>();
+  const [end, setEnd] = useState<number>();
+  const from = start ?? grid?.starts[0];
+  const to = end ?? grid?.ends[grid.ends.length - 1];
   const [exportState, setExportState] = useState<"preparing" | "ready" | "error" | null>(null);
   const extractionDetails = useRef<HTMLDetailsElement>(null);
   const lastPoint = useRef<{ point: HoveredPoint; mode: ChatContext["chartMode"] }>();
   const explorer = level === "explorer", expert = level === "expert";
-  const activeWindow = expert ? cf?.trend.windows[periodIndex] : undefined;
+  const selectedPeriod = grid?.periods.find((period) => period.start === from && period.end === to);
+  const fullRecord = !grid || (from === grid.starts[0] && to === grid.ends[grid.ends.length - 1]);
+  const activeWindow = expert && !fullRecord && selectedPeriod?.sen_per_decade != null ? selectedPeriod : undefined;
+  const referenceArea = comparison && zoneName(comparison.desert.zone, comparison.desert.zone_name);
   const showRaw = !explorer && cf?.kind === "case" && mode === "value";
   const caseChartVisible = !comparison || !explorer;
   const chartMode = showRaw || !caseChartVisible ? "Original values" : "Anomalies";
@@ -174,6 +180,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         userLevel: explorer ? "Explorer" : expert ? "Expert" : "Analyst",
         chartMode,
         sensitivityWindow: activeWindow ?? null,
+        selectedPeriod,
+        referenceArea,
         hoveredPoint: pointVisible ? last?.point : undefined,
         language,
       }, {
@@ -185,7 +193,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
     };
     chatContextRef.current = read;
     return () => { if (chatContextRef.current === read) chatContextRef.current = null; };
-  }, [activeWindow, caseChartVisible, caseRef.id, caseTitle, caseUnits, cf, chartMode, chatContextRef, comparison, error, expert, explorer, language, perDecade, zoneName]);
+  }, [activeWindow, caseChartVisible, caseRef.id, caseTitle, caseUnits, cf, chartMode, chatContextRef, comparison, error, expert, explorer, language, perDecade, referenceArea, selectedPeriod, zoneName]);
   if (error) return <p role="alert" className="error">{t("Could not load this case.", "No se pudo cargar este caso.")}</p>;
   if (!cf || cf.id !== caseRef.id) return <p className="loading" role="status">{t("Opening the case file…", "Abriendo el expediente…")}</p>;
 
@@ -223,6 +231,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         <span>{t("95% interval for the slope", "Intervalo del 95 % para la pendiente")} <strong className="num">{interval(tr.sen_ci95_block_bootstrap)}</strong></span>
         <EffectBar est={tr.sen_per_decade} limits={tr.sen_ci95_block_bootstrap} />
       </div>}
+      {cf.verdict !== "confirmed" && tr.years_to_detect != null && tr.years_to_detect < 200 &&
+        <p className="case-years">{t("Years to detect (Weatherhead et al., 1998)", "Años para detectar la tendencia (Weatherhead et al., 1998)")}: <strong>{Math.round(tr.years_to_detect)}</strong> · {t("Years in the record", "Años en la serie")}: {Math.round(cf.n / 12)}.</p>}
       <p className="case-limit">{limit}</p>
       <p className="case-source">
         <strong>{dataKind(cf)}</strong> · {cf.source.agency} {cf.source.product} {cf.source.version}
@@ -235,7 +245,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
     {caseChartVisible && <section className="panel analysis-panel">
       <div className="analysis-toolbar">
         <div className="panel-heading">
-          <h3>{comparison ? t("Standardized field–desert gap", "Brecha estandarizada entre campo y desierto") : t("Monthly record", "Serie mensual")}</h3>
+          <h3>{comparison ? (comparison.desert.zone === "Z5" ? t("Standardized field–desert gap", "Brecha estandarizada entre campo y desierto") : t("Standardized cropland–natural land gap", "Brecha estandarizada entre cultivo y terreno natural")) : t("Monthly record", "Serie mensual")}</h3>
           {!explorer && <p>{t(`${cf.n_valid} of ${cf.n} valid months`, `${cf.n_valid} de ${cf.n} meses válidos`)} · {resolution(cf)}</p>}
         </div>
         {!explorer && !comparison && <div className="toggle" role="group" aria-label={t("Chart values", "Valores del gráfico")}>
@@ -243,8 +253,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
           <button aria-pressed={showRaw} onClick={() => setMode("value")}>{t("Original values", "Valores originales")}</button>
         </div>}
       </div>
-      {comparison ? <p className="small muted">{t("Use this graph to track how the gap between the field and the desert changes after expressing both in standard deviations.",
-        "Usa este gráfico para seguir cómo cambia la brecha entre el campo y el desierto al expresar ambas series en desviaciones estándar.")}</p>
+      {comparison ? <p className="small muted">{t("Use this graph to track how the gap between cropland and its reference area changes after expressing both in standard deviations.",
+        "Usa este gráfico para seguir cómo cambia la brecha entre el cultivo y su zona de referencia al expresar ambas series en desviaciones estándar.")}</p>
         : <div className="research-note chart-reading">
           <strong>{t("How to read this chart", "Cómo leer este gráfico")}</strong>
           <p className="small">{explorer ? t("Each point shows how far that month was from the average for the same calendar month. This helps you see longer-term changes through the seasons.",
@@ -256,14 +266,32 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
       <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} onInspect={(point) => {
         lastPoint.current = { point: { ...point, chart: "case" }, mode: chartMode };
       }} />
-      {expert && tr.windows.length > 0 && <div className="window-controls">
-        <label className="research-field">{t("Sensitivity window", "Ventana de sensibilidad")}
-          <select value={periodIndex} onChange={(e) => setPeriodIndex(Number(e.target.value))}>
-            <option value={-1}>{t("Full record · principal result", "Serie completa · resultado principal")}</option>
-            {tr.windows.map((w, i) => <option key={`${w.start}-${w.end}`} value={i}>{w.start}–{w.end}</option>)}
+      {grid && from !== undefined && to !== undefined && <div className="period-controls" aria-label={t("Choose the time period", "Elige el periodo")}>
+        <p className="period-title">{t("Choose the time period", "Elige el periodo")}</p>
+        <label className="research-field">{t("From", "Desde")}
+          <select value={from} onChange={(event) => {
+            const next = Number(event.target.value);
+            setStart(next);
+            if (to - next + 1 < grid.min_years) setEnd(grid.ends.find((year) => year - next + 1 >= grid.min_years));
+          }}>
+            {grid.starts.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
         </label>
-        {activeWindow && <p className="small" role="status">{t("Shaded period", "Periodo sombreado")} · <strong>{signed(activeWindow.sen_per_decade)} {perDecade(cf.units)}</strong> ({pfull(activeWindow.p_block_bootstrap)}, {t("block bootstrap", "bootstrap por bloques")}). {t("The verdict above uses the full record.", "El veredicto de arriba usa la serie completa.")}</p>}
+        <label className="research-field">{t("To", "Hasta")}
+          <select value={to} onChange={(event) => setEnd(Number(event.target.value))}>
+            {grid.ends.filter((year) => year - from + 1 >= grid.min_years).map((year) => <option key={year} value={year}>{year}</option>)}
+          </select>
+        </label>
+        {selectedPeriod && <p className="period-result" role="status">
+          <strong>{from}–{to}</strong>: <strong className="num">{signed(selectedPeriod.sen_per_decade)} {perDecade(cf.units)}</strong>
+          {" · "}{t("Block-bootstrap Mann–Kendall", "Mann–Kendall con bootstrap por bloques")} {pfull(selectedPeriod.p_block_bootstrap)} · {t("AR(1) regression", "Regresión AR(1)")} {pfull(selectedPeriod.p_arma)}
+          {" · "}<b>{({
+            both: t("both tests significant", "ambas pruebas significativas"),
+            one: t("only one test significant", "solo una prueba significativa"),
+            none: t("not significant", "no significativo"),
+            insufficient: t("too few valid months", "meses válidos insuficientes"),
+          })[selectedPeriod.result]}</b>. {t("The verdict above uses the full record.", "El veredicto de arriba usa la serie completa.")}
+        </p>}
       </div>}
     </section>}
     {checkAvailable && <Validation caseId={cf.id} detailsRef={extractionDetails} />}
@@ -272,8 +300,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
       <ExpertAudit cf={cf} />
       <details className="research-details">
         <summary>{t("Study area and mask", "Área de estudio y máscara")}</summary>
-        <p>{mask(cf.zone.id)}</p>
-        {comparison && <p>{mask("Z5")} {t("Alternate masks require a new analysis.", "Las máscaras alternativas requieren un nuevo análisis.")}</p>}
+        <p>{manifest.zones.find((zone) => zone.id === cf.zone.id)?.mask ?? mask(cf.zone.id)}</p>
+        {comparison && <p>{manifest.zones.find((zone) => zone.id === comparison.desert.zone)?.mask ?? mask(comparison.desert.zone)} {t("Alternate masks require a new analysis.", "Las máscaras alternativas requieren un nuevo análisis.")}</p>}
       </details>
     </>}
     {expert && <details className="research-details">
@@ -282,7 +310,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         "Descarga el caso publicado, los datos de entrada, las reglas de las máscaras geográficas, la configuración del motor y el programa en Python.")}</p>
       <button className="btn primary" disabled={exportState === "preparing"} onClick={() => {
         setExportState("preparing");
-        void downloadCase(cf, { generatedAt: manifest.generated_at, language, title }).then(() => setExportState("ready"), () => setExportState("error"));
+        void import("./reproduction").then(({ downloadCase }) => downloadCase(cf, { generatedAt: manifest.generated_at, language, title })).then(() => setExportState("ready"), () => setExportState("error"));
       }}>{t("Download evidence ZIP", "Descargar ZIP de evidencias")}</button>
       {exportState && <p className="small" role="status">{exportState === "preparing" ? t("Preparing…", "Preparando…") : exportState === "ready"
         ? t("Download ready.", "Descarga lista.") : t("Export failed. Try again.", "No se pudo exportar. Inténtalo de nuevo.")}</p>}

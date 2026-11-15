@@ -6,22 +6,33 @@
 From space, Ica's desert keeps getting greener. Its wells keep dropping. NASA's water satellites cannot see that drop
 at this scale, and a classic trend test would have fooled us twice. Oasis Paradox cross-examines three witnesses
 (greenness from space, water from space, wells in the field) with statistics that stay honest when each month
-resembles the last.
+resembles the last. A world aquifer atlas runs the same engine on eight irrigated aquifers to show where NASA's GRACE
+satellites can see an aquifer drain, and why they cannot in Ica.
 
 > Status: MVP. Zones are provisional boxes with satellite masks; numbers will be recomputed with the team's final polygons.
+
+## The five steps of the challenge, in the app
+
+| Challenge step | Where in Oasis Paradox |
+| --- | --- |
+| 1. Decide on the data variable(s) | Up to seven NASA witnesses per aquifer (GRACE, GLDAS, GPM IMERG, MODIS NDVI, ET and surface temperature, MERRA-2), each with a plain definition and data type |
+| 2. Choose a region | The globe and its search: eight irrigated aquifers; in Ica, fields, desert, headwaters and the water block |
+| 3. Select the time period | "Choose the time period" in every case file: any period of 10 years or more between 2004 and 2024 (precomputed in Python, `engine/periods.py`) |
+| 4. Create the time series and examine it | The monthly record with its trend line, annual sparklines, and the question "First look: does this series appear to have a trend?" before the verdict |
+| 5. Analyze the trend for significance | Mann-Kendall with a moving-block bootstrap and a regression with ARMA errors, 95% interval, windows, jackknife, controls, the false-alarm warning and the trend lab |
 
 ## What it answers
 
 | Challenge question | Where |
 | --- | --- |
 | What is changing? | Variable cards with plain definitions and data type (observed / modeled / estimated) |
-| Where? | Per-pixel NDVI trend map (MODIS, 250 m), zones and 87 field wells |
+| Where? | Per-pixel NDVI trend map (MODIS, 250 m), zones, 87 field wells, and a 3D globe of eight aquifers |
 | How much? | Theil-Sen slope per decade with a block-bootstrap 95% range |
 | Is it significant? | A verdict (confirmed / likely / inconclusive / insufficient data) with every criterion shown, next to what a classic test would have said |
 
 ## Current results (2004–2024, provisional zones)
 
-Generated from `web/public/data/manifest.json` (2026-11-14T21:01Z).
+Generated from `web/public/data/manifest.json` (2026-11-15T14:39Z).
 
 | Case | Verdict | Sen slope per decade | 95% range (block bootstrap) |
 | --- | --- | --- | --- |
@@ -47,18 +58,47 @@ Generated from `web/public/data/manifest.json` (2026-11-14T21:01Z).
 Monte Carlo (600 replicates, AR(1) noise with φ = 0.9, no trend): classic Mann-Kendall false-positive rate 66%;
 our consensus rule (block-bootstrap Mann-Kendall AND regression with AR errors) 7%.
 
+### World aquifer atlas (GRACE, GLDAS, IMERG; 2004–2024)
+
+| Aquifer | GRACE footprints covered | Total water (GRACE) | Groundwater (GLDAS) | Rain (IMERG) |
+| --- | --- | --- | --- | --- |
+| Ica-Villacurí, Peru | 0.03 | Confirmed, +1.4 mm/yr (+0.9 to +2.0) | Inconclusive, +0.2 mm/yr (-0.0 to +0.4) | Inconclusive |
+| Central Valley, California | 2.12 | Confirmed, -13.4 mm/yr (-19.0 to -8.3) | Inconclusive, -2.7 mm/yr (-5.5 to +0.1) | Inconclusive |
+| High Plains (Ogallala), United States | 10.21 | Likely, -5.5 mm/yr (-9.5 to -1.5) | Inconclusive, -2.1 mm/yr (-5.5 to +1.1) | Inconclusive |
+| Northwest India (Punjab, Haryana, Rajasthan) | 8.49 | Confirmed, -22.3 mm/yr (-26.3 to -18.1) | Confirmed, -4.4 mm/yr (-5.3 to -3.5) | Inconclusive |
+| North China Plain | 4.33 | Confirmed, -15.9 mm/yr (-20.6 to -11.3) | Confirmed, -7.2 mm/yr (-9.8 to -4.5) | Likely |
+| Arabian aquifer system (Saq), Saudi Arabia | 9.77 | Confirmed, -9.1 mm/yr (-9.9 to -8.3) | Confirmed, -1.1 mm/yr (-1.8 to -0.5) | Inconclusive |
+| Tigris-Euphrates basin | 10.38 | Confirmed, -8.7 mm/yr (-12.9 to -5.2) | Confirmed, -3.4 mm/yr (-5.5 to -1.6) | Inconclusive |
+| Guarani aquifer system, South America | 19.11 | Inconclusive, -2.2 mm/yr (-7.1 to +2.6) | Inconclusive, -3.2 mm/yr (-7.2 to +0.8) | Inconclusive |
+
+Boxes are approximate, not official aquifer boundaries; outside Ica only El Niño (ONI) is used as a control.
+Aquifers chosen from Richey et al. (2015) and Rodell et al. (2018).
+
 ## The app
 
-One build, three reading levels (switch in the top bar):
+The app shows the **Expert** level (team decision, 15 Nov 2026). The Explorer and Analyst levels and the Explorer
+field lab remain in the code for reference. The app does not display a reading-level selector.
 
-- **Explorer** (school students): a guided mission with Datron in five chapters, one screen each (lens, wells, coins, thermometers, quiz and badge). English by default; Spanish, Portuguese and French in the language menu.
-- **Analyst** and **Expert** (university students, scientists): seven full-screen views, one screen each, with tabs inside:
-  01 Verdict (hero) · 02 Evidence · 03 Investigate (detective desk, guided cases, all cases) · 04 Map · 05 Why (three witnesses, why GRACE misses it, water the crops use) · 06 Method (lab, engine, rule, validation, limits; Expert adds all six tests) · 07 Sources.
-  Arrow keys move between views. Expert shows every test, control and formula.
+- **Home: the world aquifer globe.** A large 3D globe on a MODIS mosaic over a black background, search by aquifer or
+  country, and satellite mini cards. Below: the aquifer comparison table and "Who it is for".
+- **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): Ica's landing view for
+  every aquifer (2004 outside the lens, 2024 inside; the lens tours the places where the surface changed most), the
+  reading, up to seven NASA witnesses with annual sparklines, and "Analyze" links that open each witness's case file, a
+  comparison with another aquifer, the trend lab and the sources. The bar's Detective desk and Compare open the
+  aquifer you were viewing. Each page also has Ica's tools: impact volumes (GRACE trend x area; crop
+  evapotranspiration x cropland), an evidence map (per-pixel greenness trend), cropland against natural land in the
+  same box (greenness and heat gaps, like Ica's fields against the desert) and guided cases.
+- **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
+  only aquifer with field wells.
+- **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.
+- **Detective desk:** pick a place and a NASA variable; each case file shows the verdict, the series, the false-alarm
+  warning, years to detect when unproven, and (Expert) windows, jackknife and a reproduction ZIP.
+- **Trend lab, Compare cases** and **Sources**; the Ica evidence map (per-pixel greenness trend and field wells) opens
+  from the Ica deep dive.
 
-Direct links (hash): `#evidence`, `#investigate`, `#map`, `#why`, `#method`, `#sources`; `#mission` opens the Explorer mission and `#mission-3` its chapter 3 (handy for recording the demo video).
+Direct links (hash): `#atlas` is on the home page; `#investigate?case=ZIN_tws_grace`, `#map`, `#method`, `#compare?left=ZW_tws_grace&right=ZC_tws_grace`, `#sources`.
 
-Python precomputes the evidence into `web/public/data/*.json`, and the browser draws it from those static files. In Detective desk, the optional Oasis assistant sends the conversation and a compact summary of the loaded case and active chart controls to `/api/chat`. The server adds the app manual.
+Python precomputes the evidence into `web/public/data/*.json`, and the browser draws it from those static files. Datron is available on the aquifer pages and research tools. It sends the conversation and a compact summary of the active screen to `/api/chat`. In Detective desk the summary includes the loaded case, selected period and chart controls. The server adds the app manual.
 
 ## How to run
 
@@ -95,7 +135,7 @@ To enable the assistant locally, copy `web/.env.example` to the ignored `web/.en
 2. In Vercel: **Add New… > Project > Import** the repository.
 3. **Root Directory: `web`**. Framework preset: Vite (detected). Build command `npm run build`, output `dist` (also set in `web/vercel.json`). Node.js 20.x.
 4. Set `GEMINI_API_KEY` in the Vercel Environment Variables for the deployments that should enable the assistant. It is read only by the server function. The science data and brand assets are served as static files.
-5. Deploy, then open the URL in a private window and check `#evidence`, `#investigate`, `#mission` and the language menu.
+5. Deploy, then open the URL in a private window and check the globe and the aquifer search on the home page, `#investigate` and `#sources`.
 6. Optional: request a FortiGuard Web Filter category for the new domain so judges' networks do not block it.
 
 Earth Engine and Earthdata credentials are never needed by the site and never go into the repository (`.netrc`, `.env` and keys are in `.gitignore`).
@@ -103,8 +143,8 @@ Earth Engine and Earthdata credentials are never needed by the site and never go
 ## Repository layout
 
 ```text
-config/        zones.geojson, verdict.yaml (pre-registered thresholds)
-pipeline/      Earth Engine extraction, climate indices, zones, map images, JUASVI parser
+config/        zones.geojson, comparison_zones.geojson (atlas), verdict.yaml (pre-registered thresholds)
+pipeline/      Earth Engine extraction, climate indices, zones, map images, yearly Landsat, world mosaic, aquifer close-ups and 2004/2024 pairs, JUASVI parser
 engine/        trend tests and the verdict rule (Python only)
 tests/         synthetic series with known slope
 scripts/       Monte Carlo simulation, build of the web data contract
@@ -116,7 +156,7 @@ web/           Vite + React + TypeScript app; public/data/ is the JSON contract
 
 ## Data
 
-See [REFERENCES.md](REFERENCES.md). NASA data at the core: MODIS MOD13Q1, MOD16A2GF and MOD11A2, MERRA-2, GLDAS-2.2, GRACE/GRACE-FO
+See [REFERENCES.md](REFERENCES.md). NASA data at the core: MODIS MOD13Q1, MOD16A2GF, MOD11A2 and MOD09CMG, MERRA-2, GLDAS-2.2, GRACE/GRACE-FO
 JPL mascons, GPM IMERG, Landsat, SRTM. Non-NASA support: NOAA CPC El Niño indices, WWF HydroBASINS, JUASVI well report.
 
 ## Use of AI

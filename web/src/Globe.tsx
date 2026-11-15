@@ -1,9 +1,8 @@
 // AI-assisted: Claude (Anthropic). A dependency-free 3D globe: orthographic projection of the MODIS world mosaic drawn
 // pixel by pixel on a canvas, with HTML markers on top (real buttons, so they are clickable and keyboard-friendly).
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { asset } from "./data";
 import { createGlobeGL } from "./globeGL";
-import { useLocale } from "./i18n";
 
 export interface GlobeMarker {
   id: string; lonlat: [number, number]; label: string; tone: "down" | "up" | "flat"; focus?: boolean;
@@ -24,25 +23,28 @@ function project(lon: number, lat: number, lon0: number, lat0: number) {
   return { x: Math.cos(p) * Math.sin(l - l0), y: Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l - l0), visible: cosc > 0.05 };
 }
 
-export function Globe({ markers, selection, onSelect, size = 520, label, autoRotate = false, initialView }: {
-  markers: GlobeMarker[]; selection: { id: string }; onSelect: (id: string) => void; size?: number; label: string;
+export function Globe({ markers, selected, onSelect, size = 520, label, callout, autoRotate = false }: {
+  markers: GlobeMarker[]; selected: string | null; onSelect: (id: string) => void; size?: number; label: string;
+  callout?: ReactNode;   // card that pops out of the globe, tied to the selected marker by a leader line
   autoRotate?: boolean;  // spin slowly on its own; pauses while dragged or after a pick
-  initialView?: { lon: number; lat: number };
 }) {
-  const { t } = useLocale();
-  const lastSelection = useRef(selection);
+  const stage = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const leader = useRef<SVGLineElement>(null);
+  const dot = useRef<SVGCircleElement>(null);
+  const lastSelected = useRef(selected);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const idleUntil = useRef(0);
+  const hovering = useRef(false);   // mouse over the globe or keyboard focus inside it
   const canvas = useRef<HTMLCanvasElement>(null);
-  const fallbackCanvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
   const view = useRef({ lon: 0, lat: 0 });
   const anim = useRef<{ from: [number, number]; to: [number, number]; t0: number; dur: number } | null>(null);
   const drag = useRef<{ x: number; y: number; lon: number; lat: number } | null>(null);
   const pins = useRef<Record<string, HTMLButtonElement | null>>({});
   const [ready, setReady] = useState(false);
-  const [textureError, setTextureError] = useState(false);
-  const focus = markers.find((m) => m.id === selection.id) ?? markers.find((m) => m.focus) ?? markers[0];
+  const focus = markers.find((m) => m.id === selected) ?? markers.find((m) => m.focus) ?? markers[0];
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const flyTo = (lon: number, lat: number, dur = 1400) => {
@@ -57,37 +59,30 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
   useEffect(() => {
     const img = new Image();
     img.onload = () => { imgRef.current = img; setReady(true); };
-    img.onerror = () => setTextureError(true);
     img.src = asset("img/world_modis.jpg");
-    if (initialView) {
-      view.current = initialView;
-    } else if (autoRotate) {
+    if (autoRotate) {
       view.current = { lon: focus ? focus.lonlat[0] : 0, lat: 22 };   // tilted north so the Arctic and the curvature show
     } else if (focus) {
       view.current = { lon: focus.lonlat[0] + (reduced ? 0 : 140), lat: reduced ? focus.lonlat[1] : 10 };
       if (!reduced) anim.current = { from: [view.current.lon, view.current.lat], to: [focus.lonlat[0], Math.max(-55, focus.lonlat[1])], t0: performance.now() + 400, dur: 3600 };
     }
-    return () => { img.onload = null; img.onerror = null; };
   }, []);
 
   useEffect(() => {
-    if (lastSelection.current === selection) return;
-    lastSelection.current = selection;
-    const m = markers.find((x) => x.id === selection.id);
+    if (lastSelected.current === selected) return;   // mount (also React's double mount in dev): no flight
+    lastSelected.current = selected;
+    const m = markers.find((x) => x.id === selected);
     if (m) { flyTo(m.lonlat[0], m.lonlat[1]); idleUntil.current = performance.now() + 8000; }
-  }, [selection]);
+  }, [selected]);
 
   // Render loop: only redraws while the view changes.
   useEffect(() => {
     if (!ready) return;
-    const gpuCanvas = canvas.current!, cpuCanvas = fallbackCanvas.current!;
+    const cv = canvas.current!;
     // GPU first (sharp, 60 frames a second); the canvas-2D renderer below is the fallback.
     const dprGL = Math.min(window.devicePixelRatio || 1, 2);
-    gpuCanvas.width = gpuCanvas.height = Math.min(2048, Math.round(size * dprGL));
-    const glr = createGlobeGL(gpuCanvas, imgRef.current!);
-    gpuCanvas.hidden = !glr;
-    cpuCanvas.hidden = !!glr;
-    const cv = glr ? gpuCanvas : cpuCanvas;
+    cv.width = cv.height = Math.min(2048, Math.round(size * dprGL));
+    const glr = createGlobeGL(cv, imgRef.current!);
     cv.dataset.renderer = glr ? "webgl2" : "canvas2d";
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const N = glr ? cv.width : Math.min(1300, Math.round(size * dpr));
@@ -106,10 +101,11 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
     let lastT = performance.now(), lastSpin = 0;
     const draw = () => {
       const now = performance.now(), dtS = Math.min(0.1, (now - lastT) / 1000); lastT = now;
-      // Slow spin, west to east as seen from space (about 6 degrees a second): every frame on the GPU, ~20 a second on the CPU.
-      const spinning = autoRotate && !reduced && !anim.current && !drag.current && now > idleUntil.current;
+      // Slow spin, west to east as seen from space (about 4 degrees a second): every frame on the GPU, ~20 a second on the CPU.
+      // Never spin under the pointer: a moving target cannot be clicked.
+      const spinning = autoRotate && !reduced && !anim.current && !drag.current && !hovering.current && now > idleUntil.current;
       if (spinning && (glr || now - lastSpin > 50)) {
-        view.current = { lon: view.current.lon - 6 * Math.max(dtS, Math.min(0.2, (now - lastSpin) / 1000)), lat: view.current.lat };
+        view.current = { lon: view.current.lon - 4 * Math.max(dtS, Math.min(0.2, (now - lastSpin) / 1000)), lat: view.current.lat };
         lastSpin = now;
       } else if (!spinning) lastSpin = now;
       const a = anim.current;
@@ -166,11 +162,31 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
           el.tabIndex = p.visible ? 0 : -1;
         }
       }
+      // Leader line from the selected marker to the pop-out card, in stage coordinates.
+      const st = stage.current, bx = box.current, cd = card.current, ln = leader.current, dt = dot.current;
+      const sm = markers.find((x) => x.id === selected);
+      if (st && bx && ln && dt) {
+        const p = sm ? project(sm.lonlat[0], sm.lonlat[1], view.current.lon, view.current.lat) : null;
+        const show = !!(p && p.visible && cd && cd.offsetParent && getComputedStyle(cd).position === "absolute");
+        ln.style.display = dt.style.display = show ? "" : "none";
+        if (show && p && cd) {
+          const s = st.getBoundingClientRect(), c = cd.getBoundingClientRect();
+          const pin = pins.current[sm!.id]?.querySelector(".globe-dot")?.getBoundingClientRect();
+          const b = bx.getBoundingClientRect();
+          const mx = pin ? pin.left + pin.width / 2 - s.left : b.left - s.left + (0.5 + p.x * 0.496) * b.width;
+          const my = pin ? pin.top + pin.height / 2 - s.top : b.top - s.top + (0.5 - p.y * 0.496) * b.height;
+          const left = c.left - s.left > mx;
+          const cx2 = left ? c.left - s.left : c.right - s.left, cy2 = c.top - s.top + Math.min(70, c.height / 2);
+          ln.setAttribute("x1", String(mx)); ln.setAttribute("y1", String(my));
+          ln.setAttribute("x2", String(cx2)); ln.setAttribute("y2", String(cy2));
+          dt.setAttribute("cx", String(cx2)); dt.setAttribute("cy", String(cy2));
+        }
+      }
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); glr?.dispose(); };
-  }, [ready, size, markers]);
+  }, [ready, size, markers, selected]);
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("button")) return;
@@ -179,8 +195,9 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "mouse") hovering.current = true;   // also when the pointer was already here (after the welcome)
     const s = drag.current; if (!s) return;
-    const k = 180 / e.currentTarget.clientWidth;
+    const k = 180 / size;
     view.current = { lon: s.lon - (e.clientX - s.x) * k, lat: Math.max(-55, Math.min(55, s.lat + (e.clientY - s.y) * k)) };
   };
   const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -190,26 +207,21 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
     flyTo(view.current.lon + s[0], view.current.lat + s[1], 500);
   };
 
-  const stopDrag = () => {
-    drag.current = null;
-    idleUntil.current = performance.now() + 4000;
-  };
-
   return (
-    <div className="globe-stage">
-    <div className="globe" style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={stopDrag} onPointerCancel={stopDrag} onKeyDown={onKey}>
+    <div className="globe-stage" ref={stage}>
+    <div className="globe" ref={box} style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; idleUntil.current = performance.now() + 4000; }} onKeyDown={onKey}
+      onPointerEnter={(e) => { if (e.pointerType === "mouse") hovering.current = true; }}
+      onPointerLeave={() => { hovering.current = false; idleUntil.current = Math.max(idleUntil.current, performance.now() + 2000); }}
+      onFocus={() => { hovering.current = true; }} onBlur={() => { hovering.current = false; }}>
       <div className="globe-halo" aria-hidden="true" />
       <canvas ref={canvas} className="globe-canvas" aria-hidden="true" />
-      <canvas ref={fallbackCanvas} className="globe-canvas" hidden aria-hidden="true" />
-      {!ready && <p className="globe-loading" role="status">{textureError
-        ? t("Could not load the MODIS mosaic.", "No se pudo cargar el mosaico de MODIS.")
-        : t("Loading MODIS mosaic…", "Cargando el mosaico de MODIS…")}</p>}
+      {!ready && <p className="globe-loading">Loading MODIS mosaic…</p>}
       {ready && markers.map((m) => {
         return <button key={m.id} type="button" ref={(el) => { pins.current[m.id] = el; }}
-          className={`globe-pin ${m.tone} ${m.focus ? "focus" : ""} ${selection.id === m.id ? "on" : ""}`}
+          className={`globe-pin ${m.tone} ${m.focus ? "focus" : ""} ${selected === m.id ? "on" : ""}`}
           style={{ visibility: "hidden" }} onClick={() => onSelect(m.id)}
-          aria-pressed={selection.id === m.id} aria-label={m.label}>
+          aria-pressed={selected === m.id} aria-label={m.label}>
           <span className="globe-dot" aria-hidden="true">{m.tone === "down" ? "↓" : m.tone === "up" ? "↑" : "?"}</span>
           {m.thumb ? (() => {
             const [dx, dy] = OFFSET[m.dir ?? "ne"];
@@ -217,7 +229,7 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
             return <>
               <span className="globe-stem" aria-hidden="true" style={{ width: len, transform: `rotate(${ang}deg)` }} />
               <span className={`globe-mini ${m.dir ?? "ne"}`} aria-hidden="true" style={{ left: `calc(50% + ${dx}px)`, top: `calc(50% + ${dy}px)` }}>
-                <img src={m.thumb} alt="" />
+                <img src={m.thumb} alt="" loading="lazy" />
                 <span className="globe-mini-text"><b>{m.label}</b>{m.value && <i>{m.value}</i>}</span>
               </span>
             </>;
@@ -225,6 +237,8 @@ export function Globe({ markers, selection, onSelect, size = 520, label, autoRot
         </button>;
       })}
     </div>
+    <svg className="globe-leader" aria-hidden="true"><line ref={leader} /><circle ref={dot} r="4" /></svg>
+    {callout && <div className="globe-callout" ref={card}>{callout}</div>}
     </div>
   );
 }

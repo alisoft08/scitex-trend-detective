@@ -13,7 +13,16 @@ export const LEVELS: { id: Level; name: Translation; promise: Translation }[] = 
 // Start existing browsers on the new default too: the old key stored Explorer automatically.
 const KEY = "oasis-paradox-level-v2";
 
+/** Team decision (15 Nov 2026): the app shows the Expert level only. Explorer and Analyst stay in the code, hidden;
+ *  set EXPERT_ONLY to false to bring the level switch back. */
+export const EXPERT_ONLY = true;
+
 export function useLevel(): [Level, (l: Level) => void] {
+  if (EXPERT_ONLY) return ["expert", () => undefined];
+  return useStoredLevel();
+}
+
+function useStoredLevel(): [Level, (l: Level) => void] {
   const [level, setLevel] = useState<Level>(() => {
     try {
       const v = localStorage.getItem(KEY);

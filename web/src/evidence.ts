@@ -11,11 +11,15 @@ export const PLACES: Record<string, Translation> = {
 };
 
 const verdicts: Record<Verdict, Translation> = {
-  confirmed: ["Strong evidence", "Evidencia sólida"],
-  likely: ["Suggestive evidence", "Indicios de tendencia"],
+  confirmed: ["Confirmed trend", "Tendencia confirmada"],
+  likely: ["Likely trend", "Tendencia probable"],
   inconclusive: ["Inconclusive", "No concluyente"],
   insufficient_data: ["Insufficient data", "Datos insuficientes"],
 };
+
+export const EVIDENCE_TEXT = {
+  confirmed: "Confirmed trend", likely: "Likely trend", inconclusive: "Inconclusive", insufficient_data: "Insufficient data",
+} satisfies Record<Verdict, string>;
 
 export const verdictLabel = (language: Language, verdict: Verdict) => translate(language, ...verdicts[verdict]);
 
@@ -98,7 +102,7 @@ export function useEvidence() {
     return entry ? t(...(compact ? entry.short : entry.name)) : fallback;
   };
   const caseTitle = (variable: string, zone: string, fallback: string) => variable.endsWith("_contrast")
-    ? t(`${variableName(variable)}: ${zoneName(zone)} minus desert`, `${variableName(variable)}: ${zoneName(zone)} menos el desierto`)
+    ? (!PLACES[zone] ? fallback : t(`${variableName(variable)}: ${zoneName(zone)} minus desert`, `${variableName(variable)}: ${zoneName(zone)} menos el desierto`))
     : variableName(variable, fallback);
   const caseUnits = (units: string) => units
     .replace("NDVI units", "NDVI").replace("standard deviations", t("SD", "DE"))
@@ -111,6 +115,7 @@ export function useEvidence() {
   const dataKind = (cf: CaseFile) => cf.kind === "contrast" ? t("Derived from observations", "Derivado de observaciones")
     : cf.variable === "t2m" ? t("Reanalysis", "Reanálisis") : t(...types[cf.data_type]);
   const describes = (cf: CaseFile) => {
+    if (!PLACES[cf.zone.id]) return [cf.definition, cf.notes.join(" ")];
     if (cf.kind === "contrast") return [
       t("Field minus desert reference, after standardizing each series by calendar month.", "Diferencia entre el campo y el desierto de referencia tras estandarizar cada serie por mes calendario."),
       t("Vegetation data define the masks. The trend describes how the gap changed in the selected areas.", "Los datos de vegetación definen las máscaras. La tendencia describe cómo cambió la brecha en las áreas seleccionadas."),
@@ -119,6 +124,7 @@ export function useEvidence() {
     return entry ? [t(...entry.description), t(...entry.limit)] : [cf.definition, ""];
   };
   const resolution = (cf: CaseFile) => {
+    if (!PLACES[cf.zone.id]) return cf.source.resolution;
     const entry = VARIABLES[baseVariable(cf.variable)];
     return entry ? t(...entry.resolution) : cf.source.resolution;
   };

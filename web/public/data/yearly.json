@@ -1,0 +1,184 @@
+{
+  "bbox": [
+    -76.45,
+    -14.4,
+    -75.25,
+    -13.72
+  ],
+  "years": [
+    2004,
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "images": {
+    "2004": {
+      "file": "img/years/landsat_2004.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2005": {
+      "file": "img/years/landsat_2005.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2006": {
+      "file": "img/years/landsat_2006.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2007": {
+      "file": "img/years/landsat_2007.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2008": {
+      "file": "img/years/landsat_2008.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2009": {
+      "file": "img/years/landsat_2009.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2010": {
+      "file": "img/years/landsat_2010.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2011": {
+      "file": "img/years/landsat_2011.jpg",
+      "sensor": "Landsat 5 TM"
+    },
+    "2012": {
+      "file": "img/years/landsat_2012.jpg",
+      "sensor": "Landsat 7 ETM+"
+    },
+    "2013": {
+      "file": "img/years/landsat_2013.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2014": {
+      "file": "img/years/landsat_2014.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2015": {
+      "file": "img/years/landsat_2015.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2016": {
+      "file": "img/years/landsat_2016.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2017": {
+      "file": "img/years/landsat_2017.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2018": {
+      "file": "img/years/landsat_2018.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2019": {
+      "file": "img/years/landsat_2019.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2020": {
+      "file": "img/years/landsat_2020.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2021": {
+      "file": "img/years/landsat_2021.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2022": {
+      "file": "img/years/landsat_2022.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2023": {
+      "file": "img/years/landsat_2023.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    },
+    "2024": {
+      "file": "img/years/landsat_2024.jpg",
+      "sensor": "Landsat 8/9 OLI"
+    }
+  },
+  "green_km2": {
+    "Z1": [
+      286.9,
+      294.3,
+      326.0,
+      320.5,
+      333.2,
+      320.2,
+      311.2,
+      334.9,
+      343.3,
+      332.4,
+      329.4,
+      331.6,
+      296.2,
+      330.7,
+      328.6,
+      331.4,
+      340.3,
+      358.7,
+      342.9,
+      357.2,
+      340.4
+    ],
+    "Z2": [
+      34.6,
+      42.7,
+      54.1,
+      56.2,
+      69.2,
+      79.1,
+      82.9,
+      89.9,
+      88.7,
+      90.0,
+      97.2,
+      93.6,
+      95.7,
+      104.3,
+      106.1,
+      110.8,
+      112.7,
+      119.0,
+      116.8,
+      119.9,
+      119.9
+    ]
+  },
+  "method": "MODIS MOD13Q1 v6.1 annual peak NDVI > 0.4 inside the zone box; area at 250 m.",
+  "picture": "Landsat Collection 2 Level-2 yearly median, true color (Landsat 5 TM 2004-2011, Landsat 7 ETM+ 2012, Landsat 8/9 OLI 2013-2024).",
+  "region": {
+    "file": "img/region_relief.jpg",
+    "bbox": [
+      -80.0,
+      -18.0,
+      -72.0,
+      -10.0
+    ],
+    "source": "SRTM 30 m hillshade (NASA/NGA)"
+  },
+  "grace_cell": {
+    "center": [
+      -75.85,
+      -14.12
+    ],
+    "size_deg": 3.0
+  }
+}

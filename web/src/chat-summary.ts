@@ -2,7 +2,7 @@
 import type { ChatContext } from "./chat-contract";
 import type { CaseFile } from "./types";
 
-type Controls = Pick<ChatContext, "userLevel" | "chartMode" | "sensitivityWindow" | "hoveredPoint" | "language">;
+type Controls = Pick<ChatContext, "userLevel" | "chartMode" | "sensitivityWindow" | "selectedPeriod" | "referenceArea" | "hoveredPoint" | "language">;
 type Labels = Pick<ChatContext, "studyArea" | "nasaVariable"> & { unit: string; slopeUnit: string };
 
 export function summarizeCase(cf: CaseFile, controls: Controls, labels: Labels): ChatContext {
