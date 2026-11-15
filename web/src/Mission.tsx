@@ -16,7 +16,7 @@ function Guide({ pose, text, lang }: { pose: string; text: string; lang: Lang })
   const t = DICTS[lang].m;
   return (
     <div className="ms-guide">
-      <div className="ms-guide-img"><img src={brandAsset(pose)} alt="Datron" /><span className="ms-ai">{t.ai}</span></div>
+      <div className="ms-guide-img"><img src={brandAsset(pose)} alt={`Datron (${t.ai})`} /></div>
       <div className="ms-bubble"><p>{text}</p><span>{t.datron}</span></div>
     </div>
   );
