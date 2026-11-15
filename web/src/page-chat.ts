@@ -8,7 +8,7 @@ const TITLES: Record<ChatPage, Translation> = {
   aquifer: ["Aquifer", "Acuífero"],
   ica: ["Ica deep dive", "Análisis de Ica"],
   map: ["Evidence map", "Mapa de evidencias"],
-  method: ["Trend lab", "Laboratorio de tendencias"],
+  method: ["Test the tests", "Pon a prueba las pruebas"],
   compare: ["Compare cases", "Comparar casos"],
   sources: ["Sources", "Fuentes"],
 };

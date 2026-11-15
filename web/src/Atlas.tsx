@@ -165,7 +165,7 @@ export function Atlas({ m, onCase, onIca, onPick, onOpen }: {
       <Globe markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
           label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; or search below." />
       <nav className="atlas-links atlas-topnav" aria-label="Tools for every aquifer">
-        <a href="#investigate">Detective desk</a><a href="#method">Trend lab</a><a href="#compare">Compare</a><a href="#sources">Sources</a>
+        <a href="#investigate">Detective desk</a><a href="#method">Test the tests</a><a href="#sources">Sources</a>
       </nav>
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">

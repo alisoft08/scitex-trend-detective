@@ -24,7 +24,7 @@ const VIEWS = [
   { id: "ica", label: "Ica deep dive" },
   { id: "investigate", label: "Detective desk" },
   { id: "map", label: "Ica evidence map" },          // reached from the Ica deep dive, not shown in the bar
-  { id: "method", label: "Trend lab" },
+  { id: "method", label: "Test the tests" },
   { id: "compare", label: "Compare cases" },
   { id: "sources", label: "Sources" },
 ] as const;
@@ -91,7 +91,8 @@ export default function App() {
   const a = route.params.get("left"), b = route.params.get("right");
   const pair: readonly [string, string] = a && b && a !== b && manifest?.cases.some((c) => c.id === a) && manifest.cases.some((c) => c.id === b)
     ? [a, b] : lastPair;
-  const visible = VIEWS.filter((v) => v.id !== "map" && v.id !== "ica");
+  // Compare stays reachable from each aquifer page; the bar keeps the three tools that carry the purpose.
+  const visible = VIEWS.filter((v) => v.id !== "map" && v.id !== "ica" && v.id !== "compare");
   const isAquifer = view === "aquifer";
   const isHome = !VIEWS.some((v) => v.id === view) && !isAquifer;
   // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
@@ -111,7 +112,7 @@ export default function App() {
               {t("Globe", "Globo")}
             </a>
             {visible.map((v) => (
-              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : v.id === "compare" ? pairLink(lastPair) : `#${v.id}`}
+              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : `#${v.id}`}
                 className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{v.label}</a>
             ))}
           </nav>
