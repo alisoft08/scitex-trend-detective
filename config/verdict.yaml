@@ -1,0 +1,15 @@
+# Pre-registered verdict thresholds (Oasis Paradox).
+# Fixed BEFORE running the engine on real data. Any later change goes to DECISIONS.md.
+alpha: 0.05
+alpha_weak: 0.10
+min_valid_fraction: 0.80
+min_years: 15
+block_length_months: 36
+bootstrap_reps: 999
+window_starts: [2004, 2005, 2006]
+window_ends: [2022, 2023, 2024]
+windows_min_significant: 7        # out of 9, all 9 must share the sign
+jackknife_min_significant: 19     # out of 21 leave-one-year-out fits
+arma_orders: [[1, 0, 0], [2, 0, 0], [1, 0, 1]]
+enso_lags_months: [0, 2, 4, 6]
+fdr_q: 0.10

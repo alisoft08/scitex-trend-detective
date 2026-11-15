@@ -1,0 +1,28 @@
+.venv/
+__pycache__/
+.pytest_cache/
+data/raw/
+.netrc
+.env
+*.json.key
+credentials
+web/node_modules/
+web/dist/
+.DS_Store
+
+# validation downloads (large or session-specific); the small CSVs are kept
+validation/raw/appeears/
+validation/raw/*.log
+validation/raw/appeears_task.txt
+
+# single-file build for sharing (regenerate with scripts/build_standalone.py)
+share/
+
+# build caches and logs
+web/tsconfig.tsbuildinfo
+*.log
+# Codex draft images: only the prompts are kept here; the images used live in web/public/brand
+brand-drafts/**/*.png
+
+# Vercel CLI link (local)
+.vercel

@@ -1,0 +1,507 @@
+{
+  "project": "Oasis Paradox",
+  "tagline": "What satellites can and cannot see",
+  "generated_at": "2026-11-14T21:01Z",
+  "period": "2004-01/2024-12",
+  "zones": [
+    {
+      "id": "Z1",
+      "name": "Ica Valley",
+      "role": "irrigated",
+      "description": "Long-established irrigated valley floor of the Ica River.",
+      "mask": "cropland (annual max NDVI > 0.4 in any year 2020-2024)"
+    },
+    {
+      "id": "Z2",
+      "name": "Villacur\u00ed plains",
+      "role": "irrigated",
+      "description": "Desert plains north-west of Ica, irrigated mostly with groundwater.",
+      "mask": "cropland (annual max NDVI > 0.4 in any year 2020-2024)"
+    },
+    {
+      "id": "Z5",
+      "name": "Desert control",
+      "role": "control",
+      "description": "Hyper-arid desert with no irrigation, used to remove the shared climate signal.",
+      "mask": "never-green desert (annual max NDVI < 0.12 every year 2004-2024)"
+    },
+    {
+      "id": "ZW",
+      "name": "Ica-Villacur\u00ed water block",
+      "role": "water_block",
+      "description": "Both irrigated zones together; the smallest area coarse water products can speak to.",
+      "mask": "none (whole box)"
+    },
+    {
+      "id": "Z4",
+      "name": "Upper Ica basin",
+      "role": "climate_control",
+      "description": "Andean headwaters (above 2,500 m) where the rain that recharges the aquifer falls.",
+      "mask": "elevation above 2,500 m (SRTM) inside the HydroBASINS level-7 Ica basin"
+    }
+  ],
+  "cases": [
+    {
+      "id": "Z2_ndvi",
+      "path": "cases/Z2_ndvi.json",
+      "kind": "case",
+      "zone": "Z2",
+      "zone_name": "Villacur\u00ed plains",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.130197,
+      "ci95": [
+        0.12366,
+        0.136166
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "Z1_ndvi",
+      "path": "cases/Z1_ndvi.json",
+      "kind": "case",
+      "zone": "Z1",
+      "zone_name": "Ica Valley",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.035316,
+      "ci95": [
+        0.02891,
+        0.041853
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "Z5_ndvi",
+      "path": "cases/Z5_ndvi.json",
+      "kind": "case",
+      "zone": "Z5",
+      "zone_name": "Desert control",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": 0.001117,
+      "ci95": [
+        0.000449,
+        0.001793
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "Z2_et",
+      "path": "cases/Z2_et.json",
+      "kind": "case",
+      "zone": "Z2",
+      "zone_name": "Villacur\u00ed plains",
+      "variable": "et",
+      "label": "Water use by crops and soil (evapotranspiration)",
+      "short": "Water use (ET)",
+      "witness": "greenness",
+      "data_type": "estimated",
+      "verdict": "likely",
+      "sen_per_decade": 4.467741,
+      "ci95": [
+        2.077493,
+        6.842467
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "Z1_et",
+      "path": "cases/Z1_et.json",
+      "kind": "case",
+      "zone": "Z1",
+      "zone_name": "Ica Valley",
+      "variable": "et",
+      "label": "Water use by crops and soil (evapotranspiration)",
+      "short": "Water use (ET)",
+      "witness": "greenness",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.686702,
+      "ci95": [
+        -1.45896,
+        2.935604
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZW_gws",
+      "path": "cases/ZW_gws.json",
+      "kind": "case",
+      "zone": "ZW",
+      "zone_name": "Ica-Villacur\u00ed water block",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "inconclusive",
+      "sen_per_decade": 1.664652,
+      "ci95": [
+        -0.047732,
+        3.544095
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZW_tws_grace",
+      "path": "cases/ZW_tws_grace.json",
+      "kind": "case",
+      "zone": "ZW",
+      "zone_name": "Ica-Villacur\u00ed water block",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 14.205198,
+      "ci95": [
+        8.719854,
+        19.553387
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "Z4_precip",
+      "path": "cases/Z4_precip.json",
+      "kind": "case",
+      "zone": "Z4",
+      "zone_name": "Upper Ica basin",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.650206,
+      "ci95": [
+        -2.034699,
+        0.66902
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "Z2_lst",
+      "path": "cases/Z2_lst.json",
+      "kind": "case",
+      "zone": "Z2",
+      "zone_name": "Villacur\u00ed plains",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -2.275209,
+      "ci95": [
+        -2.789974,
+        -1.850781
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "Z1_lst",
+      "path": "cases/Z1_lst.json",
+      "kind": "case",
+      "zone": "Z1",
+      "zone_name": "Ica Valley",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.5329,
+      "ci95": [
+        -1.124695,
+        0.023327
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "Z5_lst",
+      "path": "cases/Z5_lst.json",
+      "kind": "case",
+      "zone": "Z5",
+      "zone_name": "Desert control",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.123501,
+      "ci95": [
+        -0.574167,
+        0.322987
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZW_t2m",
+      "path": "cases/ZW_t2m.json",
+      "kind": "case",
+      "zone": "ZW",
+      "zone_name": "Ica-Villacur\u00ed water block",
+      "variable": "t2m",
+      "label": "Air temperature at 2 m (reanalysis)",
+      "short": "Air temperature",
+      "witness": "climate",
+      "data_type": "modeled",
+      "verdict": "likely",
+      "sen_per_decade": 0.437727,
+      "ci95": [
+        0.224533,
+        0.669719
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "Z4_t2m",
+      "path": "cases/Z4_t2m.json",
+      "kind": "case",
+      "zone": "Z4",
+      "zone_name": "Upper Ica basin",
+      "variable": "t2m",
+      "label": "Air temperature at 2 m (reanalysis)",
+      "short": "Air temperature",
+      "witness": "climate",
+      "data_type": "modeled",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.479489,
+      "ci95": [
+        0.281757,
+        0.678841
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "Z2_vs_Z5_ndvi",
+      "path": "contrasts/Z2_vs_Z5_ndvi.json",
+      "kind": "contrast",
+      "zone": "Z2",
+      "zone_name": "Villacur\u00ed plains",
+      "variable": "ndvi_contrast",
+      "label": "Greenness gap: Villacur\u00ed plains minus desert",
+      "short": "Greenness gap",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.947461,
+      "ci95": [
+        0.61261,
+        1.262877
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "Z1_vs_Z5_ndvi",
+      "path": "contrasts/Z1_vs_Z5_ndvi.json",
+      "kind": "contrast",
+      "zone": "Z1",
+      "zone_name": "Ica Valley",
+      "variable": "ndvi_contrast",
+      "label": "Greenness gap: Ica Valley minus desert",
+      "short": "Greenness gap",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": 0.620125,
+      "ci95": [
+        0.306988,
+        0.948494
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "Z2_vs_Z5_lst",
+      "path": "contrasts/Z2_vs_Z5_lst.json",
+      "kind": "contrast",
+      "zone": "Z2",
+      "zone_name": "Villacur\u00ed plains",
+      "variable": "lst_contrast",
+      "label": "Heat gap: Villacur\u00ed plains minus desert",
+      "short": "Heat gap",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -0.967529,
+      "ci95": [
+        -1.112522,
+        -0.817908
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "Z1_vs_Z5_lst",
+      "path": "contrasts/Z1_vs_Z5_lst.json",
+      "kind": "contrast",
+      "zone": "Z1",
+      "zone_name": "Ica Valley",
+      "variable": "lst_contrast",
+      "label": "Heat gap: Ica Valley minus desert",
+      "short": "Heat gap",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -0.336634,
+      "ci95": [
+        -0.510039,
+        -0.176969
+      ],
+      "units": "standard deviations"
+    }
+  ],
+  "wells": {
+    "n": 87,
+    "median_rate_m_per_yr": -0.24,
+    "mean_rate_m_per_yr": -0.196,
+    "share_falling": 0.69,
+    "by_zone": [
+      {
+        "juasvi_zone": "I",
+        "n": 26,
+        "mean_rate_m_per_yr": -0.55,
+        "median_rate_m_per_yr": -0.59,
+        "share_falling": 1.0
+      },
+      {
+        "juasvi_zone": "II",
+        "n": 30,
+        "mean_rate_m_per_yr": -0.281,
+        "median_rate_m_per_yr": -0.32,
+        "share_falling": 0.767
+      },
+      {
+        "juasvi_zone": "III",
+        "n": 25,
+        "mean_rate_m_per_yr": 0.073,
+        "median_rate_m_per_yr": 0.02,
+        "share_falling": 0.44
+      },
+      {
+        "juasvi_zone": "IV",
+        "n": 6,
+        "mean_rate_m_per_yr": 0.638,
+        "median_rate_m_per_yr": 0.585,
+        "share_falling": 0.0
+      }
+    ],
+    "period": "2010-2025 (start year varies by well)",
+    "note": "Each rate compares the first and last static level of a well; there is no monthly series, so no significance test is run on wells."
+  },
+  "impact": {
+    "overdraft_m3_per_yr": 286000000.0,
+    "overdraft_source": "Salmoral et al. (2020), Reconciling irrigation demands for agricultural expansion with environmental sustainability: A preliminary assessment for the Ica Valley, Peru. Journal of Cleaner Production 276, 123544, doi:10.1016/j.jclepro.2020.123544",
+    "olympic_pools_per_yr": 114400.0,
+    "grace_footprint_km2": 108000.0,
+    "irrigated_area_km2": 557,
+    "irrigated_area_note": "Cropland pixels (yearly peak NDVI > 0.4 in 2020-2024) inside the Ica Valley and Villacur\u00ed zones.",
+    "et_volume": [
+      {
+        "zone": "Z2",
+        "zone_name": "Villacur\u00ed plains",
+        "verdict": "likely",
+        "cropland_km2": 151.3,
+        "et_mm_2004_2008": 488,
+        "et_mm_2020_2024": 587,
+        "mm3_2004_2008": 73.8,
+        "mm3_2020_2024": 88.8,
+        "change_mm_per_yr": 112,
+        "change_mm3_per_yr": 17.0,
+        "change_mm3_ci95": [
+          7.9,
+          26.0
+        ]
+      },
+      {
+        "zone": "Z1",
+        "zone_name": "Ica Valley",
+        "verdict": "inconclusive",
+        "cropland_km2": 405.7,
+        "et_mm_2004_2008": 553,
+        "et_mm_2020_2024": 586,
+        "mm3_2004_2008": 224.2,
+        "mm3_2020_2024": 237.7,
+        "change_mm_per_yr": 17,
+        "change_mm3_per_yr": 7.0,
+        "change_mm3_ci95": [
+          -14.9,
+          29.9
+        ]
+      }
+    ],
+    "et_note": "MODIS MOD16A2GF evapotranspiration times cropland area. Rain is close to zero here, so this is water supplied by irrigation (groundwater and, in the Ica Valley, also river water). MOD16 tends to underestimate ET on irrigated fields, so these volumes are lower bounds.",
+    "signal_mm_per_yr": 2.64,
+    "grace_observed_mm_per_yr": 1.42,
+    "implied_other_gain_mm_per_yr": 4.1,
+    "footprint_to_irrigated": 194,
+    "gldas_cell_km2": 751,
+    "grace_noise_sd_mm": 11.1,
+    "grace_phi": 0.93,
+    "grace_years_to_detect": 17,
+    "grace_years_available": 21,
+    "gldas_phi": 0.86,
+    "gldas_n": 252,
+    "gldas_n_eff": 19.0,
+    "zone_i_m_per_decade": -5.5,
+    "note": "Detection time from Weatherhead et al. (1998) with GRACE's own noise and memory, assuming the overdraft were the only change. A rough lower bound, not a forecast."
+  },
+  "files": {
+    "zones": "zones.geojson",
+    "wells": "wells.geojson",
+    "map": "map.json",
+    "simulation": "simulation.json",
+    "witnesses": "witnesses.json"
+  },
+  "verdict_labels": {
+    "confirmed": "Confirmed trend",
+    "likely": "Likely trend",
+    "inconclusive": "Inconclusive",
+    "insufficient_data": "Insufficient data"
+  },
+  "demo_cases": [
+    {
+      "id": "greening",
+      "title": "The greening desert",
+      "case": "Z2_ndvi",
+      "contrast": "Z2_vs_Z5_ndvi",
+      "text": "Villacur\u00ed's desert plains turned green as irrigated fields spread. Is the trend real, and is it irrigation or just a few rainy years?"
+    },
+    {
+      "id": "invisible-drop",
+      "title": "The invisible drop",
+      "cases": [
+        "ZW_tws_grace",
+        "ZW_gws"
+      ],
+      "text": "Wells in the Ica valley keep dropping. Can NASA's water satellites see it from space?"
+    },
+    {
+      "id": "cooling",
+      "title": "The cooling oasis",
+      "case": "Z2_lst",
+      "text": "The region's air is warming, yet Villacur\u00ed's fields keep getting cooler. How can both be true?"
+    },
+    {
+      "id": "false-alarm",
+      "title": "The false alarm",
+      "case": "ZW_gws",
+      "text": "A classic trend test says Ica's groundwater is rising, with p = 0.000004. Our engine cross-examines that claim."
+    }
+  ],
+  "provisional": "Zones are provisional boxes plus satellite masks; numbers will be recomputed with the team's final polygons."
+}
