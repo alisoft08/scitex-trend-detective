@@ -5,9 +5,9 @@ import { asset } from "./data";
 
 export interface GlobeMarker { id: string; lonlat: [number, number]; label: string; tone: "down" | "up" | "flat"; focus?: boolean }
 
-// The texture is plate carrée from lon -180..180 and lat 75..-60 (pipeline/world_map.py).
-const TEX_N = 75, TEX_S = -60;
-const OCEAN: [number, number, number] = [22, 34, 58];
+// The texture is plate carrée from lon -180..180 and lat 90..-90 (pipeline/world_map.py).
+const TEX_N = 90, TEX_S = -90;
+const POLAR: [number, number, number] = [228, 234, 240];   // Antarctic plateau beyond the land-cover grid
 const rad = Math.PI / 180;
 const ease = (t: number) => 1 - Math.pow(1 - t, 3);
 
@@ -112,7 +112,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
             let lon = lon0 + Math.atan2(x, z * cp - y * sp) / rad;
             lon = ((lon + 540) % 360) - 180;
             let R: number, G: number, B: number;
-            if (lat > TEX_N || lat < TEX_S) { [R, G, B] = OCEAN; }   // outside the mosaic (Antarctica and the Arctic Ocean)
+            if (lat < -80) { [R, G, B] = POLAR; }
             else {
               const tx = Math.min(t.w - 1, Math.floor(((lon + 180) / 360) * t.w));
               const ty = Math.min(t.h - 1, Math.floor(((TEX_N - lat) / (TEX_N - TEX_S)) * t.h));

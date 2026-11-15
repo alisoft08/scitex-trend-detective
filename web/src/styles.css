@@ -692,3 +692,15 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
   .atlas-stage .globe-stage { position: static; flex-direction: column; }
   .atlas-stage .globe-callout { position: static; transform: none; width: auto; margin: 1rem 16px 0; }
 }
+
+/* AI-assisted: Claude (Anthropic). Show Earth's curvature: the globe sits at the top of the stage with an atmosphere rim,
+   the title moves to the left so the Arctic stays visible. */
+.atlas-stage .globe-stage { align-items: flex-start; padding-top: 4.5vh; }
+.atlas-stage .globe-canvas { box-shadow: 0 0 0 2px rgba(148,181,218,.35), 0 0 30px 6px rgba(120,170,230,.45), 0 0 120px 30px rgba(60,120,187,.28); }
+.atlas-overlay { bottom: 0; right: auto; width: min(560px, 46vw); padding-block: 1.2rem 1rem;
+  background: linear-gradient(90deg, rgba(2,4,9,.92) 0%, rgba(2,4,9,.75) 70%, rgba(2,4,9,0) 100%); }
+.atlas-overlay .wrap { padding-right: 1.5rem; }
+.atlas-overlay .atlas-tools { flex-direction: column; align-items: stretch; }
+.atlas-overlay .atlas-search { max-width: none; flex: none; }
+@media (max-width: 960px) { .atlas-overlay { width: auto; } .atlas-stage .globe-stage { padding-top: 0; } }
+.atlas-overlay { padding-left: clamp(0px, 2.8vw, 40px); }
