@@ -9,6 +9,8 @@ import { Sources } from "./Sources";
 import { ImpactBand } from "./ImpactBand";
 import { TwoValleys } from "./TwoValleys";
 import { Audiences } from "./Audiences";
+import { FieldLab } from "./FieldLab";
+import { useLang } from "./i18n";
 import { useJSON } from "./data";
 import { LEVELS, useLevel, type Level } from "./levels";
 import type { Manifest } from "./types";
@@ -16,6 +18,7 @@ import type { Manifest } from "./types";
 const DEFAULT_CASE = "Z2_ndvi";
 const DEFAULT_PAIR = ["Z2_ndvi", "Z5_ndvi"] as const;
 const VIEWS = [
+  { id: "field-lab", label: "Field lab" },
   { id: "investigate", label: "Detective desk" },
   { id: "map", label: "Evidence map" },
   { id: "method", label: "Trend lab" },
@@ -27,13 +30,14 @@ function readRoute() {
   const [hash, query] = location.hash.slice(1).split("?");
   const params = new URLSearchParams(query);
   const aliases: Record<string, string> = { evidence: "investigate", why: "map", where: "map", methods: "method", about: "sources" };
-  const view = /^(mission|explorer)(-[0-5])?$/.test(hash) ? "investigate" : Object.prototype.hasOwnProperty.call(aliases, hash) ? aliases[hash] : hash;
+  const view = /^(mission|explorer)(-[0-5])?$/.test(hash) ? "field-lab" : Object.prototype.hasOwnProperty.call(aliases, hash) ? aliases[hash] : hash;
   return { view, params, mission: /^(mission|explorer)(-[0-5])?$/.test(hash) };
 }
 
 export default function App() {
   const { data: manifest, error } = useJSON<Manifest>("manifest.json");
   const [level, setLevel] = useLevel();
+  const [lang, setLang] = useLang();
   const [route, setRoute] = useState(readRoute);
   const [lastCase, setLastCase] = useState(DEFAULT_CASE);
   const [lastPair, setLastPair] = useState<readonly [string, string]>(DEFAULT_PAIR);
@@ -84,7 +88,7 @@ export default function App() {
   const a = route.params.get("left"), b = route.params.get("right");
   const pair: readonly [string, string] = a && b && a !== b && manifest?.cases.some((c) => c.id === a) && manifest.cases.some((c) => c.id === b)
     ? [a, b] : lastPair;
-  const visible = VIEWS.filter((v) => v.id !== "compare" || level !== "explorer");
+  const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer"));
   const isHome = !VIEWS.some((v) => v.id === view);
 
   return (
@@ -109,10 +113,15 @@ export default function App() {
       {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${level}`}>
-          {isHome && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
+          {isHome && <HeroMap m={manifest} primary={level === "explorer"
+            ? { label: "Start the field lab →", go: () => navigate("#field-lab") }
+            : { label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {isHome && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <TwoValleys m={manifest} level={level} onCase={selectCase} onCompare={() => selectPair(["ZW_tws_grace", "ZC_tws_grace"])} />}
-          {isHome && <Audiences onStart={(next) => { setLevel(next); if (next === "explorer") navigate("#mission"); else selectCase(lastCase); }} />}
+          {isHome && <Audiences onStart={(next) => { setLevel(next); if (next === "explorer") navigate("#field-lab"); else selectCase(lastCase); }} />}
+          {view === "field-lab" && <FieldLab m={manifest} lang={lang} onLang={setLang}
+            startAt={Number(/-(\d)$/.exec(location.hash.split("?")[0])?.[1] ?? 0)}
+            onFullTool={() => selectCase(lastCase)} onAnalyst={() => { setLevel("analyst"); selectCase(lastCase); }} />}
           {view === "investigate" && <Workspace m={manifest} level={level} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} startWithLead={route.mission} onLead={followLead} />}
           {view === "map" && <MapView m={manifest} level={level} onCase={selectCase} />}

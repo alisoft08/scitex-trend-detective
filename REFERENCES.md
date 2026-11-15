@@ -9,10 +9,10 @@
 | GLDAS Catchment Land Surface Model L4 daily 0.25° GRACE-DA1 (GLDAS_CLSM025_DA1_D) | 2.2 | https://doi.org/10.5067/TXBMLX370XX8 | Groundwater storage (GWS_tavg), total water (TWS_tavg) |
 | JPL GRACE and GRACE-FO Mascon, Coastal Resolution Improvement (CRI) | RL06.3Mv04 | https://doi.org/10.5067/TEMSC-3JC634 | Total water storage |
 | GPM IMERG Final Precipitation L3 Monthly | V07 | https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07 | Rain in the upper Ica basin |
-| Landsat 5 TM and Landsat 8/9 OLI, Collection 2 Level-2 (NASA/USGS) | C2 L2 | https://www.usgs.gov/landsat-missions/landsat-collection-2 | Before/after true-color images |
+| Landsat 5 TM, Landsat 7 ETM+ and Landsat 8/9 OLI, Collection 2 Level-2 (NASA/USGS) | C2 L2 | https://www.usgs.gov/landsat-missions/landsat-collection-2 | Before/after true-color images; one yearly picture 2004-2024 for the Explorer time machine (Landsat 7 only for 2012) |
 | MODIS Terra Land Surface Temperature 8-Day L3 1 km (MOD11A2) | 6.1 | https://doi.org/10.5067/MODIS/MOD11A2.061 | Daytime surface temperature of fields and desert |
 | MERRA-2 single-level diagnostics, hourly (M2T1NXSLV) | 5.12.4 | https://doi.org/10.5067/VJAFPLI1CSIV | Air temperature at 2 m (regional climate) |
-| SRTM Global 1 arc-second (NASA/NGA) | 3.0 | https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003 | Headwater mask above 2,500 m; shaded relief under the trend map |
+| SRTM Global 1 arc-second (NASA/NGA) | 3.0 | https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003 | Headwater mask above 2,500 m; shaded relief under the trend map and under the GRACE footprint map (Explorer) |
 
 All accessed through Google Earth Engine (noncommercial project `oasis-paradox`), November 2026.
 
@@ -66,5 +66,7 @@ All accessed through Google Earth Engine (noncommercial project `oasis-paradox`)
 | React, React DOM | MIT |
 | KaTeX 0.16.11 (math rendered as MathML) | MIT |
 | Vite, @vitejs/plugin-react | MIT |
+| Vitest 2.1.8 (tests of the Explorer field-lab helpers) | MIT |
+| fflate 0.8.2 (reproduction ZIP) | MIT |
 | TypeScript | Apache-2.0 |
 | Font: Montserrat (Google Fonts), SciTeX brand typeface | SIL Open Font License 1.1 |
