@@ -23,3 +23,6 @@ web/tsconfig.tsbuildinfo
 *.log
 # Codex draft images: only the prompts are kept here; the images used live in web/public/brand
 brand-drafts/**/*.png
+
+# Vercel CLI link (local)
+.vercel
