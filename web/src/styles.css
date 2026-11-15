@@ -514,3 +514,26 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
   .chart text { font-size: 18px; }
   .chart text.label-strong { font-size: 16px; }
 }
+
+/* Language selection and extraction comparison. */
+.language-switch { flex: 0 0 auto; }
+.research-nav .language-switch select { min-height: 36px; padding-inline: .5rem; font-size: .79rem; cursor: pointer; }
+.chart-reading .text-button { margin-top: .3rem; }
+.extraction-check { scroll-margin-top: 3.75rem; }
+.extraction-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; font-size: .85rem; }
+.extraction-values .num { font-weight: 700; }
+.extraction-label { display: flex; align-items: center; gap: .4rem; }
+.extraction-key { display: inline-block; width: 15px; border-top: 2px solid var(--ink); }
+.extraction-key.external { border-top: 3px dashed var(--accent-2); }
+.extraction-figure { margin-inline: 0; padding: .45rem .65rem; background: #f5f8fc; border-radius: 10px; }
+.extraction-figure .v-nasa { stroke-dasharray: 4 2; opacity: .75; }
+.extraction-figure figcaption { margin-top: .15rem; }
+@media (max-width: 960px) {
+  .research-nav .language-switch { order: 1; margin-left: auto; }
+  .research-nav .level-switch { order: 2; }
+}
+@media (max-width: 560px) {
+  .extraction-values { grid-template-columns: minmax(0, 1fr); }
+  .extraction-values .research-note { grid-template-columns: minmax(0, 1fr) auto; }
+  .extraction-values .research-note .num { grid-column: 2; grid-row: 1; text-align: right; }
+}
