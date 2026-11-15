@@ -889,3 +889,19 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 /* AI-assisted: Claude (Anthropic). The lens view takes any picture ratio (set by LensHero as --ratio). */
 .hm-stage .hm-canvas { width: max(100cqw, calc(var(--ratio, 1.765) * 100cqh)); aspect-ratio: var(--ratio, 1.765); }
 .ev-note { display: block; margin-top: .35rem; font-style: italic; }
+
+/* AI-assisted: Claude (Anthropic). Tools pointed at the aquifer on its page. */
+.aq-tools { margin-top: clamp(2.5rem, 5vw, 4rem); padding-top: 1.6rem; border-top: 1px solid var(--hair); }
+.aq-tools h2 { margin: 0 0 1.4rem; font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem); font-weight: 300; letter-spacing: -.02em; color: #27295a; }
+.aq-tools-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+.aq-tools-grid > div { padding: 0 1.4rem; border-left: 1px solid var(--hair); }
+.aq-tools-grid > div:first-child { padding-left: 0; border-left: 0; }
+.aq-tools h3 { margin: 0 0 .4rem; font-size: 1rem; font-weight: 600; color: #27295a; }
+.aq-tools p { margin: 0 0 .8rem; font-size: .88rem; line-height: 1.55; color: #4d5170; }
+.aq-tool-links { display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+.aq-tool-links button, .aq-tool-go { padding: 0; border: 0; background: none; font: inherit; font-size: .88rem; font-weight: 600; color: #304b9a;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.aq-tool-row { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; }
+.aq-tool-row select { font: inherit; font-size: .88rem; padding: .4rem .6rem; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: #27295a; }
+@media (max-width: 960px) { .aq-tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.6rem; } .aq-tools-grid > div:nth-child(3) { padding-left: 0; border-left: 0; } }
+@media (max-width: 560px) { .aq-tools-grid { grid-template-columns: minmax(0, 1fr); } .aq-tools-grid > div { padding-left: 0; border-left: 0; } }

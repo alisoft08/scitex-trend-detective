@@ -84,13 +84,16 @@ field lab remain in the code, hidden behind `EXPERT_ONLY` in `web/src/levels.ts`
   six NASA witnesses per aquifer, the comparison table and "Who it is for".
 - **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): Ica's landing view for
   every aquifer (2004 outside the lens, 2024 inside; the lens tours the places where the surface changed most), the
-  reading, and six NASA witnesses with annual sparklines.
+  reading, six NASA witnesses with annual sparklines, and "Analyze" links that open each witness's case file, a
+  comparison with another aquifer, the trend lab and the sources. The bar's Detective desk and Compare open the
+  aquifer you were viewing.
 - **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
   only aquifer with field wells.
 - **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.
 - **Detective desk:** pick a place and a NASA variable; each case file shows the verdict, the series, the false-alarm
   warning, years to detect when unproven, and (Expert) windows, jackknife and a reproduction ZIP.
-- **Evidence map, Trend lab, Compare cases** and **Sources**.
+- **Trend lab, Compare cases** and **Sources**; the Ica evidence map (per-pixel greenness trend and field wells) opens
+  from the Ica deep dive.
 
 Direct links (hash): `#atlas` is on the home page; `#investigate?case=ZIN_tws_grace`, `#map`, `#method`, `#compare?left=ZW_tws_grace&right=ZC_tws_grace`, `#sources`.
 

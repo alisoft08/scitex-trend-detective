@@ -22,7 +22,7 @@ const VIEWS = [
   { id: "field-lab", label: "Field lab" },
   { id: "ica", label: "Ica deep dive" },
   { id: "investigate", label: "Detective desk" },
-  { id: "map", label: "Evidence map" },
+  { id: "map", label: "Ica evidence map" },          // reached from the Ica deep dive, not shown in the bar
   { id: "method", label: "Trend lab" },
   { id: "compare", label: "Compare cases" },
   { id: "sources", label: "Sources" },
@@ -63,6 +63,14 @@ export default function App() {
   }, [route, manifest]);
 
   const view = route.view === "compare" && level === "explorer" ? "investigate" : route.view;
+  // On an aquifer page, the desk and the compare view open that aquifer, not Ica.
+  useEffect(() => {
+    if (route.view !== "aquifer" || !manifest?.atlas) return;
+    const aq = manifest.atlas.find((x) => x.id === route.params.get("id"));
+    if (!aq) return;
+    setLastCase(aq.tws.id);
+    setLastPair([aq.tws.id, aq.id === "ZW" ? "ZC_tws_grace" : "ZW_tws_grace"]);
+  }, [route, manifest]);
   useEffect(() => { window.scrollTo(0, 0); }, [view]);
   const navigate = (target: string) => {
     if (location.hash !== target) {
@@ -91,7 +99,7 @@ export default function App() {
   const a = route.params.get("left"), b = route.params.get("right");
   const pair: readonly [string, string] = a && b && a !== b && manifest?.cases.some((c) => c.id === a) && manifest.cases.some((c) => c.id === b)
     ? [a, b] : lastPair;
-  const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer"));
+  const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer") && v.id !== "map");
   const isAquifer = view === "aquifer";
   const isHome = !VIEWS.some((v) => v.id === view) && !isAquifer;
   // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
@@ -121,7 +129,7 @@ export default function App() {
       {manifest && selectedCase && (
         <main className={`research-app lv-${level} ${showNav ? "" : "no-nav"}`}>
           {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
-          {isAquifer && <AquiferPage m={manifest} id={route.params.get("id") ?? ""} onCase={selectCase} onIca={() => navigate("#ica")} onBack={() => navigate("#atlas")} />}
+          {isAquifer && <AquiferPage m={manifest} id={route.params.get("id") ?? ""} onCase={selectCase} onIca={() => navigate("#ica")} onBack={() => navigate("#atlas")} onGo={navigate} />}
           {view === "ica" && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Audiences onOpen={(target) => {

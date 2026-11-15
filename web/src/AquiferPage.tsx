@@ -1,6 +1,6 @@
 // AI-assisted: Claude (Anthropic). One aquifer's own page: the 2004 / 2024 lens, its reading and six NASA witnesses.
 // Every number comes from the engine's manifest; nothing is computed here.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { asset, useJSON } from "./data";
 import { HeroMap } from "./HeroMap";
 import { LensHero, type LensStop } from "./LensHero";
@@ -21,15 +21,16 @@ function headline(a: AtlasEntry) {
   return <>A vast aquifer.<br />No proven <em>loss</em> from space.</>;
 }
 
-export function AquiferPage({ m, id, onCase, onIca, onBack }: {
+export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
   m: Manifest; id: string; onCase: (id: string) => void; onIca: () => void; onBack: () => void;
+  onGo: (hash: string) => void;   // open another view (compare, method, sources, map)
 }) {
   const a = (m.atlas ?? []).find((x) => x.id === id);
   if (!a) return <section className="wrap wide aq-page"><p>Unknown aquifer. <button className="aq-link" onClick={onBack}>Back to the globe</button></p></section>;
   const ica = a.id === "ZW";
   const toWitnesses = () => document.getElementById("aq-witnesses")?.scrollIntoView({ behavior: "smooth", block: "start" });
   return <>
-  {ica ? <HeroMap m={m} primary={{ label: "See the six witnesses ↓", go: toWitnesses }} onMap={onBack} />
+  {ica ? <HeroMap m={m} primary={{ label: "See the six witnesses ↓", go: toWitnesses }} onMap={() => onGo("#map")} />
     : <AquiferLens m={m} a={a} onWitnesses={toWitnesses} onBack={onBack} />}
   <section className="aq-page" aria-labelledby="aq-title">
     <div className="wrap wide">
@@ -60,6 +61,7 @@ export function AquiferPage({ m, id, onCase, onIca, onBack }: {
           </tr>;
         })}</tbody>
       </table>
+      <AquiferTools m={m} a={a} onCase={onCase} onGo={onGo} />
     </div>
   </section>
   </>;
@@ -90,4 +92,42 @@ function AquiferLens({ m, a, onWitnesses, onBack }: { m: Manifest; a: AtlasEntry
     title={headline(a)} lede={a.reading}
     primary={{ label: "See the six witnesses ↓", go: onWitnesses }} secondary={{ label: "All aquifers", go: onBack }}
     credit="MODIS Terra surface reflectance, same growing season in 2004 and 2024 · NASA via Google Earth Engine" />;
+}
+
+/** Every analysis tool, already pointed at this aquifer. */
+function AquiferTools({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCase: (id: string) => void; onGo: (hash: string) => void }) {
+  const others = (m.atlas ?? []).filter((x) => x.id !== a.id);
+  const [other, setOther] = useState(a.id === "ZW" ? "ZC" : "ZW");
+  const o = others.find((x) => x.id === other) ?? others[0];
+  const compare = () => onGo(`#compare?left=${encodeURIComponent(a.tws.id)}&right=${encodeURIComponent(o.tws.id)}`);
+  return <section className="aq-tools" aria-labelledby="aq-tools-title">
+    <h2 id="aq-tools-title">Analyze {short(a.name)}</h2>
+    <div className="aq-tools-grid">
+      <div>
+        <h3>Examine a witness</h3>
+        <p>Open the case file: monthly record, choose the time period, the tests and the robustness checks.</p>
+        <div className="aq-tool-links">{WITNESSES.map(({ key, name }) => a[key] && <button key={key} onClick={() => onCase(a[key]!.id)}>{name.split(" · ")[0]}</button>)}</div>
+      </div>
+      <div>
+        <h3>Compare with another aquifer</h3>
+        <p>Total water from GRACE, both records on the same timeline.</p>
+        <div className="aq-tool-row">
+          <select value={o.id} onChange={(e) => setOther(e.target.value)} aria-label="Aquifer to compare with">
+            {others.map((x) => <option key={x.id} value={x.id}>{short(x.name)}</option>)}
+          </select>
+          <button className="aq-tool-go" onClick={compare}>Compare</button>
+        </div>
+      </div>
+      <div>
+        <h3>Put the tests on trial</h3>
+        <p>Simulate trendless data with memory and see how often a classic test raises a false alarm.</p>
+        <button className="aq-tool-go" onClick={() => onGo("#method")}>Open the trend lab</button>
+      </div>
+      <div>
+        <h3>Sources</h3>
+        <p>Every NASA product with its version and DOI, and how AI was used.</p>
+        <button className="aq-tool-go" onClick={() => onGo("#sources")}>Open sources</button>
+      </div>
+    </div>
+  </section>;
 }
