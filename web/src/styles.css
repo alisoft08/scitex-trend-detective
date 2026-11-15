@@ -879,3 +879,9 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .atlas { padding-bottom: 0; }
 .lens-box { height: min(70vh, 720px); }
 .lens-box .lens-base, .lens-box .lens-in img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+/* AI-assisted: Claude (Anthropic). User-selected period (challenge step 3). */
+.period-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .6rem 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.period-title { flex: 1 1 100%; margin: 0; font-size: .74rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.period-controls .research-field { min-width: 110px; }
+.period-result { flex: 1 1 100%; margin: .2rem 0 0; font-size: .9rem; line-height: 1.55; color: var(--ink); font-variant-numeric: tabular-nums; }
+.period-result b { font-weight: 700; }

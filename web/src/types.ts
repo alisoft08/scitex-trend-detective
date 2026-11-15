@@ -220,3 +220,9 @@ export interface WellProps {
   depth_start_m: number;
   depth_end_m: number;
 }
+
+export interface PeriodGrid {
+  id: string; units: string; starts: number[]; ends: number[]; min_years: number; method: string;
+  periods: { start: number; end: number; n: number; sen_per_decade: number | null; p_block_bootstrap: number | null;
+    p_arma: number | null; result: "both" | "one" | "none" | "insufficient" }[];
+}

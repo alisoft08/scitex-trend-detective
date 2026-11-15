@@ -28,6 +28,7 @@ Marking:
 - Claude (Anthropic) added the globe's auto-rotation, the full-width layout and a mini card per aquifer (satellite close-up, name and GRACE number tied to its point), following the team's design direction of 15 Nov 2026.
 - Claude (Anthropic) wrote the WebGL2 globe renderer (`web/src/globeGL.ts`: orthographic projection in a fragment shader, mipmapped MODIS texture, sunlight and atmosphere rim) and the 4096 x 2048 tiled world mosaic (`pipeline/world_map.py`).
 - Claude (Anthropic) built the page of each aquifer (`web/src/AquiferPage.tsx`: 2004/2024 lens, reading, six witnesses with annual sparklines), the white overview of all aquifers under the globe, the editorial styling, and the 2004/2024 MODIS pictures (`pipeline/aquifer_pairs.py`).
+- Claude (Anthropic) wrote the user-selected period analysis (`engine/periods.py`, tests in `tests/test_periods.py`, `scripts/period_grid.py`) and its controls in the case file, plus the "First look" question, to cover steps 3 and 4 of the challenge.
 - The verdict texts in the app are produced by deterministic templates from the engine's numbers. No language model writes text at runtime.
 
 The project idea, the choice of Ica, the statistical design (pre-registered thresholds, consensus of tests, control zone)

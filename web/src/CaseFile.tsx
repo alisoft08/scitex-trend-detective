@@ -7,7 +7,7 @@ import { Validation } from "./Validation";
 import { ShareLink } from "./ShareLink";
 import { casePeriod, caseUnits, dataKind, describes, EVIDENCE_SUMMARY, EVIDENCE_TEXT, interval } from "./evidence";
 import type { Level } from "./levels";
-import type { CaseFile, CaseRef, CriterionKey, Manifest, Window } from "./types";
+import type { CaseFile, CaseRef, CriterionKey, Manifest, PeriodGrid, Window } from "./types";
 
 const criteria: [CriterionKey, string][] = [
   ["C0", "Valid observations in at least 80% of months and 15 years"],
@@ -112,8 +112,10 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
   caseRef: CaseRef; level: Level; manifest: Manifest; href: string; comparison?: { field: CaseRef; desert: CaseRef };
 }) {
   const { data: cf, error } = useJSON<CaseFile>(caseRef.path);
+  const { data: grid } = useJSON<PeriodGrid>(`periods/${caseRef.id}.json`);
   const [mode, setMode] = useState<"anomaly" | "value">("anomaly");
-  const [periodIndex, setPeriodIndex] = useState(-1);
+  const [from, setFrom] = useState(2004);
+  const [to, setTo] = useState(2024);
   const [exportState, setExportState] = useState("");
   if (error) return <p role="alert" className="error">{error}</p>;
   if (!cf || cf.id !== caseRef.id) return <p className="loading" role="status">Opening the case file…</p>;
@@ -121,7 +123,10 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
   const explorer = level === "explorer", expert = level === "expert";
   const tr = cf.trend;
   const [definition, limit] = describes(cf);
-  const activeWindow = expert ? tr.windows[periodIndex] : undefined;
+  const sel = grid?.periods.find((r) => r.start === from && r.end === to);
+  const fullRecord = from === 2004 && to === 2024;
+  const activeWindow = sel && !fullRecord && sel.sen_per_decade !== null
+    ? { start: from, end: to, sen_per_decade: sel.sen_per_decade, p_block_bootstrap: sel.p_block_bootstrap } as Window : undefined;
   const period = casePeriod(cf.period);
   const fieldMask = manifest.zones.find((z) => z.id === cf.zone.id)?.mask;
   const desertMask = manifest.zones.find((z) => z.id === "Z5")?.mask?.replace("never-green desert", "Low-NDVI reference");
@@ -173,14 +178,24 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
         </div>}
       </div>
       <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} />
-      {expert && tr.windows.length > 0 && <div className="window-controls">
-        <label className="research-field">Sensitivity window
-          <select value={periodIndex} onChange={(e) => setPeriodIndex(Number(e.target.value))}>
-            <option value={-1}>Full record · principal result</option>
-            {tr.windows.map((w, i) => <option key={`${w.start}-${w.end}`} value={i}>{w.start}–{w.end}</option>)}
+      {grid && <div className="period-controls" aria-label="Choose the time period">
+        <p className="period-title">Choose the time period</p>
+        <label className="research-field">From
+          <select value={from} onChange={(e) => { const s = Number(e.target.value); setFrom(s); if (to - s + 1 < grid.min_years) setTo(Math.min(2024, s + grid.min_years - 1)); }}>
+            {grid.starts.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
         </label>
-        {activeWindow && <p className="small" role="status">Shaded period · <strong>{signed(activeWindow.sen_per_decade)} {caseUnits(cf.units)}/decade</strong> ({pfull(activeWindow.p_block_bootstrap)}, block bootstrap). The verdict above uses the full record.</p>}
+        <label className="research-field">To
+          <select value={to} onChange={(e) => setTo(Number(e.target.value))}>
+            {grid.ends.filter((y) => y - from + 1 >= grid.min_years).map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </label>
+        {sel && <p className="period-result" role="status">
+          <strong>{from}–{to}</strong>: <strong className="num">{signed(sel.sen_per_decade)} {caseUnits(cf.units)}/decade</strong>
+          {" · "}block-bootstrap Mann-Kendall {pfull(sel.p_block_bootstrap)} · AR(1) regression {pfull(sel.p_arma)}
+          {" · "}<b>{sel.result === "both" ? "both tests significant" : sel.result === "one" ? "only one test significant" : sel.result === "none" ? "not significant" : "too few valid months"}</b>.
+          {fullRecord ? " This is the full record; the verdict above adds robustness checks and controls." : " The verdict above uses the full 2004–2024 record."}
+        </p>}
       </div>}
     </section>}
     {!explorer && <TestResults cf={cf} />}

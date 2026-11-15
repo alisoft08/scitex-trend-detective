@@ -11,6 +11,16 @@ satellites can see an aquifer drain, and why they cannot in Ica.
 
 > Status: MVP. Zones are provisional boxes with satellite masks; numbers will be recomputed with the team's final polygons.
 
+## The five steps of the challenge, in the app
+
+| Challenge step | Where in Oasis Paradox |
+| --- | --- |
+| 1. Decide on the data variable(s) | Six NASA witnesses per aquifer (GRACE, GLDAS, GPM IMERG, MODIS NDVI and ET, MERRA-2), each with a plain definition and data type |
+| 2. Choose a region | The globe and its search: eight irrigated aquifers; in Ica, fields, desert, headwaters and the water block |
+| 3. Select the time period | "Choose the time period" in every case file: any period of 10 years or more between 2004 and 2024 (precomputed in Python, `engine/periods.py`) |
+| 4. Create the time series and examine it | The monthly record with its trend line, annual sparklines, and the question "First look: does this series appear to have a trend?" before the verdict |
+| 5. Analyze the trend for significance | Mann-Kendall with a moving-block bootstrap and a regression with ARMA errors, 95% interval, windows, jackknife, controls, the false-alarm warning and the trend lab |
+
 ## What it answers
 
 | Challenge question | Where |

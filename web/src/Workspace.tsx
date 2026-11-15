@@ -37,8 +37,8 @@ function Prediction({ refCase }: { refCase: CaseRef }) {
     : "The available evidence leaves the direction uncertain. Look at the estimate and the conclusions from the two approaches.";
   return (
     <details className="research-details prediction-note">
-      <summary>Make a prediction <span>optional</span></summary>
-      <p>What do you expect the series to show?</p>
+      <summary>First look: does this series appear to have a trend?</summary>
+      <p>Look at the monthly record below, then answer before reading the verdict.</p>
       <div className="toggle">
         {choices.map((label) => <button key={label} type="button" aria-pressed={choice === label} onClick={() => { setChoice(label); setRevealed(true); }}>{label}</button>)}
       </div>
@@ -132,7 +132,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
           )}
         </aside>
         <div className="research-stack">
-          {level === "explorer" && <Prediction key={selected.id} refCase={selected} />}
+          <Prediction key={selected.id} refCase={selected} />
           <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)}
             comparison={selected.kind === "contrast" && base && desert ? { field: base, desert } : undefined} />
         </div>
