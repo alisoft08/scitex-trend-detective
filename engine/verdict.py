@@ -121,10 +121,12 @@ def run_case(series: pd.Series, covariates: pd.DataFrame | None, cfg: dict,
     # Robustness: leave-one-year-out jackknife
     years = sorted(set(S.s.index.year))
     jk_flip, jk_sig = False, 0
+    jackknife = []
     for yr in years:
         m = S.s.index.year != yr
         bj, _ = T.sen_slope(y[m], t[m])
         pj = T.p_mk_block_bootstrap(y[m], L=L, B=99 if fast else 199, rng=rng)
+        jackknife.append({"year": int(yr), "sen_per_decade": _clean(bj * 10), "p_block_bootstrap": _clean(pj)})
         jk_flip |= bool(np.sign(bj) != np.sign(b))
         jk_sig += int(pj < alpha and np.sign(bj) == np.sign(b))
 
@@ -171,6 +173,7 @@ def run_case(series: pd.Series, covariates: pd.DataFrame | None, cfg: dict,
             "windows": [{k: _clean(v) if isinstance(v, float) else v for k, v in w.items()} for w in win],
             "windows_same_sign": int(same_sign),
             "windows_significant": int(win_sig),
+            "jackknife": jackknife,
             "jackknife_flips_sign": bool(jk_flip),
             "jackknife_significant": int(jk_sig),
             "jackknife_n": len(years),

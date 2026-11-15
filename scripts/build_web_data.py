@@ -23,7 +23,7 @@ from engine.verdict import load_config, run_case  # noqa: E402
 OUT = ROOT / "web" / "public" / "data"
 IDX = pd.date_range("2004-01-01", periods=252, freq="MS")
 
-ZONES = {f["properties"]["id"]: f["properties"] for f in json.load(open(ROOT / "config" / "zones.geojson"))["features"]}
+ZONES = {f["properties"]["id"]: f["properties"] for f in json.loads((ROOT / "config" / "zones.geojson").read_text(encoding="utf-8"))["features"]}
 
 VARS = {
     "ndvi": {
@@ -35,8 +35,7 @@ VARS = {
     "et": {
         "label": "Water use by crops and soil (evapotranspiration)", "short": "Water use (ET)", "units": "mm/month",
         "witness": "greenness",
-        "definition": "Water that leaves the land as vapor, from the soil and through plant leaves. "
-                      "In a desert where it almost never rains, it is mostly irrigation water.",
+        "definition": "Estimated water transferred from soil and vegetation to the atmosphere.",
         "source": {"product": "MODIS MOD16A2GF", "version": "6.1", "doi": "10.5067/MODIS/MOD16A2GF.061",
                    "resolution": "500 m, 8-day (gap-filled)", "agency": "NASA"},
         "data_type": "estimated", "digits": 1},
@@ -57,15 +56,13 @@ VARS = {
         "data_type": "observed", "digits": 1},
     "precip": {
         "label": "Rainfall", "short": "Rain", "units": "mm/month", "witness": "climate",
-        "definition": "Monthly rain measured by NASA's GPM satellite constellation. In the Andean headwaters "
-                      "this is the rain that ends up recharging the aquifer.",
+        "definition": "Monthly precipitation estimated by NASA's GPM IMERG multisatellite product for the Andean headwaters.",
         "source": {"product": "GPM IMERG Final Monthly", "version": "V07", "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
                    "resolution": "0.1° (~11 km), monthly", "agency": "NASA"},
-        "data_type": "observed", "digits": 1},
+        "data_type": "estimated", "digits": 1},
     "lst": {
         "label": "Land surface temperature (daytime)", "short": "Surface heat", "units": "°C", "witness": "heat",
-        "definition": "How hot the ground itself is around 10:30 in the morning, measured from space. Watered fields "
-                      "cool themselves by evaporating water; bare desert cannot.",
+        "definition": "Daytime land surface temperature derived from MODIS thermal observations.",
         "source": {"product": "MODIS Terra MOD11A2 (LST_Day_1km)", "version": "6.1", "doi": "10.5067/MODIS/MOD11A2.061",
                    "resolution": "1 km, 8-day (monthly mean)", "agency": "NASA"},
         "data_type": "observed", "digits": 2},
@@ -97,42 +94,32 @@ CASES = [  # (zone, variable, covariates)
 CONTRASTS = [("Z2", "ndvi"), ("Z1", "ndvi"), ("Z2", "lst"), ("Z1", "lst")]
 CONTRAST_META = {
     "ndvi": ("Greenness gap", "greenness",
-             "Irrigated greenness minus desert greenness, both in standardized units. "
-             "Weather that hits both places cancels out, so what is left is the irrigation signal."),
+             "Field NDVI minus reference NDVI after standardizing each series by calendar month."),
     "lst": ("Heat gap", "heat",
-            "Surface temperature of the fields minus that of the untouched desert, both in standardized units. "
-            "Shared weather cancels out; a falling gap means the fields are cooling relative to the desert."),
+            "Field surface temperature minus reference surface temperature after standardizing by calendar month."),
 }
 
 NOTES = {
-    "Z5_ndvi": ["The change is about 0.001 NDVI per decade, roughly 100 times smaller than in Villacurí: "
-                "statistically detectable but practically zero. A slow drift of the aging Terra satellite "
-                "is a plausible cause, which is why irrigated zones are compared against this desert."],
-    "ZW_gws": ["GLDAS cells are about 28 km wide and the model does not simulate pumping; the human signal "
-               "enters only through GRACE data, which see an area of about 300 km."],
-    "ZW_tws_grace": ["GRACE sees a region of about 330 km that includes Andean slopes; its rise follows wetter "
-                     "Andean years after 2012, not the irrigated valley. Field wells tell a different story."],
-    "Z1_et": ["MODIS evapotranspiration is known to underestimate water use on irrigated fields."],
-    "Z4_precip": ["No robust change in headwater rain: a drier Andes cannot explain the greening or the wells."],
-    "Z2_lst": ["Watered fields cool themselves by evaporating water, while the air of the region warms (MERRA-2). "
-               "Part of the absolute cooling may come from the Terra satellite passing slightly earlier in the morning "
-               "since about 2020; the heat gap against the desert cancels that shared effect."],
-    "Z1_lst": ["The classic test calls this cooling highly significant (p < 0.0001); the honest tests do not. "
-               "Most of the valley was already farmed in 2004, so there is little new evaporation to cool it."],
-    "Z5_lst": ["The untouched desert shows no proven change in surface temperature. Any Terra orbit drift would appear "
-               "here too, which is why the fields are compared against this desert."],
-    "Z4_t2m": ["MERRA-2 is a reanalysis: a weather model constrained by observations. Each cell is about 55 km wide."],
+    "Z5_ndvi": ["The reference uses an NDVI threshold applied throughout the study period."],
+    "ZW_gws": ["GLDAS 2.2 estimates groundwater storage at a regional scale and assimilates GRACE observations."],
+    "ZW_tws_grace": ["GRACE captures regional total water storage. This analysis does not identify individual contributions within the nominal footprint."],
+    "Z1_et": ["The MODIS product estimates evapotranspiration. Pumping and the water source cannot be inferred from it alone."],
+    "Z4_precip": ["The trend in precipitation over the upper basin is inconclusive under the configured rule."],
+    "Z2_lst": ["Terra's changing overpass time may affect the absolute surface temperature result. The field-reference comparison uses selected masks."],
+    "Z1_lst": ["Classic Mann-Kendall and the combined verdict differ. The combined evidence for this series is inconclusive."],
+    "Z5_lst": ["The reference is a low-NDVI mask. Its daytime surface temperature trend is inconclusive."],
+    "Z4_t2m": ["MERRA-2 is an atmospheric reanalysis with 0.5 by 0.625 degree grid spacing."],
 }
 
 VERDICT_LABEL = {"confirmed": "Confirmed trend", "likely": "Likely trend",
                  "inconclusive": "Inconclusive", "insufficient_data": "Insufficient data"}
 CRIT_LABEL = {
     "C0": "Enough data (80% of months, 15+ years)",
-    "C1": "Both honest tests agree (p < 0.05)",
+    "C1": "Both tests that account for dependence pass (p < 0.05)",
     "C2": "95% range of the slope excludes zero",
-    "C3": "Same direction in all 9 time windows",
-    "C4": "No single year drives the result",
-    "C5": "Survives El Niño and rainfall",
+    "C3": "Same direction in all nine windows and at least seven significant",
+    "C4": "No sign flip and at least 19 significant fits leaving out one year",
+    "C5": "Direction and significance hold after covariate adjustment",
     "C6": "Bayesian sign probability (not run)",
 }
 
@@ -154,52 +141,29 @@ def fmt_p(p):
     return f"p = {p:.3f}"
 
 
-FAIL_PHRASE = {
-    "C1": "the two honest tests disagree",
-    "C2": "the slope's 95% range touches zero",
-    "C3": "the direction is not the same in all 9 time windows",
-    "C4": "dropping a single year changes the result",
-    "C5": "it does not survive El Niño and rainfall",
-}
-ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacurí plains", "Z4": "the upper Ica basin",
-               "Z5": "the desert control zone", "ZW": "the Ica-Villacurí water block"}
-
-
-def controls_phrase(trend):
-    """Name only the controls that were actually used for this series."""
-    rain = any("rain" in c.lower() for c in trend.get("confounders", []))
-    return "El Niño and rainfall" if rain else "El Niño"
+ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacuri plains", "Z4": "the upper Ica basin",
+               "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region"}
 
 
 def summary_text(case, meta, zone_id):
-    tr, v = case["trend"], case["verdict"]
-    ctrl = controls_phrase(tr)
-    sen, (lo, hi) = tr["sen_per_decade"], tr["sen_ci95_block_bootstrap"]
-    direction = "rose" if (sen or 0) > 0 else "fell"
-    units = meta["units"]
-    first = (f"{meta['short']} in {ZONE_PHRASE[zone_id]} {direction} by {fmt(abs(sen))} {units} per decade "
-             f"(95% range {fmt(lo)} to {fmt(hi)}).")
-    failed = [FAIL_PHRASE[k].replace("El Niño and rainfall", ctrl)
-              for k, ok in case["criteria"].items() if ok is False and k in FAIL_PHRASE]
-    if v == "confirmed":
-        second = (f"Both honest tests agree, the trend survives {ctrl}, and it holds in every time "
-                  "window. Verdict: confirmed trend.")
-    elif v == "likely":
-        second = ("There are real signs of a trend, but it is fragile: " + "; ".join(failed[:3])
-                  + ". Verdict: likely trend.")
-    elif v == "inconclusive":
-        ytd = tr.get("years_to_detect")
-        extra = (f" At this rate, roughly {ytd:.0f} years of monthly data would be needed to tell it apart from noise."
-                 if ytd and ytd < 200 else "")
-        second = (f"The honest tests cannot rule out chance (block bootstrap {fmt_p(tr['p_block_bootstrap'])}, "
-                  f"AR regression {fmt_p(tr['p_arma'])}). That means \"not proven\", not \"no change\"." + extra)
-    else:
-        second = "There are not enough valid months to judge this series."
-    third = ""
-    if case["classic_test_says_significant"] and v != "confirmed":
-        third = (f" A classic Mann-Kendall test would have called this significant ({fmt_p(tr['p_mk_classic'])}), "
-                 "because it ignores that each month resembles the previous one.")
-    return first + " " + second + third
+    tr, verdict = case["trend"], case["verdict"]
+    sen = tr["sen_per_decade"]
+    lo, hi = tr["sen_ci95_block_bootstrap"]
+    estimate = (
+        f"The estimated {meta['short'].lower()} slope in {ZONE_PHRASE[zone_id]} is "
+        f"{fmt(sen)} {meta['units']} per decade (95% slope interval {fmt(lo)} to {fmt(hi)})."
+    )
+    conclusion = {
+        "confirmed": "It meets the Oasis Paradox evidence criteria under the configured analysis.",
+        "likely": "The configured analysis finds suggestive evidence.",
+        "inconclusive": "The available evidence leaves the trend inconclusive.",
+        "insufficient_data": "Too few valid observations were available for a verdict.",
+    }[verdict]
+    classic = (
+        f" Classic Mann-Kendall flags a significant trend ({fmt_p(tr['p_mk_classic'])})."
+        if case["classic_test_says_significant"] and verdict == "inconclusive" else ""
+    )
+    return f"{estimate} {conclusion}{classic}"
 
 
 def load_inputs():
@@ -244,7 +208,7 @@ def case_payload(zone, var, raw, res, meta, kind="case", extra=None):
         "definition": meta["definition"], "data_type": meta["data_type"], "source": meta["source"],
         "period": "2004-01/2024-12", "n": res["n"], "n_valid": res["n_valid"],
         "series": series, "trend": res["trend"], "criteria": res["criteria"],
-        "criteria_labels": {**CRIT_LABEL, "C5": f"Survives {controls_phrase(res['trend'])}"}, "verdict": res["verdict"], "verdict_label": VERDICT_LABEL[res["verdict"]],
+        "criteria_labels": CRIT_LABEL, "verdict": res["verdict"], "verdict_label": VERDICT_LABEL[res["verdict"]],
         "classic_test_says_significant": res["classic_test_says_significant"],
         "summary": summary_text(res, meta, zone),
         "summary_note": "Text generated automatically from the engine results (template, no AI writing at runtime).",
@@ -373,6 +337,46 @@ def witnesses(s):
     return out
 
 
+def build_case(zone, var, cov, s, ci, cfg):
+    raw = get_series(s, zone, var)
+    X, full_icen = covariates(s, ci, cov)
+    if full_icen is not None:
+        X["icen_like"] = full_icen  # keep earlier months so lags can reach back
+    res = run_case(raw, X if len(X.columns) else None, cfg, seed=zlib.crc32(f"{zone}_{var}".encode()))
+    payload = case_payload(zone, var, raw, res, VARS[var], extra={"notes": NOTES.get(f"{zone}_{var}", [])})
+    return payload
+
+
+def build_contrast(zone, var, s, ci, cfg):
+    a = get_series(s, zone, var)
+    b = get_series(s, "Z5", var)
+    za = T.standardized_anomaly(a.values, IDX.month.values)
+    zb = T.standardized_anomaly(b.values, IDX.month.values)
+    d = pd.Series(za - zb, index=IDX)
+    X, full_icen = covariates(s, ci, ["icen_like", "oni"])
+    X["icen_like"] = full_icen
+    res = run_case(d, X, cfg, already_anomaly=True, seed=7)
+    short, witness, definition = CONTRAST_META[var]
+    meta = {**VARS[var], "label": f"{short}: {ZONES[zone]['name']} minus desert",
+            "short": short, "units": "standard deviations", "witness": witness, "definition": definition}
+    payload = case_payload(zone, var, d, res, meta, kind="contrast")
+    for p in payload["series"]:
+        p["value"] = p["anomaly"]
+    return payload
+
+
+def reproduce_case(case_id):
+    cfg = load_config()
+    s, ci = load_inputs()
+    for zone, var, cov in CASES:
+        if case_id == f"{zone}_{var}":
+            return build_case(zone, var, cov, s, ci, cfg)
+    for zone, var in CONTRASTS:
+        if case_id == f"{zone}_vs_Z5_{var}":
+            return build_contrast(zone, var, s, ci, cfg)
+    raise SystemExit(f"Unknown case: {case_id}")
+
+
 def main():
     cfg = load_config()
     s, ci = load_inputs()
@@ -381,12 +385,7 @@ def main():
     manifest_cases = []
 
     for zone, var, cov in CASES:
-        raw = get_series(s, zone, var)
-        X, full_icen = covariates(s, ci, cov)
-        if full_icen is not None:
-            X["icen_like"] = full_icen  # keep earlier months so lags can reach back
-        res = run_case(raw, X if len(X.columns) else None, cfg, seed=zlib.crc32(f"{zone}_{var}".encode()))
-        payload = case_payload(zone, var, raw, res, VARS[var], extra={"notes": NOTES.get(f"{zone}_{var}", [])})
+        payload = build_case(zone, var, cov, s, ci, cfg)
         (OUT / "cases" / f"{payload['id']}.json").write_text(json.dumps(payload))
         manifest_cases.append({"id": payload["id"], "path": f"cases/{payload['id']}.json", "kind": "case",
                                "zone": zone, "zone_name": ZONES[zone]["name"], "variable": var,
@@ -400,20 +399,8 @@ def main():
               f"p_classic={payload['trend']['p_mk_classic']} crit={payload['criteria']}", flush=True)
 
     for zone, var in CONTRASTS:
-        a = get_series(s, zone, var)
-        b = get_series(s, "Z5", var)
-        za = T.standardized_anomaly(a.values, IDX.month.values)
-        zb = T.standardized_anomaly(b.values, IDX.month.values)
-        d = pd.Series(za - zb, index=IDX)
-        X, full_icen = covariates(s, ci, ["icen_like", "oni"])
-        X["icen_like"] = full_icen
-        res = run_case(d, X, cfg, already_anomaly=True, seed=7)
-        short, witness, definition = CONTRAST_META[var]
-        meta = {**VARS[var], "label": f"{short}: {ZONES[zone]['name']} minus desert",
-                "short": short, "units": "standard deviations", "witness": witness, "definition": definition}
-        payload = case_payload(zone, var, d, res, meta, kind="contrast")
-        for p in payload["series"]:
-            p["value"] = p["anomaly"]
+        payload = build_contrast(zone, var, s, ci, cfg)
+        meta = {**VARS[var], "units": payload["units"]}
         (OUT / "contrasts" / f"{payload['id']}.json").write_text(json.dumps(payload))
         manifest_cases.append({"id": payload["id"], "path": f"contrasts/{payload['id']}.json", "kind": "contrast",
                                "zone": zone, "zone_name": ZONES[zone]["name"], "variable": f"{var}_contrast",
@@ -467,4 +454,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 2:
+        print(json.dumps(reproduce_case(sys.argv[1]), indent=2))
+    elif len(sys.argv) == 1:
+        main()
+    else:
+        raise SystemExit("Usage: python scripts/build_web_data.py [case_id]")

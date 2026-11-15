@@ -184,7 +184,7 @@
       "label": "Rainfall",
       "short": "Rain",
       "witness": "climate",
-      "data_type": "observed",
+      "data_type": "estimated",
       "verdict": "inconclusive",
       "sen_per_decade": -0.650206,
       "ci95": [

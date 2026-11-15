@@ -16,6 +16,9 @@ export function loadJSON<T>(path: string): Promise<T> {
       fetch(`data/${path}`).then((r) => {
         if (!r.ok) throw new Error(`Could not load data/${path} (HTTP ${r.status})`);
         return r.json();
+      }).catch((error: unknown) => {
+        cache.delete(path);
+        throw error;
       }),
     );
   }
@@ -23,19 +26,16 @@ export function loadJSON<T>(path: string): Promise<T> {
 }
 
 export function useJSON<T>(path: string | null): { data: T | null; error: string | null } {
-  const [state, setState] = useState<{ data: T | null; error: string | null }>({ data: null, error: null });
+  const [state, setState] = useState<{ path: string; data: T | null; error: string | null }>();
   useEffect(() => {
     if (!path) return;
     let alive = true;
-    setState((s) => ({ data: s.data, error: null }));
     loadJSON<T>(path)
-      .then((d) => alive && setState({ data: d, error: null }))
-      .catch((e: Error) => alive && setState({ data: null, error: e.message }));
-    return () => {
-      alive = false;
-    };
+      .then((data) => { if (alive) setState({ path, data, error: null }); })
+      .catch((e: Error) => { if (alive) setState({ path, data: null, error: e.message }); });
+    return () => { alive = false; };
   }, [path]);
-  return state;
+  return state && state.path === path ? state : { data: null, error: null };
 }
 
 export const asset = (p: string) => EMBED.assets?.[`data/${p}`] ?? `data/${p}`;

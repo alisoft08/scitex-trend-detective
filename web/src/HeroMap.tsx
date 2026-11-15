@@ -24,8 +24,8 @@ const DWELL_MS = 3600;
 const RESUME_MS = 4000;
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
-export function HeroMap({ m, primary, onMap, onMission }: {
-  m: Manifest; primary: { label: string; go: () => void }; onMap: () => void; onMission?: () => void;
+export function HeroMap({ m, primary, onMap }: {
+  m: Manifest; primary: { label: string; go: () => void }; onMap: () => void;
 }) {
   const { data: meta } = useJSON<HeroMeta>("map.json");
   const stage = useRef<HTMLDivElement>(null);
@@ -48,9 +48,9 @@ export function HeroMap({ m, primary, onMap, onMission }: {
       source: "MODIS NDVI", verdict: m.verdict_labels[ndvi.verdict], tone: ndvi.verdict });
     if (zi) out.push({ lon: -75.72, lat: -14.0, place: "Ica Valley, north", finding: `Water table ${signed(zi.mean_rate_m_per_yr, 2)} m per year`,
       source: `${zi.n} field wells (JUASVI)`, verdict: `${Math.round(zi.share_falling * 100)}% of wells falling`, tone: "field" });
-    if (lst) out.push({ lon: -75.68, lat: -14.22, place: "Ica Valley, south", finding: `Surface ${signed(lst.sen_per_decade, 2)} °C per decade`,
+    if (lst) out.push({ lon: -75.68, lat: -14.22, place: "Ica Valley fields", finding: `Surface ${signed(lst.sen_per_decade, 2)} °C per decade`,
       source: "MODIS land surface temperature", verdict: m.verdict_labels[lst.verdict], tone: lst.verdict,
-      alarm: `The classic test calls it significant. False alarm.` });
+      alarm: `The classic test calls it significant. The combined evidence is inconclusive.` });
     if (air) out.push({ lon: -75.43, lat: -13.95, place: "Andean headwaters", finding: `Air ${signed(air.sen_per_decade, 2)} °C per decade`,
       source: "MERRA-2 reanalysis", verdict: m.verdict_labels[air.verdict], tone: air.verdict });
     return out;
@@ -169,21 +169,16 @@ export function HeroMap({ m, primary, onMap, onMission }: {
         <div className="hm-copy">
           <div className="wrap">
             <div className="case-line">
-              <span className="case-no">Case file № 001</span>
-              <span className="case-title">The Oasis Paradox</span>
-              <span className="case-stamp">Status: open</span>
+              <span className="case-title">Ica, Peru · NASA Earth observations</span>
             </div>
-            <h1>The desert is turning <em>green</em>.<br />The wells are dropping.</h1>
+            <h1>Greener fields.<br />Falling water levels in <em>monitored wells</em>.</h1>
             <p className="hm-lede">
-              Twenty years of irrigation, seen from space. Underground, the aquifer keeps falling, and a classic trend test
-              would have fooled us twice. Take the lens. Become the detective.
+              Follow the evidence from an individual well to NASA satellites. Test what each dataset can tell you about Ica.
             </p>
             <div className="hm-cta">
               <button className="hm-btn primary" id="hero-primary" onClick={primary.go}>{primary.label}</button>
               <button className="hm-btn ghost" onClick={onMap}>Explore the map</button>
-              {onMission && <button className="hm-btn to-mission" id="hero-mission" onClick={onMission}>Student? Play the Explorer mission →</button>}
             </div>
-            <span className="hm-meta">Ica, Peru · 2004–2024 · NASA Earth data</span>
           </div>
         </div>
         <span className="hm-credit">Landsat 5 (2004) · Landsat 8/9 (2024) · NASA/USGS via Google Earth Engine</span>

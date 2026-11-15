@@ -2,7 +2,6 @@
 // NASA AppEEARS and the GES DISC archive. All numbers come from validation/compare.py.
 import { useJSON } from "./data";
 import { fmt, signed } from "./format";
-import { Tex } from "./Tex";
 
 interface Pair {
   id: string; label: string; units: string; tool: string; tool_url: string; how: string;
@@ -37,38 +36,25 @@ function Overlay({ p }: { p: Pair }) {
   );
 }
 
-export function Validation() {
-  const { data } = useJSON<{ pairs: Pair[] }>("validation.json");
-  if (!data || data.pairs.length === 0) return null;
-  return (
-    <div className="validation" id="validation">
-      <h3 className="sub">Checked against NASA's own tools</h3>
-      <p className="lede-2 val-lede">
-        Our pipeline reads NASA data through Google Earth Engine. To be sure nothing was lost on the way, we rebuilt each
-        series with the tools this challenge recommends and compared month by month.
-      </p>
-      <div className="val-grid">
-        {data.pairs.map((p) => (
-          <article key={p.id} className="val-card">
-            <span className="eyebrow">{p.tool}</span>
-            <h4>{p.label}</h4>
-            <Overlay p={p} />
-            <div className="val-legend small"><i className="lg-ours" />Our pipeline <i className="lg-nasa" /><a href={p.tool_url} target="_blank" rel="noreferrer">{p.tool}</a></div>
-            <dl className="val-stats">
-              <div><dt><Tex>{"r"}</Tex></dt><dd className="num">{p.pearson_r.toFixed(4)}</dd></div>
-              <div><dt>Mean difference</dt><dd className="num">{signed(p.bias, 2)} <span className="muted">{p.units}</span>{p.rel_bias_pct !== null && <span className="muted"> ({signed(p.rel_bias_pct, 2)}%)</span>}</dd></div>
-              <div><dt><Tex>{"\\hat\\beta_{\\text{Sen}}"}</Tex> per decade</dt><dd className="num">{signed(p.sen_ours_per_decade, 2)} vs {signed(p.sen_nasa_per_decade, 2)}</dd></div>
-              <div><dt>Months compared</dt><dd className="num">{p.n}</dd></div>
-            </dl>
-            <p className="small muted">{p.how}</p>
-          </article>
-        ))}
-      </div>
-      <p className="small muted" style={{ marginTop: "0.8rem" }}>
-        Root-mean-square differences: {data.pairs.map((p) => `${p.label.split(",")[0].split(" (")[0]} ${fmt(p.rmse, 2)} ${p.units}`).join(" · ")}.
-        The challenge's “Hydrology Time Series” resource (NASA Hydrology Data Rods) now redirects to a retirement notice, so
-        GLDAS and IMERG were read from the GES DISC archive behind it.
-      </p>
-    </div>
-  );
+export function Validation({ caseId }: { caseId: string }) {
+  const { data, error } = useJSON<{ pairs: Pair[] }>("validation.json");
+  const ids: Record<string, string> = { Z2_ndvi: "ndvi_Z2", Z4_precip: "precip_Z4", ZW_gws: "gws_ZW" };
+  if (!ids[caseId]) return null;
+  if (error) return <p className="error" role="alert">Extraction comparison unavailable.</p>;
+  const pair = data?.pairs.find((p) => p.id === ids[caseId]);
+  if (!pair) return null;
+  return <details className="research-details">
+    <summary>Compare the two extraction routes</summary>
+    <p>Oasis Paradox and {pair.tool} extracted the same product. {pair.how}</p>
+    <Overlay p={pair} />
+    <div className="val-legend small"><i className="lg-ours" />Oasis Paradox <i className="lg-nasa" /><a href={pair.tool_url} target="_blank" rel="noreferrer">{pair.tool}</a></div>
+    <dl className="research-facts">
+      <div><dt>Months compared</dt><dd>{pair.n}{caseId === "ZW_gws" ? " (January and July samples)" : ""}</dd></div>
+      <div><dt>Pearson correlation</dt><dd>{pair.pearson_r === 1 ? "~1 (rounded)" : pair.pearson_r.toFixed(4)}</dd></div>
+      <div><dt>Mean difference (archive minus Oasis)</dt><dd>{signed(pair.bias)} {pair.units}</dd></div>
+      <div><dt>Root mean square difference</dt><dd>{fmt(pair.rmse)} {pair.units}</dd></div>
+      <div><dt>Slope of the original series</dt><dd>{signed(pair.sen_ours_per_decade)} vs {signed(pair.sen_nasa_per_decade)} {pair.units}/decade</dd></div>
+    </dl>
+    <p className="small muted">This comparison measures extraction agreement. The case verdict uses the separate, season-adjusted analysis.</p>
+  </details>;
 }

@@ -133,6 +133,7 @@ export interface Trend {
   windows: Window[];
   windows_same_sign: number;
   windows_significant: number;
+  jackknife?: { year: number; sen_per_decade: number | null; p_block_bootstrap: number | null }[];
   jackknife_flips_sign: boolean;
   jackknife_significant: number;
   jackknife_n: number;
