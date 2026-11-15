@@ -1,5 +1,6 @@
 // AI-assisted: Codex (OpenAI). Shared case navigation and progressive detail.
 import { useEffect, useState } from "react";
+import { useLocale, type Language } from "./i18n";
 import { HeroMap } from "./HeroMap";
 import { Workspace } from "./Workspace";
 import { ComparisonDesk } from "./ComparisonDesk";
@@ -12,10 +13,10 @@ import type { Manifest } from "./types";
 const DEFAULT_CASE = "Z2_ndvi";
 const DEFAULT_PAIR = ["Z2_ndvi", "Z5_ndvi"] as const;
 const VIEWS = [
-  { id: "investigate", label: "Detective desk" },
-  { id: "map", label: "Evidence map" },
-  { id: "method", label: "Trend lab" },
-  { id: "compare", label: "Compare cases" },
+  { id: "investigate", label: ["Detective desk", "Mesa de investigación"] },
+  { id: "map", label: ["Evidence map", "Mapa de evidencias"] },
+  { id: "method", label: ["Trend lab", "Laboratorio de tendencias"] },
+  { id: "compare", label: ["Compare cases", "Comparar casos"] },
 ] as const;
 
 function readRoute() {
@@ -27,6 +28,7 @@ function readRoute() {
 }
 
 export default function App() {
+  const { t, language, setLanguage } = useLocale();
   const { data: manifest, error } = useJSON<Manifest>("manifest.json");
   const [level, setLevel] = useLevel();
   const [route, setRoute] = useState(readRoute);
@@ -86,30 +88,37 @@ export default function App() {
     <>
       <header className="topnav research-nav">
         <div className="wrap wide">
-          <a href="#case" className="brand" aria-label="Oasis Paradox home">Oasis <span>Paradox</span></a>
-          <nav className="nav" aria-label="Investigation tools">
+          <a href="#case" className="brand" aria-label={t("Oasis Paradox home", "Inicio de Oasis Paradox")}>Oasis <span>Paradox</span></a>
+          <nav className="nav" aria-label={t("Investigation tools", "Herramientas de investigación")}>
             {visible.map((v) => (
               <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : v.id === "compare" ? pairLink(lastPair) : `#${v.id}`}
-                className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{v.label}</a>
+                className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{t(v.label[0], v.label[1])}</a>
             ))}
           </nav>
-          <div className="level-switch" role="group" aria-label="Reading level">
+          <div className="level-switch" role="group" aria-label={t("Reading level", "Nivel de lectura")}>
             {LEVELS.map((l) => (
-              <button key={l.id} id={`nav-level-${l.id}`} aria-pressed={level === l.id} title={l.promise} onClick={() => changeLevel(l.id)}>{l.name}</button>
+              <button key={l.id} id={`nav-level-${l.id}`} aria-pressed={level === l.id} title={t(...l.promise)} onClick={() => changeLevel(l.id)}>{t(...l.name)}</button>
             ))}
           </div>
+          <label className="language-switch">
+            <span className="sr-only">{t("Language", "Idioma")}</span>
+            <select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
+              <option value="en" lang="en">English</option>
+              <option value="es" lang="es">Español</option>
+            </select>
+          </label>
         </div>
       </header>
-      {error && <p className="wrap error" role="alert">{error}</p>}
-      {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
+      {error && <p className="wrap error" role="alert">{t("Could not load the case catalogue.", "No se pudo cargar el catálogo de casos.")}</p>}
+      {!error && !manifest && <p className="wrap loading" role="status">{t("Loading the evidence…", "Cargando la evidencia…")}</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${level}`}>
-          {isHome && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
+          {isHome && <HeroMap m={manifest} primary={{ label: t("Open the detective desk →", "Abrir la mesa de investigación →"), go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {view === "investigate" && <Workspace m={manifest} level={level} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} startWithLead={route.mission} onLead={followLead} />}
           {view === "map" && <MapView m={manifest} level={level} onCase={selectCase} />}
           {view === "method" && <section className="wrap wide research-page">
-            <div className="research-heading"><p className="eyebrow">Simulation</p><h1>Put the tests on trial</h1></div>
+            <div className="research-heading"><p className="eyebrow">{t("Simulation", "Simulación")}</p><h1>{t("Put the tests on trial", "Pon a prueba los métodos")}</h1></div>
             <Lab level={level} onCase={() => selectCase("ZW_gws")} />
           </section>}
           {view === "compare" && <ComparisonDesk manifest={manifest} level={level} pair={pair} onPair={selectPair} onCase={selectCase} href={pairLink(pair)} />}
