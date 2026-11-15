@@ -933,3 +933,31 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
   .aq-impact { grid-template-columns: minmax(0, 1fr); row-gap: 1.2rem; } .aq-impact > div { padding-left: 0; border-left: 0; }
   .aq-leads-grid { grid-template-columns: minmax(0, 1fr); } .aq-leads-grid button + button { padding-left: 0; border-left: 0; }
 }
+/* AI-assisted: Claude (Anthropic). Phones: title above the globe, dots only (mini cards would cover it), no sideways scroll. */
+@media (max-width: 700px) {
+  .atlas-stage { display: flex; flex-direction: column; overflow-x: clip; }
+  .atlas-stage .atlas-overlay { order: -1; padding-bottom: .4rem; }
+  .atlas-stage .atlas-blurb { order: 0; padding-top: .2rem; font-size: .88rem; }
+  .atlas-stage .globe-stage { order: 1; }
+  .atlas-stage .atlas-stage-foot { order: 2; }
+  .globe-mini, .globe-stem { display: none; }
+  .globe-pin.on .globe-tag, .globe-pin:focus-visible .globe-tag { display: inline; }
+  .globe-dot { width: 30px; height: 30px; }
+  .atlas-stage-foot .atlas-legend { border-radius: 14px; font-size: .7rem; }
+  .atlas, .research-app:has(.atlas) { overflow-x: clip; }
+}
+@media (max-width: 700px) { .atlas-stage .atlas-overlay { padding-left: 0; } }
+/* Phones: witness and gap tables become stacked rows (name, then sparkline, change and verdict). */
+@media (max-width: 700px) {
+  .aq-witnesses, .aq-witnesses tbody { display: block; width: 100%; }
+  .aq-witnesses thead { display: none; }
+  .aq-witnesses caption { display: block; }
+  .aq-witnesses tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem .8rem; align-items: center; padding: .85rem 0; border-top: 1px solid var(--hair); }
+  .aq-witnesses th, .aq-witnesses td { border: 0 !important; padding: 0 !important; }
+  .aq-witnesses tbody th { grid-column: 1 / -1; }
+  .aq-witnesses tbody td:nth-child(2) { grid-column: 1 / -1; }
+  .aq-witnesses .spark { width: 100%; height: 28px; }
+  .aq-witnesses td.r { text-align: left !important; }
+  .aq-witnesses .num { font-size: .95rem; }
+  .aq-tools-grid > div { padding-left: 0 !important; border-left: 0 !important; }
+}
