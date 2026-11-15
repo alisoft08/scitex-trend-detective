@@ -4,6 +4,8 @@ __pycache__/
 data/raw/
 .netrc
 .env
+.env.local
+.env.*.local
 *.json.key
 credentials
 web/node_modules/
