@@ -1,8 +1,8 @@
 // AI-assisted: Claude (Anthropic). World aquifer atlas: search or spin the globe to pick an aquifer, read its six NASA
 // witnesses, then compare all of them. Every number comes from the engine's manifest; nothing is computed here.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
-import { asset } from "./data";
+import { asset, brandAsset } from "./data";
 import { EVIDENCE_TEXT } from "./evidence";
 import { fmt, signed } from "./format";
 import type { Level } from "./levels";
@@ -44,12 +44,54 @@ const FILTERS: { id: Filter; label: string }[] = [
 const startId = (atlas: AtlasEntry[]) => [...atlas].filter((a) => tone(a) === "down")
   .sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0]?.id ?? atlas[0]?.id ?? "";
 
+// The welcome curtain plays once per page load, not on every return to the home view.
+let introPlayed = false;
+const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function Welcome({ onDone }: { onDone: () => void }) {
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    const t1 = setTimeout(() => setLeaving(true), 2300), t2 = setTimeout(onDone, 3100);
+    const skip = (e: KeyboardEvent) => { if (e.key === "Escape" || e.key === "Enter") { clearTimeout(t1); clearTimeout(t2); onDone(); } };
+    window.addEventListener("keydown", skip);
+    return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener("keydown", skip); };
+  }, []);
+  return <div className={`atlas-welcome ${leaving ? "leaving" : ""}`} role="dialog" aria-label="Welcome" onClick={onDone}>
+    <p>Welcome to <strong>Oasis Paradox</strong></p>
+    <span>by SciTeX · NASA Space Apps Challenge 2026</span>
+  </div>;
+}
+
+/** Short facts that rotate at the top right; every number comes from the manifest. */
+function facts(m: Manifest, atlas: AtlasEntry[]): string[] {
+  const falling = atlas.filter((a) => proven(a.tws) && (a.tws.per_decade ?? 0) < 0);
+  const worst = [...falling].sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0];
+  const alarms = atlas.reduce((n, a) => n + [a.tws, a.gws, a.rain, a.ndvi, a.et, a.t2m].filter((w) => w?.classic_false_alarm).length, 0);
+  const greening = atlas.filter((a) => proven(a.ndvi) && (a.ndvi?.per_decade ?? 0) > 0 && falling.includes(a)).length;
+  return [
+    `One engine, the same NASA data, ${atlas.length} irrigated aquifers. GRACE confirms a loss in ${falling.length}.`,
+    worst ? `${short(worst.name)} loses ${amount(worst.tws).replace("−", "")} of water: the largest confirmed loss in the atlas.` : "",
+    "Where the farms are small, as in Ica, GRACE cannot see the loss. Only wells can.",
+    greening ? `In ${greening} draining aquifers the cropland is getting greener and using more water.` : "",
+    alarms ? `A classic trend test raised ${alarms} false alarms in these series. Our engine did not.` : "",
+    `21 years of NASA data, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS and MERRA-2. ${m.cases.length} case files.`,
+  ].filter(Boolean);
+}
+
 export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase: (id: string) => void; onIca: () => void }) {
   const atlas = m.atlas ?? [];
   const [sel, setSel] = useState<string>(() => startId(atlas));
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
+  const [intro, setIntro] = useState(() => !introPlayed && !reducedMotion());
+  const [fact, setFact] = useState(0);
+  useEffect(() => { introPlayed = true; }, []);
+  useEffect(() => {
+    if (intro || reducedMotion()) return;
+    const id = setInterval(() => setFact((f) => f + 1), 6500);
+    return () => clearInterval(id);
+  }, [intro]);
   const shown = atlas.filter((x) => filter === "all" || tone(x) === filter);
   const markers: GlobeMarker[] = useMemo(() => shown.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x),
     thumb: asset(`img/aquifers/${x.id}.jpg`), value: x.tws.per_decade === null ? undefined : amount(x.tws), dir: MINI_DIR[x.id] ?? "ne" })), [m.atlas, filter]);
@@ -57,7 +99,6 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   const a = atlas.find((x) => x.id === sel) ?? atlas[0];
   const q = norm(query.trim());
   const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
-  const falling = atlas.filter((x) => tone(x) === "down").length;
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
   const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
   const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); };
@@ -78,7 +119,8 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   </div>;
 
   void callout; // pop-out card kept for later: pass callout={callout} to <Globe> to show it again
-  return <section className="atlas" aria-labelledby="atlas-title" id="atlas">
+  return <section className={`atlas ${intro ? "intro" : "ready"}`} aria-labelledby="atlas-title" id="atlas">
+    {intro && <Welcome onDone={() => setIntro(false)} />}
     <div className="atlas-stage">
       <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
           label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
@@ -115,8 +157,11 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
       </div>
 
       </div></div>
-      <p className="atlas-blurb">One engine, the same NASA data, {atlas.length} irrigated aquifers. GRACE confirms a loss in {falling};
-        where the farms are small, as in Ica, the satellites cannot see it, and only wells can.</p>
+      {(() => { const list = facts(m, atlas); return <p className="atlas-blurb" key={fact} aria-live="polite">{list[fact % list.length]}</p>; })()}
+      <div className="atlas-datron">
+        <p>Pick an aquifer on the globe to open its case file.</p>
+        <img src={brandAsset("datron-detective.png")} alt="Datron, the SciTeX guide (AI-generated illustration)" />
+      </div>
       <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
     </div>
     <div className="wrap wide">

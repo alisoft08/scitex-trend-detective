@@ -739,3 +739,21 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .globe-pin:hover .globe-mini, .globe-pin:focus-visible .globe-mini, .globe-pin.on .globe-mini { border-color: #f1c56b; z-index: 3; }
 .globe-pin:hover, .globe-pin.on { z-index: 4; }
 @media (max-width: 700px) { .globe-mini img { display: none; } }
+/* AI-assisted: Claude (Anthropic). Welcome curtain, title fade-in, rotating facts and Datron's invitation. */
+.atlas-welcome { position: fixed; inset: 0; z-index: 2000; display: grid; place-content: center; gap: .6rem; text-align: center;
+  background: #000; color: #fff; cursor: pointer; transition: opacity .8s ease; }
+.atlas-welcome p { margin: 0; font-size: clamp(1.4rem, 1rem + 2vw, 2.6rem); font-weight: 400; letter-spacing: -.01em; animation: wl-in 1s ease both; }
+.atlas-welcome strong { font-weight: 800; }
+.atlas-welcome span { font-size: .9rem; letter-spacing: .14em; text-transform: uppercase; color: #a9b3c9; animation: wl-in 1s ease .5s both; }
+.atlas-welcome.leaving { opacity: 0; }
+@keyframes wl-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.atlas.intro .atlas-overlay, .atlas.intro .atlas-blurb, .atlas.intro .atlas-datron, .atlas.intro .atlas-stage-foot { opacity: 0; }
+.atlas.ready .atlas-overlay { animation: wl-in 1s ease both; }
+.atlas.ready .atlas-blurb { animation: wl-in .9s ease both; }
+.atlas.ready .atlas-datron { animation: wl-in 1s ease .8s both; }
+.atlas-datron { position: absolute; right: clamp(12px, 2.4vw, 36px); bottom: .4rem; z-index: 5; display: flex; align-items: flex-end; gap: .2rem; pointer-events: none; }
+.atlas-datron img { width: clamp(72px, 7vw, 110px); height: auto; opacity: .92; filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)); }
+.atlas-datron p { margin: 0 0 3.2rem; max-width: 190px; padding: .55rem .7rem; border-radius: 12px 12px 2px 12px; background: rgba(255,255,255,.94);
+  color: #27295a; font-size: .8rem; font-weight: 600; line-height: 1.35; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+@media (max-width: 960px) { .atlas-datron { position: static; justify-content: flex-end; padding: 0 16px; } }
+@media (prefers-reduced-motion: reduce) { .atlas-welcome, .atlas.ready .atlas-overlay, .atlas.ready .atlas-blurb, .atlas.ready .atlas-datron { animation: none; transition: none; } }

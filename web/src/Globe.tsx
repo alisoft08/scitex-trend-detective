@@ -60,7 +60,14 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
       c.width = img.naturalWidth; c.height = img.naturalHeight;
       const g = c.getContext("2d")!;
       g.drawImage(img, 0, 0);
-      tex.current = { data: g.getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height };
+      const px = g.getImageData(0, 0, c.width, c.height).data;
+      // Lighten the flat navy ocean of the mosaic (22, 34, 58) a little, so the sea reads as water, not as space.
+      for (let i = 0; i < px.length; i += 4) {
+        if (Math.abs(px[i] - 22) < 14 && Math.abs(px[i + 1] - 34) < 14 && Math.abs(px[i + 2] - 58) < 16) {
+          px[i] = 30; px[i + 1] = 62; px[i + 2] = 108;
+        }
+      }
+      tex.current = { data: px, w: c.width, h: c.height };
       setReady(true);
     };
     img.src = asset("img/world_modis.jpg");
