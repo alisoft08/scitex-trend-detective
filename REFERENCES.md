@@ -47,6 +47,7 @@ All accessed through Google Earth Engine (noncommercial project `oasis-paradox`)
 ## Context
 
 - Salmoral, G., Viñarta Carbó, A., Zegarra, E., Knox, J. W., Rey, D. (2020). Reconciling irrigation demands for agricultural expansion with environmental sustainability: A preliminary assessment for the Ica Valley, Peru. *Journal of Cleaner Production* 276, 123544. https://doi.org/10.1016/j.jclepro.2020.123544 (open access, CC BY). Abstract: 286 Mm³ of groundwater consumed under unsustainable conditions (exceeding recharge), out of a 483 Mm³ blue water footprint; checked 2026-11-14.
+- Famiglietti, J. S., Lo, M., Ho, S. L., et al. (2011). Satellites measure recent rates of groundwater depletion in California's Central Valley. *Geophysical Research Letters* 38, L03403. https://doi.org/10.1029/2010GL046442 (published reference for the Central Valley comparison case; DOI checked 2026-11-15).
 - Mendoza et al. (2022). GRACE and TRMM over Lima-Callao. LACCEI 2022. https://laccei.org/LACCEI2022-BocaRaton/full_papers/FP275.pdf
 - OECD (2021). *Gobernanza del agua en Perú*.
 

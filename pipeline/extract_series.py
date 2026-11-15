@@ -22,9 +22,9 @@ VARIABLES = {
     # key: (zones, units, data_type, product, scale_m)
     "ndvi": (["Z1", "Z2", "Z5"], "unitless", "observed", "MODIS Terra MOD13Q1 v6.1", 250),
     "et": (["Z1", "Z2"], "mm/month", "estimated", "MODIS MOD16A2GF v6.1", 500),
-    "gws": (["ZW"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (GWS_tavg)", 1000),
+    "gws": (["ZW", "ZC"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (GWS_tavg)", 1000),
     "tws_gldas": (["ZW"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (TWS_tavg)", 1000),
-    "tws_grace": (["ZW"], "mm", "observed", "GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", 5000),
+    "tws_grace": (["ZW", "ZC"], "mm", "observed", "GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", 5000),
     "precip": (["Z4", "Z1"], "mm/month", "observed", "GPM IMERG Final Monthly V07", 5000),
     "lst": (["Z1", "Z2", "Z5"], "degC", "observed", "MODIS Terra MOD11A2 v6.1 (LST_Day_1km)", 1000),
     "t2m": (["ZW", "Z4"], "degC", "modeled", "MERRA-2 M2T1NXSLV (T2M), monthly mean of hourly", 10000),

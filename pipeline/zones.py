@@ -19,6 +19,9 @@ BOXES = {
 }
 # Water block for coarse products (GLDAS 0.25 deg, GRACE 3 deg mascon)
 WATER_BLOCK = [-76.08, -14.45, -75.62, -13.80]
+# Comparison case outside Peru: California's Central Valley (Sacramento + San Joaquin valleys), where GRACE
+# famously sees groundwater depletion (Famiglietti et al., 2011). Same coarse products, same engine.
+CENTRAL_VALLEY = [-122.40, 35.00, -118.80, 40.30]
 
 ZONE_META = {
     "Z1": {"name": "Ica Valley", "role": "irrigated",
@@ -31,6 +34,9 @@ ZONE_META = {
            "description": "Hyper-arid desert with no irrigation, used to remove the shared climate signal."},
     "ZW": {"name": "Ica-Villacurí water block", "role": "water_block",
            "description": "Both irrigated zones together; the smallest area coarse water products can speak to."},
+    "ZC": {"name": "Central Valley, California", "role": "comparison",
+           "description": "Comparison case: about 50,000 km2 of irrigated valley floor pumping far more groundwater "
+                          "than Ica, the region where GRACE first measured aquifer depletion."},
 }
 
 
@@ -82,4 +88,5 @@ def zone_masks():
         "Z5": (rect(BOXES["Z5"]), desert_mask()),
         "Z4": (basin, elev.gt(2500)),
         "ZW": (rect(WATER_BLOCK), None),
+        "ZC": (rect(CENTRAL_VALLEY), None),
     }

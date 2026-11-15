@@ -24,6 +24,8 @@ OUT = ROOT / "web" / "public" / "data"
 IDX = pd.date_range("2004-01-01", periods=252, freq="MS")
 
 ZONES = {f["properties"]["id"]: f["properties"] for f in json.loads((ROOT / "config" / "zones.geojson").read_text(encoding="utf-8"))["features"]}
+# Comparison zones live outside the Ica map (config/comparison_zones.geojson), so the map keeps its extent.
+ZONES.update({f["properties"]["id"]: f["properties"] for f in json.loads((ROOT / "config" / "comparison_zones.geojson").read_text(encoding="utf-8"))["features"]})
 
 VARS = {
     "ndvi": {
@@ -90,6 +92,9 @@ CASES = [  # (zone, variable, covariates)
     ("Z5", "lst", ["icen_like", "oni"]),
     ("ZW", "t2m", ["icen_like", "oni"]),
     ("Z4", "t2m", ["icen_like", "oni"]),
+    # Comparison case: same water products and engine, a basin where pumping is far larger (ENSO control only).
+    ("ZC", "tws_grace", ["oni"]),
+    ("ZC", "gws", ["oni"]),
 ]
 CONTRASTS = [("Z2", "ndvi"), ("Z1", "ndvi"), ("Z2", "lst"), ("Z1", "lst")]
 CONTRAST_META = {
@@ -108,6 +113,9 @@ NOTES = {
     "Z2_lst": ["Terra's changing overpass time may affect the absolute surface temperature result. The field-reference comparison uses selected masks."],
     "Z1_lst": ["Classic Mann-Kendall and the combined verdict differ. The combined evidence for this series is inconclusive."],
     "Z5_lst": ["The reference is a low-NDVI mask. Its daytime surface temperature trend is inconclusive."],
+    "ZC_tws_grace": ["Comparison case outside Peru. The Central Valley spans several GRACE mascons, so the satellite can resolve a loss here that it cannot localise in Ica.",
+                     "Published reference: Famiglietti et al. (2011), Geophysical Research Letters 38, L03403, doi:10.1029/2010GL046442."],
+    "ZC_gws": ["GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region."],
     "Z4_t2m": ["MERRA-2 is an atmospheric reanalysis with 0.5 by 0.625 degree grid spacing."],
 }
 
@@ -142,7 +150,8 @@ def fmt_p(p):
 
 
 ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacuri plains", "Z4": "the upper Ica basin",
-               "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region"}
+               "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region",
+               "ZC": "California's Central Valley"}
 
 
 def summary_text(case, meta, zone_id):
@@ -404,7 +413,7 @@ def main():
         (OUT / "contrasts" / f"{payload['id']}.json").write_text(json.dumps(payload))
         manifest_cases.append({"id": payload["id"], "path": f"contrasts/{payload['id']}.json", "kind": "contrast",
                                "zone": zone, "zone_name": ZONES[zone]["name"], "variable": f"{var}_contrast",
-                               "label": meta["label"], "short": meta["short"], "witness": witness,
+                               "label": meta["label"], "short": meta["short"], "witness": payload["witness"],
                                "data_type": "observed", "verdict": payload["verdict"],
                                "sen_per_decade": payload["trend"]["sen_per_decade"],
                                "ci95": payload["trend"]["sen_ci95_block_bootstrap"], "units": meta["units"]})

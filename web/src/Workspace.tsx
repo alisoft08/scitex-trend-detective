@@ -6,6 +6,7 @@ import type { CaseRef, Manifest } from "./types";
 
 export const PLACES: Record<string, string> = {
   Z2: "Villacurí fields", Z1: "Ica Valley fields", Z5: "Desert reference", Z4: "Andean headwaters", ZW: "Ica–Villacurí region",
+  ZC: "Central Valley, CA (comparison)",
 };
 
 export const WITNESSES = [
@@ -22,6 +23,7 @@ const LEADS: { title: string; text: string; caseId: string; tool?: "map" | "lab"
   { title: "The greening desert", text: "Follow the change in Villacurí.", caseId: "Z2_ndvi" },
   { title: "The invisible drop", text: "Compare a well with the view from orbit.", caseId: "ZW_tws_grace", tool: "map" },
   { title: "The cooling oasis", text: "Compare the fields with the desert reference.", caseId: "Z2_vs_Z5_lst" },
+  { title: "Two valleys, one satellite", text: "See GRACE confirm a loss in California that it cannot see in Ica.", caseId: "ZC_tws_grace" },
   { title: "When tests disagree", text: "Try a simulation where the true change is known.", caseId: "ZW_gws", tool: "lab" },
 ];
 
@@ -66,7 +68,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
   return (
     <section className="wrap wide research-page">
       <div className="research-heading">
-        <p className="eyebrow">Ica, Peru · NASA Earth observations</p>
+        <p className="eyebrow">{selected.zone === "ZC" ? "Central Valley, California · comparison case" : "Ica, Peru"} · NASA Earth observations</p>
         <h1>Detective desk</h1>
       </div>
 

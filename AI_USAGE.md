@@ -20,6 +20,7 @@ Marking:
 - Every AI-assisted source file starts with a comment `AI-assisted: Claude (Anthropic)`.
 - Map images are real satellite data rendered by Google Earth Engine (not AI-generated).
 - Draft mascot images (Datron as Explorer, Analyst, Expert and detective, in `brand-drafts/datron/`) were generated with Codex (OpenAI image model via the Codex CLI) from the official SciTeX Datron poses; each prompt is saved next to its image. In the app: the detective version (head and magnifier) in the landing view, the Explorer, Analyst and Expert versions in the welcome dialog, and three Explorer poses (idea, coin, badge) in the Explorer mission (`web/public/brand/datron-*.png`), marked as AI-generated in their alt text, in the app's Sources view and in this file (the team chose not to overlay a visible tag on the mascot).
+- Claude (Anthropic) added the Central Valley, California comparison case (`config/comparison_zones.geojson`, `pipeline/zones.py`, `pipeline/extract_series.py`, `scripts/build_web_data.py`), the home sections `web/src/TwoValleys.tsx` and `web/src/Audiences.tsx`, and fixed an undefined variable in the contrast loop of `scripts/build_web_data.py`. The team chose the comparison region and reviewed the result.
 - The verdict texts in the app are produced by deterministic templates from the engine's numbers. No language model writes text at runtime.
 
 The project idea, the choice of Ica, the statistical design (pre-registered thresholds, consensus of tests, control zone)

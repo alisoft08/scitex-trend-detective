@@ -1,0 +1,42 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZC",
+    "name": "Central Valley, California",
+    "role": "comparison",
+    "description": "Comparison case: California's Sacramento and San Joaquin valleys, where irrigation pumps far more groundwater than in Ica and GRACE first measured aquifer depletion from space.",
+    "mask": "none (whole box, 122.4-118.8 W, 35.0-40.3 N)"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -122.4,
+       35.0
+      ],
+      [
+       -118.8,
+       35.0
+      ],
+      [
+       -118.8,
+       40.3
+      ],
+      [
+       -122.4,
+       40.3
+      ],
+      [
+       -122.4,
+       35.0
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

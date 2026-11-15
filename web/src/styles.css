@@ -367,7 +367,7 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
 .witness-status { font-weight: 500; font-size: .66rem; }
 .compare-toggle { display: flex; gap: .55rem; align-items: center; line-height: 1.4; padding-top: .65rem; border-top: 1px solid var(--line); font-size: .82rem; cursor: pointer; font-weight: 600; }
 .compare-toggle input { accent-color: var(--accent); }
-.lead-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; }
+.lead-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .55rem; }
 .lead-card { display: grid; gap: .3rem; align-content: start; min-height: 82px; text-align: left; font-size: .8rem; border: 1px solid #d6e2f4;
   background: linear-gradient(155deg, #eaf2ff, #fff); border-radius: 9px; padding: .55rem .65rem; cursor: pointer; }
 .lead-card:hover { border-color: var(--accent-2); }
@@ -532,3 +532,22 @@ table.data { width: 100%; border-collapse: collapse; }
 table.data th, table.data td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 table.data th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 table.data a { color: var(--accent); overflow-wrap: anywhere; }
+/* AI-assisted: Claude (Anthropic). Two valleys and audiences on the home page. */
+.two-valleys, .audiences { background: var(--bg); padding-block: 2.2rem 2.4rem; border-bottom: 1px solid var(--line); }
+.two-valleys-head, .audiences > .wrap > h2 { max-width: 72ch; }
+.two-valleys-head { display: grid; gap: .5rem; margin-bottom: 1.1rem; }
+.two-valleys h2, .audiences h2 { font-size: clamp(1.35rem, 1rem + 1.2vw, 1.9rem); letter-spacing: -.01em; text-wrap: balance; margin: 0; }
+.two-valleys-head p:last-child { line-height: 1.55; color: var(--ink); }
+.valley-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.valley { display: grid; gap: .6rem; align-content: start; padding: 1.1rem 1.2rem; min-width: 0; }
+.valley-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem; }
+.valley-result .num { font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem); letter-spacing: -.02em; }
+.valley-result .num span { font-size: .55em; color: var(--muted); font-weight: 500; }
+.two-valleys .link-row { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-top: .9rem; }
+.audiences h2 { margin: .3rem 0 1rem; }
+.audience-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.audience-tile { display: grid; gap: .5rem; align-content: start; padding: 1.2rem 1.3rem; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
+.audience-tile strong { font-size: 1.12rem; line-height: 1.3; }
+.audience-tile p { font-size: .92rem; line-height: 1.5; }
+.audience-tile .text-button { justify-self: start; }
+@media (max-width: 860px) { .valley-grid, .audience-grid { grid-template-columns: minmax(0, 1fr); } }

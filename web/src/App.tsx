@@ -7,6 +7,8 @@ import { Lab } from "./Lab";
 import { MapView } from "./MapView";
 import { Sources } from "./Sources";
 import { ImpactBand } from "./ImpactBand";
+import { TwoValleys } from "./TwoValleys";
+import { Audiences } from "./Audiences";
 import { useJSON } from "./data";
 import { LEVELS, useLevel, type Level } from "./levels";
 import type { Manifest } from "./types";
@@ -109,6 +111,8 @@ export default function App() {
         <main className={`research-app lv-${level}`}>
           {isHome && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {isHome && <ImpactBand m={manifest} onOpen={navigate} />}
+          {isHome && <TwoValleys m={manifest} level={level} onCase={selectCase} onCompare={() => selectPair(["ZW_tws_grace", "ZC_tws_grace"])} />}
+          {isHome && <Audiences onStart={(next) => { setLevel(next); if (next === "explorer") navigate("#mission"); else selectCase(lastCase); }} />}
           {view === "investigate" && <Workspace m={manifest} level={level} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} startWithLead={route.mission} onLead={followLead} />}
           {view === "map" && <MapView m={manifest} level={level} onCase={selectCase} />}

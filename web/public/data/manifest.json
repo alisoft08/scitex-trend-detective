@@ -1,7 +1,7 @@
 {
   "project": "Oasis Paradox",
   "tagline": "What satellites can and cannot see",
-  "generated_at": "2026-11-14T21:01Z",
+  "generated_at": "2026-11-15T12:22Z",
   "period": "2004-01/2024-12",
   "zones": [
     {
@@ -38,6 +38,13 @@
       "role": "climate_control",
       "description": "Andean headwaters (above 2,500 m) where the rain that recharges the aquifer falls.",
       "mask": "elevation above 2,500 m (SRTM) inside the HydroBASINS level-7 Ica basin"
+    },
+    {
+      "id": "ZC",
+      "name": "Central Valley, California",
+      "role": "comparison",
+      "description": "Comparison case: California's Sacramento and San Joaquin valleys, where irrigation pumps far more groundwater than in Ica and GRACE first measured aquifer depletion from space.",
+      "mask": "none (whole box, 122.4-118.8 W, 35.0-40.3 N)"
     }
   ],
   "cases": [
@@ -289,14 +296,52 @@
       "units": "\u00b0C"
     },
     {
+      "id": "ZC_tws_grace",
+      "path": "cases/ZC_tws_grace.json",
+      "kind": "case",
+      "zone": "ZC",
+      "zone_name": "Central Valley, California",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -133.535923,
+      "ci95": [
+        -189.89247,
+        -83.108875
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZC_gws",
+      "path": "cases/ZC_gws.json",
+      "kind": "case",
+      "zone": "ZC",
+      "zone_name": "Central Valley, California",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "inconclusive",
+      "sen_per_decade": -26.589887,
+      "ci95": [
+        -55.430611,
+        0.516974
+      ],
+      "units": "mm"
+    },
+    {
       "id": "Z2_vs_Z5_ndvi",
       "path": "contrasts/Z2_vs_Z5_ndvi.json",
       "kind": "contrast",
       "zone": "Z2",
       "zone_name": "Villacur\u00ed plains",
       "variable": "ndvi_contrast",
-      "label": "Greenness gap: Villacur\u00ed plains minus desert",
-      "short": "Greenness gap",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
       "witness": "greenness",
       "data_type": "observed",
       "verdict": "confirmed",
@@ -314,8 +359,8 @@
       "zone": "Z1",
       "zone_name": "Ica Valley",
       "variable": "ndvi_contrast",
-      "label": "Greenness gap: Ica Valley minus desert",
-      "short": "Greenness gap",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
       "witness": "greenness",
       "data_type": "observed",
       "verdict": "likely",
@@ -333,8 +378,8 @@
       "zone": "Z2",
       "zone_name": "Villacur\u00ed plains",
       "variable": "lst_contrast",
-      "label": "Heat gap: Villacur\u00ed plains minus desert",
-      "short": "Heat gap",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
       "witness": "heat",
       "data_type": "observed",
       "verdict": "confirmed",
@@ -352,8 +397,8 @@
       "zone": "Z1",
       "zone_name": "Ica Valley",
       "variable": "lst_contrast",
-      "label": "Heat gap: Ica Valley minus desert",
-      "short": "Heat gap",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
       "witness": "heat",
       "data_type": "observed",
       "verdict": "confirmed",
