@@ -74,5 +74,8 @@ All accessed through Google Earth Engine (noncommercial project `oasis-paradox`)
 | Vite, @vitejs/plugin-react | MIT |
 | Vitest 2.1.8 (tests of the Explorer field-lab helpers) | MIT |
 | fflate 0.8.2 (reproduction ZIP) | MIT |
+| Vercel AI SDK (`ai` 6.0, `@ai-sdk/google` 3.0), chat streaming | Apache-2.0 |
+| tinyld 1.3 (detects the language of a chat question) | MIT |
+| Google Gemini API (`gemini-3.5-flash-lite`), used at runtime by the chat; not a data source | Google Gemini API Terms of Service |
 | TypeScript | Apache-2.0 |
 | Font: Montserrat (Google Fonts), SciTeX brand typeface | SIL Open Font License 1.1 |
