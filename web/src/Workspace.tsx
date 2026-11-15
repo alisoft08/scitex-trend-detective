@@ -132,7 +132,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
           )}
         </aside>
         <div className="research-stack">
-          <Prediction key={selected.id} refCase={selected} />
+          <Prediction key={`first-look-${selected.id}`} refCase={selected} />
           <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)}
             comparison={selected.kind === "contrast" && base && desert ? { field: base, desert } : undefined} />
         </div>
