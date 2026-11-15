@@ -36,10 +36,6 @@ const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m"; name: st
 const MINI_DIR: Record<string, NonNullable<GlobeMarker["dir"]>> = {
   ZW: "sw", ZC: "nw", ZHP: "ne", ZIN: "se", ZNC: "ne", ZAR: "sw", ZTE: "nw", ZGU: "se",
 };
-type Filter = "all" | GlobeMarker["tone"];
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" }, { id: "down", label: "↓ Falling" }, { id: "up", label: "↑ Rising" }, { id: "flat", label: "? Not proven" },
-];
 // Largest confirmed loss first: the globe opens on the clearest example.
 const startId = (atlas: AtlasEntry[]) => [...atlas].filter((a) => tone(a) === "down")
   .sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0]?.id ?? atlas[0]?.id ?? "";
@@ -85,7 +81,6 @@ export function Atlas({ m, onCase, onIca, onPick }: {
   const [sel, setSel] = useState<string>(() => startId(atlas));
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
   const [intro, setIntro] = useState(() => !introPlayed && !reducedMotion());
   const [fact, setFact] = useState(0);
   useEffect(() => { introPlayed = true; }, []);
@@ -94,9 +89,9 @@ export function Atlas({ m, onCase, onIca, onPick }: {
     const id = setInterval(() => setFact((f) => f + 1), 6500);
     return () => clearInterval(id);
   }, [intro]);
-  const shown = atlas.filter((x) => filter === "all" || tone(x) === filter);
+  const shown = atlas;
   const markers: GlobeMarker[] = useMemo(() => shown.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x),
-    thumb: asset(`img/aquifers/${x.id}.jpg`), value: x.tws.per_decade === null ? undefined : amount(x.tws), dir: MINI_DIR[x.id] ?? "ne" })), [m.atlas, filter]);
+    thumb: asset(`img/aquifers/${x.id}.jpg`), value: x.tws.per_decade === null ? undefined : amount(x.tws), dir: MINI_DIR[x.id] ?? "ne" })), [m.atlas]);
   if (atlas.length < 2) return null;
   const a = atlas.find((x) => x.id === sel) ?? atlas[0];
   const q = norm(query.trim());
@@ -124,8 +119,8 @@ export function Atlas({ m, onCase, onIca, onPick }: {
   return <section className={`atlas ${intro ? "intro" : "ready"}`} aria-labelledby="atlas-title" id="atlas">
     {intro && <Welcome onDone={() => setIntro(false)} />}
     <div className="atlas-stage">
-      <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
-          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
+      <Globe markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
+          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; or search above." />
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
         <h1 id="atlas-title">Where are aquifers draining?</h1>
@@ -148,13 +143,6 @@ export function Atlas({ m, onCase, onIca, onPick }: {
             </li>)}
             {matches.length === 0 && <li className="small atlas-empty">No aquifer matches “{query}”.</li>}
           </ul>}
-        </div>
-        <div className="atlas-filters" role="group" aria-label="Filter by GRACE verdict">
-          {FILTERS.map((f) => <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => {
-            setFilter(f.id); onPick?.();
-            const keep = atlas.filter((x) => f.id === "all" || tone(x) === f.id);
-            if (keep.length && !keep.some((x) => x.id === sel)) setSel(keep[0].id);
-          }}>{f.label} <span>{atlas.filter((x) => f.id === "all" || tone(x) === f.id).length}</span></button>)}
         </div>
       </div>
 
