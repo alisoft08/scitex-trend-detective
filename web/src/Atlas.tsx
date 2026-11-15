@@ -159,18 +159,18 @@ export function Atlas({ m, onCase, onIca, onPick, onOpen }: {
     {intro && <Welcome onDone={() => setIntro(false)} />}
     <div className="atlas-stage">
       <Globe markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
-          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; or search above." />
+          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; or search below." />
+      <nav className="atlas-links atlas-topnav" aria-label="Tools for every aquifer">
+        <a href="#investigate">Detective desk</a><a href="#method">Trend lab</a><a href="#compare">Compare</a><a href="#sources">Sources</a>
+      </nav>
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
         <h1 id="atlas-title">Is that trend real?</h1>
-        <p className="atlas-purpose">Satellite trends can fool you in three ways: memory, scale and a single witness. Oasis Paradox checks
-          all three, on NASA data for {atlas.length} irrigated aquifers, before it calls a trend real.</p>
-        <ol className="atlas-steps">
-          <li><b>1</b>Pick an aquifer</li><li><b>2</b>See its NASA time series</li><li><b>3</b>Get an honest verdict</li>
-        </ol>
+        <p className="atlas-purpose">Satellite trends can fool you in three ways: <strong>memory, scale and a single witness</strong>.
+          Oasis Paradox checks all three, on NASA data for {atlas.length} irrigated aquifers, before it calls a trend real.</p>
       </header>
-
-      <div className="atlas-tools">
+      </div></div>
+      <div className="atlas-tools atlas-bottom-search">
         <div className="atlas-search">
           <label htmlFor="aquifer-search" className="sr-only">Find an aquifer or a country</label>
           <input id="aquifer-search" type="search" value={query} placeholder="Search aquifer or country" autoComplete="off"
@@ -189,11 +189,6 @@ export function Atlas({ m, onCase, onIca, onPick, onOpen }: {
           </ul>}
         </div>
       </div>
-      <nav className="atlas-links" aria-label="Tools for every aquifer">
-        <a href="#investigate">Detective desk</a><a href="#method">Trend lab</a><a href="#compare">Compare</a><a href="#sources">Sources</a>
-      </nav>
-
-      </div></div>
       {(() => { const list = facts(m, atlas); return <p className="atlas-blurb" key={fact} aria-live="polite">{list[fact % list.length]}</p>; })()}
       <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> inconclusive · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
     </div>

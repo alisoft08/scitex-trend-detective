@@ -1055,3 +1055,38 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .three-way .text-button:hover { color: #27295a; }
 .atlas-purpose, .atlas-steps li { text-shadow: 0 0 14px rgba(2,4,12,.95), 0 0 4px rgba(2,4,12,.9), 0 1px 2px rgba(0,0,0,.9); }
 .atlas-links a { text-shadow: 0 0 10px rgba(2,4,12,.95), 0 1px 2px rgba(0,0,0,.9); }
+
+/* AI-assisted: Claude (Anthropic). Home layout (team request, 15 Nov): tools centred at the top, the problem statement on a
+   readable panel at the left, the aquifer search centred at the bottom. */
+.atlas-topnav { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 7; display: flex; gap: .25rem; margin: 0;
+  padding: .3rem; border-radius: 999px; background: rgba(6,10,24,.62); border: 1px solid rgba(201,214,238,.22);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); pointer-events: auto; transition: opacity .9s ease; }
+.atlas-topnav a { padding: .42rem .95rem; border-radius: 999px; border-bottom: 0; color: #e6ecf7; font-size: .86rem; font-weight: 600;
+  text-decoration: none; text-shadow: none; white-space: nowrap; }
+.atlas-topnav a:hover, .atlas-topnav a:focus-visible { background: rgba(255,255,255,.14); color: #fff; }
+.atlas-overlay .atlas-head p.atlas-purpose { margin: .75rem 0 0; max-width: 40ch; padding: .9rem 1.05rem; border-radius: 14px;
+  background: rgba(6,10,24,.62); border: 1px solid rgba(201,214,238,.18); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font-size: clamp(1rem, .9rem + .35vw, 1.15rem); line-height: 1.55; color: #f3f6fb; text-shadow: none; }
+.atlas-purpose strong { color: #f1c56b; font-weight: 700; }
+.atlas-bottom-search { position: absolute; left: 50%; bottom: 3.4rem; transform: translateX(-50%); z-index: 7; width: min(460px, calc(100% - 32px));
+  margin: 0; pointer-events: auto; transition: opacity .9s ease; }
+.atlas-bottom-search .atlas-search { flex: 1 1 auto; max-width: none; width: 100%; }
+.atlas-bottom-search .atlas-search input { box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.atlas .atlas-bottom-search .atlas-list { top: auto; bottom: calc(100% + 6px); }
+.atlas.intro .atlas-topnav, .atlas.intro .atlas-bottom-search { opacity: 0; }
+@media (min-width: 961px) and (max-width: 1280px) {
+  .atlas-stage .atlas-overlay { padding-top: 4.4rem; }
+  .atlas-stage .atlas-blurb { top: 4.6rem; }
+}
+@media (max-width: 960px) {
+  .atlas-stage { display: flex; flex-direction: column; }
+  .atlas-topnav { position: static; transform: none; order: -2; align-self: center; margin: .8rem 16px .2rem; flex-wrap: wrap;
+    justify-content: center; border-radius: 16px; }
+  .atlas-stage .atlas-overlay { order: -1; }
+  .atlas-stage .atlas-blurb { order: 0; }
+  .atlas-stage .globe-stage { order: 1; }
+  .atlas-bottom-search { position: static; transform: none; order: 2; margin: .8rem auto; }
+  .atlas-stage .atlas-stage-foot { order: 3; }
+  .atlas .atlas-bottom-search .atlas-list { top: calc(100% + 6px); bottom: auto; }
+  .atlas-overlay .atlas-head p.atlas-purpose { max-width: none; }
+}
