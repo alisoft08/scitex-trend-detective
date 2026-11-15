@@ -2,6 +2,7 @@
 // pixel by pixel on a canvas, with HTML markers on top (real buttons, so they are clickable and keyboard-friendly).
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { asset } from "./data";
+import { createGlobeGL } from "./globeGL";
 
 export interface GlobeMarker {
   id: string; lonlat: [number, number]; label: string; tone: "down" | "up" | "flat"; focus?: boolean;
@@ -33,6 +34,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   const leader = useRef<SVGLineElement>(null);
   const dot = useRef<SVGCircleElement>(null);
   const lastSelected = useRef(selected);
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const idleUntil = useRef(0);
   const canvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
@@ -55,21 +57,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   // Load the texture once.
   useEffect(() => {
     const img = new Image();
-    img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width = img.naturalWidth; c.height = img.naturalHeight;
-      const g = c.getContext("2d")!;
-      g.drawImage(img, 0, 0);
-      const px = g.getImageData(0, 0, c.width, c.height).data;
-      // Lighten the flat navy ocean of the mosaic (22, 34, 58) a little, so the sea reads as water, not as space.
-      for (let i = 0; i < px.length; i += 4) {
-        if (Math.abs(px[i] - 22) < 14 && Math.abs(px[i + 1] - 34) < 14 && Math.abs(px[i + 2] - 58) < 16) {
-          px[i] = 30; px[i + 1] = 62; px[i + 2] = 108;
-        }
-      }
-      tex.current = { data: px, w: c.width, h: c.height };
-      setReady(true);
-    };
+    img.onload = () => { imgRef.current = img; setReady(true); };
     img.src = asset("img/world_modis.jpg");
     if (autoRotate) {
       view.current = { lon: focus ? focus.lonlat[0] : 0, lat: 22 };   // tilted north so the Arctic and the curvature show
@@ -90,19 +78,31 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   useEffect(() => {
     if (!ready) return;
     const cv = canvas.current!;
+    // GPU first (sharp, 60 frames a second); the canvas-2D renderer below is the fallback.
+    const dprGL = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = cv.height = Math.min(2048, Math.round(size * dprGL));
+    const glr = createGlobeGL(cv, imgRef.current!);
+    cv.dataset.renderer = glr ? "webgl2" : "canvas2d";
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const N = Math.min(1300, Math.round(size * dpr));         // cap the pixel work on large screens
-    cv.width = N; cv.height = N;
-    const g = cv.getContext("2d")!;
-    const out = g.createImageData(N, N);
+    const N = glr ? cv.width : Math.min(1300, Math.round(size * dpr));
+    if (!glr) { cv.width = N; cv.height = N; }
+    if (!glr && !tex.current) {                                // CPU texture, only when the GPU path is unavailable
+      const c = document.createElement("canvas"), im = imgRef.current!;
+      c.width = 2400; c.height = 1200;
+      const g2 = c.getContext("2d")!;
+      g2.drawImage(im, 0, 0, c.width, c.height);
+      tex.current = { data: g2.getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height };
+    }
+    const g = glr ? null : cv.getContext("2d")!;
+    const out = g ? g.createImageData(N, N) : null;
     const r = N / 2 - 2, cx = N / 2, cy = N / 2;
     let raf = 0, last = { lon: NaN, lat: NaN }, lastStep = 1;
     let lastT = performance.now(), lastSpin = 0;
     const draw = () => {
       const now = performance.now(), dtS = Math.min(0.1, (now - lastT) / 1000); lastT = now;
-      // Slow spin, west to east as seen from space (about 6 degrees a second), redrawn ~20 times a second.
+      // Slow spin, west to east as seen from space (about 6 degrees a second): every frame on the GPU, ~20 a second on the CPU.
       const spinning = autoRotate && !reduced && !anim.current && !drag.current && now > idleUntil.current;
-      if (spinning && now - lastSpin > 50) {
+      if (spinning && (glr || now - lastSpin > 50)) {
         view.current = { lon: view.current.lon - 6 * Math.max(dtS, Math.min(0.2, (now - lastSpin) / 1000)), lat: view.current.lat };
         lastSpin = now;
       } else if (!spinning) lastSpin = now;
@@ -115,10 +115,12 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
       }
       const { lon: lon0, lat: lat0 } = view.current;
       // While the globe moves, draw every second pixel (2x2 blocks); once it stops, redraw at full resolution.
-      const step = anim.current || drag.current ? 2 : 1;
+      const step = glr ? 1 : anim.current || drag.current ? 2 : 1;
       if (lon0 !== last.lon || lat0 !== last.lat || (step === 1 && lastStep === 2)) {
         last = { lon: lon0, lat: lat0 }; lastStep = step;
-        const t = tex.current!, d = out.data;
+        if (glr) glr.draw(lon0, lat0);
+        else {
+        const t = tex.current!, d = out!.data;
         const sp = Math.sin(lat0 * rad), cp = Math.cos(lat0 * rad);
         const put = (i0: number, px: number, py: number, R: number, G: number, B: number, A: number) => {
           for (let dy = 0; dy < step && py + dy < N; dy++)
@@ -148,7 +150,8 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
             put(i, px, py, R * light, G * light, B * light, 255);
           }
         }
-        g.putImageData(out, 0, 0);
+        g!.putImageData(out!, 0, 0);
+        }
         for (const m of markers) {                                // move the HTML markers with the globe
           const el = pins.current[m.id]; if (!el) continue;
           const p = project(m.lonlat[0], m.lonlat[1], lon0, lat0);
@@ -180,7 +183,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); glr?.dispose(); };
   }, [ready, size, markers, selected]);
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {

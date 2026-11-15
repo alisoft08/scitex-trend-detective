@@ -26,6 +26,7 @@ Marking:
 - Claude (Anthropic) added cropland greenness, crop water use and air temperature to the atlas aquifers (MCD12Q1 cropland mask), the aquifer search, the black atlas design, and the Expert-only switch (`web/src/levels.ts`, `EXPERT_ONLY`), all following the team's decisions of 15 Nov 2026.
 - Claude (Anthropic) made the globe the home page (team decision: a global platform, Ica as one aquifer among several), with the pop-out card, leader line, quick filter and satellite close-ups (`pipeline/aquifer_thumbs.py`, `web/src/Globe.tsx`, `web/src/Atlas.tsx`); the Ica lens moved to its own page (`#ica`).
 - Claude (Anthropic) added the globe's auto-rotation, the full-width layout and a mini card per aquifer (satellite close-up, name and GRACE number tied to its point), following the team's design direction of 15 Nov 2026.
+- Claude (Anthropic) wrote the WebGL2 globe renderer (`web/src/globeGL.ts`: orthographic projection in a fragment shader, mipmapped MODIS texture, sunlight and atmosphere rim) and the 4096 x 2048 tiled world mosaic (`pipeline/world_map.py`).
 - The verdict texts in the app are produced by deterministic templates from the engine's numbers. No language model writes text at runtime.
 
 The project idea, the choice of Ica, the statistical design (pre-registered thresholds, consensus of tests, control zone)

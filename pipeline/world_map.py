@@ -1,5 +1,5 @@
 # AI-assisted: Claude (Anthropic). World basemap for the atlas globe: a MODIS true-colour mosaic, pole to pole.
-"""Write web/public/data/img/world_modis.jpg (equirectangular, lon -180..180, lat 90..-90, 2400 x 1200).
+"""Write web/public/data/img/world_modis.jpg (equirectangular, lon -180..180, lat 90..-90, 4096 x 2048).
 
 Sources (NASA LP DAAC):
 - MODIS Terra MOD09CMG v6.1 surface reflectance on the 0.05° grid (bands 1, 4, 3), 25th percentile of the Mondays of
@@ -7,11 +7,14 @@ Sources (NASA LP DAAC):
 - MODIS MCD12Q1 v6.1 land cover 2020 (IGBP): water (class 17) is painted a flat navy; permanent snow and ice
   (class 15) south of 55°S is painted ice white, because Antarctica is in polar night during the composite.
 """
+import io
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
 import ee
+from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent))
 import zones as Z  # noqa: E402
@@ -31,14 +34,28 @@ def main():
     land = lc.neq(17)
     lat = ee.Image.pixelLonLat().select("latitude")
     ice = lc.eq(15).And(lat.lt(-55))
-    ocean = ee.Image.constant([22, 34, 58]).visualize(min=0, max=255)
+    ocean = ee.Image.constant([30, 62, 108]).visualize(min=0, max=255)   # a readable sea blue
     snow = ee.Image.constant([228, 234, 240]).visualize(min=0, max=255)
     vis = refl.visualize(min=0, max=0.38, gamma=1.3)
     rgb = ocean.blend(vis.updateMask(land)).blend(snow.updateMask(ice))
-    region = ee.Geometry.Rectangle(BBOX, "EPSG:4326", False)
-    url = rgb.getThumbURL({"region": region, "dimensions": "2400x1200", "crs": "EPSG:4326", "format": "jpg"})
+    # Four 2048 x 1024 tiles (180 x 90 degrees each) stay inside Earth Engine's memory limit; Pillow stitches them.
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    urllib.request.urlretrieve(url, OUT)
+    canvas = Image.new("RGB", (4096, 2048))
+    for col, (w, e) in enumerate([(-180, 0), (0, 180)]):
+        for row, (n, s) in enumerate([(90, 0), (0, -90)]):
+            region = ee.Geometry.Rectangle([w, s, e, n], "EPSG:4326", False)
+            url = rgb.getThumbURL({"region": region, "dimensions": "2048x1024", "crs": "EPSG:4326", "format": "png"})
+            for attempt in range(5):
+                try:
+                    tile = Image.open(io.BytesIO(urllib.request.urlopen(url, timeout=300).read())).convert("RGB")
+                    break
+                except Exception:
+                    time.sleep(8 * (attempt + 1))
+            else:
+                raise RuntimeError(f"tile failed: {w},{s}")
+            canvas.paste(tile.resize((2048, 1024)), (col * 2048, row * 1024))
+            print("tile", col, row, flush=True)
+    canvas.save(OUT, quality=88, optimize=True, progressive=True)
     print("wrote", OUT, OUT.stat().st_size // 1024, "KB")
 
 
