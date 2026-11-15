@@ -36,7 +36,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   const lastSelected = useRef(selected);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const idleUntil = useRef(0);
-  const hovering = useRef(false);   // mouse over the globe or keyboard focus inside it
+  const hovering = useRef(false);   // pointer resting on a marker or its card, or keyboard focus inside the globe
   const canvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
   const view = useRef({ lon: 0, lat: 0 });
@@ -195,7 +195,12 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "mouse") hovering.current = true;   // also when the pointer was already here (after the welcome)
+    // AI-assisted: Claude (Anthropic). Moving the mouse pauses the spin; it resumes 4 s after the last movement, unless the
+    // pointer rests on a marker or its card (so they can be clicked).
+    if (e.pointerType === "mouse") {
+      idleUntil.current = Math.max(idleUntil.current, performance.now() + 4000);
+      hovering.current = !!(e.target as HTMLElement).closest(".globe-pin");
+    }
     const s = drag.current; if (!s) return;
     const k = 180 / size;
     view.current = { lon: s.lon - (e.clientX - s.x) * k, lat: Math.max(-55, Math.min(55, s.lat + (e.clientY - s.y) * k)) };
@@ -211,9 +216,10 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
     <div className="globe-stage" ref={stage}>
     <div className="globe" ref={box} style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; idleUntil.current = performance.now() + 4000; }} onKeyDown={onKey}
-      onPointerEnter={(e) => { if (e.pointerType === "mouse") hovering.current = true; }}
+      onPointerEnter={(e) => { if (e.pointerType === "mouse") idleUntil.current = Math.max(idleUntil.current, performance.now() + 4000); }}
       onPointerLeave={() => { hovering.current = false; idleUntil.current = Math.max(idleUntil.current, performance.now() + 2000); }}
-      onFocus={() => { hovering.current = true; }} onBlur={() => { hovering.current = false; }}>
+      onFocus={(e) => { if ((e.target as HTMLElement).matches(":focus-visible")) hovering.current = true; }}
+      onBlur={() => { hovering.current = false; }}>
       <div className="globe-halo" aria-hidden="true" />
       <canvas ref={canvas} className="globe-canvas" aria-hidden="true" />
       {!ready && <p className="globe-loading">Loading MODIS mosaic…</p>}
