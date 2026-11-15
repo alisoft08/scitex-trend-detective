@@ -10,7 +10,8 @@ export const LEVELS: { id: Level; name: Translation; promise: Translation }[] = 
   { id: "expert", name: ["Expert", "Experto"], promise: ["Inspect the model and reproduce the result.", "Inspecciona el modelo y reproduce el resultado."] },
 ];
 
-const KEY = "oasis-paradox-level";
+// Start existing browsers on the new default too: the old key stored Explorer automatically.
+const KEY = "oasis-paradox-level-v2";
 
 export function useLevel(): [Level, (l: Level) => void] {
   const [level, setLevel] = useState<Level>(() => {
@@ -18,7 +19,7 @@ export function useLevel(): [Level, (l: Level) => void] {
       const v = localStorage.getItem(KEY);
       if (v === "explorer" || v === "analyst" || v === "expert") return v;
     } catch { /* storage blocked: fall back to the default */ }
-    return "explorer";
+    return "expert";
   });
   useEffect(() => {
     try { localStorage.setItem(KEY, level); } catch { /* ignore */ }

@@ -537,3 +537,9 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
   .extraction-values .research-note { grid-template-columns: minmax(0, 1fr) auto; }
   .extraction-values .research-note .num { grid-column: 2; grid-row: 1; text-align: right; }
 }
+
+/* Keep the header controls compact. Reading depth belongs to the research tools. */
+.research-nav .wrap.wide { max-width: none; padding-inline: max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-right, 0px)); }
+.tool-levels { display: flex; justify-content: flex-end; padding-top: .72rem; }
+.tool-levels .level-switch { margin: 0; }
+.tool-levels + .research-page { padding-top: .75rem; }

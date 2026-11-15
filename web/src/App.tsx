@@ -1,7 +1,7 @@
 // AI-assisted: Codex (OpenAI). Shared case navigation and progressive detail.
 import { useEffect, useState } from "react";
 import { useLocale, type Language } from "./i18n";
-import { HeroMap } from "./HeroMap";
+import { AtlasHero } from "./AtlasHero";
 import { Workspace } from "./Workspace";
 import { ComparisonDesk } from "./ComparisonDesk";
 import { Lab } from "./Lab";
@@ -95,11 +95,6 @@ export default function App() {
                 className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{t(v.label[0], v.label[1])}</a>
             ))}
           </nav>
-          <div className="level-switch" role="group" aria-label={t("Reading level", "Nivel de lectura")}>
-            {LEVELS.map((l) => (
-              <button key={l.id} id={`nav-level-${l.id}`} aria-pressed={level === l.id} title={t(...l.promise)} onClick={() => changeLevel(l.id)}>{t(...l.name)}</button>
-            ))}
-          </div>
           <label className="language-switch">
             <span className="sr-only">{t("Language", "Idioma")}</span>
             <select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
@@ -113,7 +108,16 @@ export default function App() {
       {!error && !manifest && <p className="wrap loading" role="status">{t("Loading the evidence…", "Cargando la evidencia…")}</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${level}`}>
-          {isHome && <HeroMap m={manifest} primary={{ label: t("Open the detective desk →", "Abrir la mesa de investigación →"), go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
+          {isHome && <AtlasHero />}
+          {!isHome && (
+            <div className="wrap wide tool-levels">
+              <div className="level-switch" role="group" aria-label={t("Reading level", "Nivel de lectura")}>
+                {LEVELS.map((l) => (
+                  <button key={l.id} id={`tool-level-${l.id}`} aria-pressed={level === l.id} title={t(...l.promise)} onClick={() => changeLevel(l.id)}>{t(...l.name)}</button>
+                ))}
+              </div>
+            </div>
+          )}
           {view === "investigate" && <Workspace m={manifest} level={level} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} startWithLead={route.mission} onLead={followLead} />}
           {view === "map" && <MapView m={manifest} level={level} onCase={selectCase} />}
