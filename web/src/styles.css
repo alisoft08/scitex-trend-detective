@@ -1047,3 +1047,6 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .three-way .text-button { align-self: flex-start; margin-top: .35rem; }
 @media (max-width: 900px) { .three-ways-grid { grid-template-columns: minmax(0, 1fr); } }
 .audiences-lede { margin: .2rem 0 1.1rem; max-width: 72ch; line-height: 1.6; color: #3f4566; }
+/* AI-assisted: Claude (Anthropic). Engine notes on a case (sensor drift, model dependence). */
+.case-notes { margin: .3rem 0 0; padding-left: 1.1rem; font-size: .78rem; line-height: 1.5; color: #4e5973; }
+.case-notes li + li { margin-top: .2rem; }

@@ -238,6 +238,9 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
       {cf.verdict !== "confirmed" && tr.years_to_detect != null && tr.years_to_detect < 200 &&
         <p className="case-years">{t("Years to detect (Weatherhead et al., 1998)", "Años para detectar la tendencia (Weatherhead et al., 1998)")}: <strong>{Math.round(tr.years_to_detect)}</strong> · {t("Years in the record", "Años en la serie")}: {Math.round(cf.n / 12)}.</p>}
       <p className="case-limit">{limit}</p>
+      {cf.notes.length > 0 && limit !== cf.notes.join(" ") && <ul className="case-notes" lang="en" aria-label={t("Notes on this case", "Notas sobre este expediente")}>
+        {cf.notes.map((note) => <li key={note}>{note}</li>)}
+      </ul>}
       <p className="case-source">
         <strong>{dataKind(cf)}</strong> · {cf.source.agency} {cf.source.product} {cf.source.version}
         {" · "}<a href={`https://doi.org/${cf.source.doi}`} target="_blank" rel="noreferrer">{t("Product source", "Fuente del producto")}</a>
