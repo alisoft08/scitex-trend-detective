@@ -66,19 +66,18 @@ Aquifers chosen from Richey et al. (2015) and Rodell et al. (2018).
 
 ## The app
 
-One build, three reading levels (switch in the top bar): **Explorer** (school students), **Analyst** (university
-students) and **Expert** (scientists). The same evidence, told at three depths.
+The app shows the **Expert** level (team decision, 15 Nov 2026). The Explorer and Analyst levels and the Explorer
+field lab remain in the code, hidden behind `EXPERT_ONLY` in `web/src/levels.ts`.
 
 - **Home:** the detective's lens over Ica (Landsat 2004 vs 2024), the impact band, the world aquifer atlas (3D globe
-  on a MODIS mosaic, one card per aquifer, comparison table) and "Who it is for".
-- **Field lab** (Explorer): four instruments and a field notebook, in English, Spanish, Portuguese and French:
-  Landsat time machine, drill a well (JUASVI), weigh water with GRACE, the tricky witness.
+  on a MODIS mosaic over a black background, aquifer search by name or country, six NASA witnesses per aquifer,
+  comparison table) and "Who it is for".
+- **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.
 - **Detective desk:** pick a place and a NASA variable; each case file shows the verdict, the series, the false-alarm
   warning, years to detect when unproven, and (Expert) windows, jackknife and a reproduction ZIP.
-- **Evidence map, Trend lab, Compare cases** (Analyst and Expert) and **Sources**.
+- **Evidence map, Trend lab, Compare cases** and **Sources**.
 
-Direct links (hash): `#field-lab` (or `#mission-1` … `#mission-5` for one chapter, handy for the demo video),
-`#investigate?case=ZIN_tws_grace`, `#map`, `#method`, `#compare?left=ZW_tws_grace&right=ZC_tws_grace`, `#sources`.
+Direct links (hash): `#atlas` is on the home page; `#investigate?case=ZIN_tws_grace`, `#map`, `#method`, `#compare?left=ZW_tws_grace&right=ZC_tws_grace`, `#sources`.
 
 The app is static: Python precomputes every number into `web/public/data/*.json` and the browser only draws them. No test is computed in JavaScript and no language model runs at runtime.
 
@@ -115,7 +114,7 @@ Earth Engine project id is set in `pipeline/zones.py` (`PROJECT`). Credentials s
 2. In Vercel: **Add New… > Project > Import** the repository.
 3. **Root Directory: `web`**. Framework preset: Vite (detected). Build command `npm run build`, output `dist` (also set in `web/vercel.json`). Node.js 20.x.
 4. No environment variables and no secrets: the site only serves static files from `web/public/data/` and `web/public/brand/`.
-5. Deploy, then open the URL in a private window and check the globe on the home page, `#field-lab` (and its language buttons), `#investigate` and `#sources`.
+5. Deploy, then open the URL in a private window and check the globe and the aquifer search on the home page, `#investigate` and `#sources`.
 6. Optional: request a FortiGuard Web Filter category for the new domain so judges' networks do not block it.
 
 Earth Engine and Earthdata credentials are never needed by the site and never go into the repository (`.netrc`, `.env` and keys are in `.gitignore`).

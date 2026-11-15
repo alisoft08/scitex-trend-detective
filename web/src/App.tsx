@@ -12,7 +12,7 @@ import { Atlas } from "./Atlas";
 import { FieldLab } from "./FieldLab";
 import { useLang } from "./i18n";
 import { useJSON } from "./data";
-import { LEVELS, useLevel, type Level } from "./levels";
+import { EXPERT_ONLY, LEVELS, useLevel, type Level } from "./levels";
 import type { Manifest } from "./types";
 
 const DEFAULT_CASE = "Z2_ndvi";
@@ -30,7 +30,8 @@ function readRoute() {
   const [hash, query] = location.hash.slice(1).split("?");
   const params = new URLSearchParams(query);
   const aliases: Record<string, string> = { evidence: "investigate", why: "map", where: "map", methods: "method", about: "sources" };
-  const view = /^(mission|explorer)(-[0-5])?$/.test(hash) ? "field-lab" : Object.prototype.hasOwnProperty.call(aliases, hash) ? aliases[hash] : hash;
+  const view = /^(mission|explorer)(-[0-5])?$/.test(hash) ? (EXPERT_ONLY ? "investigate" : "field-lab") : Object.prototype.hasOwnProperty.call(aliases, hash) ? aliases[hash]
+    : EXPERT_ONLY && hash === "field-lab" ? "investigate" : hash;
   return { view, params, mission: /^(mission|explorer)(-[0-5])?$/.test(hash) };
 }
 
@@ -102,11 +103,11 @@ export default function App() {
                 className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{v.label}</a>
             ))}
           </nav>
-          <div className="level-switch" role="group" aria-label="Reading level">
+          {!EXPERT_ONLY && <div className="level-switch" role="group" aria-label="Reading level">
             {LEVELS.map((l) => (
               <button key={l.id} id={`nav-level-${l.id}`} aria-pressed={level === l.id} title={l.promise} onClick={() => changeLevel(l.id)}>{l.name}</button>
             ))}
-          </div>
+          </div>}
         </div>
       </header>
       {error && <p className="wrap error" role="alert">{error}</p>}
@@ -118,8 +119,11 @@ export default function App() {
             : { label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {isHome && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => selectCase("ZW_tws_grace")} />}
-          {isHome && <Audiences onStart={(next) => { setLevel(next); if (next === "explorer") navigate("#field-lab"); else selectCase(lastCase); }} />}
-          {view === "field-lab" && <FieldLab m={manifest} lang={lang} onLang={setLang}
+          {isHome && <Audiences onOpen={(target) => {
+            if (target === "#atlas") document.getElementById("atlas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            else if (target.startsWith("case:")) selectCase(target.slice(5)); else navigate(target);
+          }} />}
+          {!EXPERT_ONLY && view === "field-lab" && <FieldLab m={manifest} lang={lang} onLang={setLang}
             startAt={Number(/-(\d)$/.exec(location.hash.split("?")[0])?.[1] ?? 0)}
             onFullTool={() => selectCase(lastCase)} onAnalyst={() => { setLevel("analyst"); selectCase(lastCase); }} />}
           {view === "investigate" && <Workspace m={manifest} level={level} selected={selectedCase} onCase={selectCase}

@@ -22,14 +22,14 @@ N_MONTHS = 252
 
 VARIABLES = {
     # key: (zones, units, data_type, product, scale_m)
-    "ndvi": (["Z1", "Z2", "Z5"], "unitless", "observed", "MODIS Terra MOD13Q1 v6.1", 250),
-    "et": (["Z1", "Z2"], "mm/month", "estimated", "MODIS MOD16A2GF v6.1", 500),
+    "ndvi": (["Z1", "Z2", "Z5", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "unitless", "observed", "MODIS Terra MOD13Q1 v6.1", 250),
+    "et": (["Z1", "Z2", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm/month", "estimated", "MODIS MOD16A2GF v6.1", 500),
     "gws": (["ZW", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (GWS_tavg)", 1000),
     "tws_gldas": (["ZW"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (TWS_tavg)", 1000),
     "tws_grace": (["ZW", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm", "observed", "GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", 5000),
     "precip": (["Z4", "Z1", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm/month", "observed", "GPM IMERG Final Monthly V07", 5000),
     "lst": (["Z1", "Z2", "Z5"], "degC", "observed", "MODIS Terra MOD11A2 v6.1 (LST_Day_1km)", 1000),
-    "t2m": (["ZW", "Z4"], "degC", "modeled", "MERRA-2 M2T1NXSLV (T2M), monthly mean of hourly", 10000),
+    "t2m": (["ZW", "Z4", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "degC", "modeled", "MERRA-2 M2T1NXSLV (T2M), monthly mean of hourly", 10000),
 }
 
 
@@ -69,7 +69,8 @@ def collection(var):
 
 
 # Atlas aquifer boxes are thousands of km wide: sample them at each product's native grid to stay within quota.
-NATIVE_SCALE = {"gws": 27000, "tws_grace": 50000, "precip": 11000}
+NATIVE_SCALE = {"gws": 27000, "tws_grace": 50000, "precip": 11000, "ndvi": 2000, "et": 2000, "t2m": 50000}
+FIELD_VARS = {"ndvi", "et", "lst"}  # atlas boxes: cropland mask for these, whole box for the rest
 
 
 def monthly_series(var, zone, scale):
@@ -78,6 +79,8 @@ def monthly_series(var, zone, scale):
     start = ee.Date(START)
     if zone in Z.AQUIFERS:
         scale = NATIVE_SCALE.get(var, scale)
+        if var not in FIELD_VARS:
+            mask = None
 
     def per_month(i):
         d0 = start.advance(ee.Number(i), "month")

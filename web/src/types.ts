@@ -109,6 +109,7 @@ export interface AtlasWitness {
 export interface AtlasEntry {
   id: string; name: string; description: string; lonlat: [number, number]; focus: boolean;
   area_km2: number; grace_footprints: number; tws: AtlasWitness; gws: AtlasWitness; rain: AtlasWitness;
+  countries: string[]; ndvi?: AtlasWitness; et?: AtlasWitness; t2m?: AtlasWitness;
   rain_area: string; reading: string; reference: string;
 }
 

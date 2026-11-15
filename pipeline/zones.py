@@ -25,6 +25,7 @@ CENTRAL_VALLEY = [-122.40, 35.00, -118.80, 40.30]
 # World aquifer atlas: approximate boxes around major irrigated aquifer systems named in GRACE studies
 # (Richey et al., 2015; Rodell et al., 2018). Boxes, not official aquifer boundaries.
 AQUIFERS = {
+    "ZC": CENTRAL_VALLEY,                      # Central Valley, California
     "ZHP": [-104.50, 32.00, -96.50, 43.50],   # High Plains (Ogallala), United States
     "ZIN": [70.00, 24.00, 79.00, 32.50],      # Northwest India (Punjab, Haryana, Rajasthan)
     "ZNC": [113.00, 34.50, 119.50, 40.50],    # North China Plain
@@ -87,6 +88,13 @@ def upper_basin():
     return basins.filterBounds(ee.Geometry.Point([-75.70, -14.05])).first().geometry()
 
 
+def modis_cropland():
+    """Atlas cropland: MODIS MCD12Q1 v6.1 land cover 2020, IGBP classes 12 (croplands) and 14 (cropland/natural mosaic).
+    Used instead of the Ica NDVI mask, which is too heavy over boxes thousands of km wide."""
+    lc = ee.ImageCollection("MODIS/061/MCD12Q1").filterDate("2020-01-01", "2021-01-01").first().select("LC_Type1")
+    return lc.eq(12).Or(lc.eq(14)).selfMask()
+
+
 def zone_masks():
     """Return {zone_id: (region_geometry, mask_image_or_None)}."""
     crop = cropland_mask()
@@ -99,5 +107,5 @@ def zone_masks():
         "Z4": (basin, elev.gt(2500)),
         "ZW": (rect(WATER_BLOCK), None),
         "ZC": (rect(CENTRAL_VALLEY), None),
-        **{k: (rect(b), None) for k, b in AQUIFERS.items()},
+        **{k: (rect(b), modis_cropland()) for k, b in AQUIFERS.items()},  # the mask applies to field variables only
     }

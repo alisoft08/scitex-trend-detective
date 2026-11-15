@@ -97,7 +97,8 @@ CASES = [  # (zone, variable, covariates)
     ("ZC", "tws_grace", ["oni"]),
     ("ZC", "gws", ["oni"]),
     # World aquifer atlas: GRACE, GLDAS and IMERG rain over each aquifer box, ENSO control only.
-    *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip")
+    *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")
+      for v in ("tws_grace", "gws", "precip", "ndvi", "et", "t2m")
       if (z, v) not in {("ZC", "tws_grace"), ("ZC", "gws")}],
 ]
 CONTRASTS = [("Z2", "ndvi"), ("Z1", "ndvi"), ("Z2", "lst"), ("Z1", "lst")]
@@ -125,7 +126,11 @@ NOTES = {
 
 NOTES.update({f"{z}_{v}": ["Atlas case: the box around this aquifer system is approximate, not its official boundary. "
                              "Only El Niño (ONI) is used as a control."]
-              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip")})
+              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip", "t2m")})
+NOTES.update({f"{z}_{v}": ["Atlas case: cropland pixels from MODIS MCD12Q1 land cover 2020 (IGBP classes 12 and 14) "
+                           "inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control."]
+              for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "et")})
+NOTES["ZC_t2m"] = ["Air temperature over the same box as the Central Valley water cases."]
 NOTES["ZC_precip"] = ["Rain over the same box as the Central Valley water cases."]
 
 VERDICT_LABEL = {"confirmed": "Confirmed trend", "likely": "Likely trend",
@@ -399,6 +404,11 @@ def reproduce_case(case_id):
 
 # ---------- world aquifer atlas ----------
 # (zone, centre lon/lat, GRACE case, GLDAS case, rain case, published reference)
+COUNTRIES = {"ZW": ["Peru"], "ZC": ["United States"], "ZHP": ["United States"], "ZIN": ["India", "Pakistan"],
+             "ZNC": ["China"], "ZAR": ["Saudi Arabia", "Jordan"], "ZTE": ["Iraq", "Iran", "Syria", "Turkey"],
+             "ZGU": ["Brazil", "Paraguay", "Argentina", "Uruguay"]}
+# Field witnesses per atlas zone: (greenness, crop water use, air temperature); Ica uses its Villacurí fields.
+FIELD_CASES = {"ZW": ("Z2_ndvi", "Z2_et", "ZW_t2m")}
 ATLAS = [
     ("ZW", (-75.85, -14.10), "ZW_tws_grace", "ZW_gws", "Z4_precip", "This project: wells from JUASVI (2025)"),
     ("ZC", (-120.60, 37.65), "ZC_tws_grace", "ZC_gws", "ZC_precip", "Famiglietti et al. (2011)"),
@@ -431,8 +441,23 @@ def witness_summary(case):
             "years_to_detect": tr.get("years_to_detect")}
 
 
-def atlas_reading(zone, tws, rain, wells_share):
-    """Template text: what the three witnesses say together. 'Points to', never 'proves'."""
+def fields_sentence(ndvi, et):
+    up = lambda w: w is not None and w["verdict"] in ("confirmed", "likely") and (w["per_decade"] or 0) > 0
+    if up(ndvi) and up(et):
+        return "Its cropland is getting greener and using more water (MODIS). "
+    if up(ndvi):
+        return "Its cropland is getting greener (MODIS). "
+    if up(et):
+        return "Its cropland is using more water (MODIS). "
+    return ""
+
+
+def atlas_reading(zone, tws, rain, wells_share, ndvi=None, et=None):
+    """Template text: what the witnesses say together. 'Points to', never 'proves'."""
+    return fields_sentence(ndvi, et) + water_sentence(zone, tws, rain, wells_share)
+
+
+def water_sentence(zone, tws, rain, wells_share):
     proven = tws["verdict"] in ("confirmed", "likely")
     rain_down = rain["verdict"] in ("confirmed", "likely") and (rain["per_decade"] or 0) < 0
     if proven and tws["per_decade"] < 0:
@@ -460,11 +485,15 @@ def build_atlas(cases_by_id, wells_share):
         tws, gws, rain = (witness_summary(cases_by_id[i]) for i in (tws_id, gws_id, rain_id))
         out.append({
             "id": zone, "name": "Ica-Villacurí, Peru" if zone == "ZW" else ZONES[zone]["name"],
+            "countries": COUNTRIES.get(zone, []),
             "description": ZONES[zone]["description"], "lonlat": [lon, lat], "focus": zone == "ZW",
             "area_km2": round(float(area), -2), "grace_footprints": round(float(area / mascon_area_km2(lat)), 2),
-            "tws": tws, "gws": gws, "rain": rain, "rain_area": "Andean headwaters" if zone == "ZW" else "aquifer box",
-            "reading": atlas_reading(zone, tws, rain, wells_share), "reference": ref,
+            "tws": tws, "gws": gws, "rain": rain,
+            **{k: witness_summary(cases_by_id[i]) for k, i in zip(("ndvi", "et", "t2m"), FIELD_CASES.get(
+                zone, (f"{zone}_ndvi", f"{zone}_et", f"{zone}_t2m"))) if i in cases_by_id}, "rain_area": "Andean headwaters" if zone == "ZW" else "aquifer box",
+            "reading": None, "reference": ref,
         })
+        out[-1]["reading"] = atlas_reading(zone, tws, rain, wells_share, out[-1].get("ndvi"), out[-1].get("et"))
     return out
 
 

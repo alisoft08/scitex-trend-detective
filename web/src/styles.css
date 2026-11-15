@@ -598,3 +598,38 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .atlas-compare td .pill { white-space: nowrap; }
 @media (max-width: 960px) { .atlas-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .atlas-list, .atlas-witnesses { grid-template-columns: minmax(0, 1fr); } }
+/* AI-assisted: Claude (Anthropic). Atlas on a black, space-like background (team decision, 15 Nov 2026). */
+.atlas { --a-ink: #eef2fb; --a-muted: #a9b3c9; --a-line: rgba(255,255,255,.12); --a-card: #0d1220; --a-card-2: #131a2c;
+  background: radial-gradient(120% 80% at 30% 20%, #0b1426 0%, #03050a 60%, #000 100%); color: var(--a-ink); border-bottom: 0; }
+.atlas .eyebrow, .atlas .small, .atlas small { color: var(--a-muted); }
+.atlas h2, .atlas h3, .atlas strong { color: var(--a-ink); }
+.atlas .atlas-head p:last-child { color: #d5dcec; }
+.atlas .text-button { color: #94b5da; }
+.atlas .globe-canvas { box-shadow: 0 0 0 1px rgba(148,181,218,.25), 0 0 60px 12px rgba(60,120,187,.35); }
+.atlas-search { display: grid; gap: .45rem; }
+.atlas-search label { font-size: .8rem; font-weight: 700; letter-spacing: .04em; color: var(--a-muted); text-transform: uppercase; }
+.atlas-search input { font: inherit; font-size: .95rem; padding: .65rem .85rem; border-radius: 12px; border: 1px solid var(--a-line);
+  background: var(--a-card-2); color: var(--a-ink); outline-offset: 2px; }
+.atlas-search input::placeholder { color: #6f7a93; }
+.atlas-search input:focus-visible { outline: 2px solid #3c78bb; }
+.atlas .atlas-list { list-style: none; margin: 0; padding: 0; max-height: 290px; overflow-y: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; }
+.atlas .atlas-item { width: 100%; background: var(--a-card); border-color: var(--a-line); color: var(--a-ink); }
+.atlas .atlas-item:hover { border-color: #3c78bb; }
+.atlas .atlas-item.on { border-color: #94b5da; box-shadow: 0 0 0 1px #94b5da inset; }
+.atlas-item-text { display: grid; gap: .05rem; min-width: 0; }
+.atlas-item-text strong { font-size: .84rem; font-weight: 600; }
+.atlas-item-text small { font-size: .72rem; }
+.atlas .atlas-item em { color: #f1c56b; }
+.atlas-empty { grid-column: 1 / -1; padding: .5rem; }
+.atlas .atlas-card { display: grid; gap: .55rem; padding: 1.1rem 1.2rem; border-radius: 16px; background: var(--a-card); border: 1px solid var(--a-line); }
+.atlas .atlas-witnesses { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.atlas .atlas-witness { background: var(--a-card-2); border-color: var(--a-line); color: var(--a-ink); }
+.atlas .atlas-witness:hover { border-color: #3c78bb; }
+.atlas .atlas-reading { color: var(--a-ink); }
+.atlas .atlas-compare { margin-top: 1.4rem; padding: 1.1rem 1.2rem; border-radius: 16px; background: var(--a-card); border: 1px solid var(--a-line); }
+.atlas table.data th { color: var(--a-muted); border-bottom-color: var(--a-line); }
+.atlas table.data td { border-bottom-color: var(--a-line); color: var(--a-ink); }
+.atlas .atlas-compare tr.on td { background: rgba(60,120,187,.16); }
+.atlas .pill.inconclusive, .atlas .pill.insufficient_data { color: #c9d1e3; border-color: #5d6780; }
+.atlas .pill.confirmed { background: #e8eef9; color: #27295a; }
+@media (max-width: 560px) { .atlas .atlas-list, .atlas .atlas-witnesses { grid-template-columns: minmax(0, 1fr); } }

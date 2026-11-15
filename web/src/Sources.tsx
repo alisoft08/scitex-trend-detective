@@ -2,13 +2,14 @@
 import type { Manifest } from "./types";
 
 const DATASETS: [string, string, string, string, string, string][] = [
-  ["MODIS Terra MOD13Q1 v6.1 (NDVI, 250 m)", "NASA", "Observed", "Greenness series and trend map", "https://doi.org/10.5067/MODIS/MOD13Q1.061", "10.5067/MODIS/MOD13Q1.061"],
-  ["MODIS MOD16A2GF v6.1 (evapotranspiration, 500 m)", "NASA", "Estimated", "Water use by crops", "https://doi.org/10.5067/MODIS/MOD16A2GF.061", "10.5067/MODIS/MOD16A2GF.061"],
+  ["MODIS Terra MOD13Q1 v6.1 (NDVI, 250 m)", "NASA", "Observed", "Greenness series and trend map; cropland greenness over the atlas aquifers", "https://doi.org/10.5067/MODIS/MOD13Q1.061", "10.5067/MODIS/MOD13Q1.061"],
+  ["MODIS MOD16A2GF v6.1 (evapotranspiration, 500 m)", "NASA", "Estimated", "Water use by crops (Ica and the atlas aquifers)", "https://doi.org/10.5067/MODIS/MOD16A2GF.061", "10.5067/MODIS/MOD16A2GF.061"],
   ["MODIS Terra MOD11A2 v6.1 (land surface temperature, 1 km)", "NASA", "Observed", "Surface heat", "https://doi.org/10.5067/MODIS/MOD11A2.061", "10.5067/MODIS/MOD11A2.061"],
-  ["MERRA-2 single-level diagnostics M2T1NXSLV 5.12.4 (T2M)", "NASA GMAO", "Reanalysis", "Air temperature (regional climate)", "https://doi.org/10.5067/VJAFPLI1CSIV", "10.5067/VJAFPLI1CSIV"],
+  ["MERRA-2 single-level diagnostics M2T1NXSLV 5.12.4 (T2M)", "NASA GMAO", "Reanalysis", "Air temperature (Ica and the atlas aquifers)", "https://doi.org/10.5067/VJAFPLI1CSIV", "10.5067/VJAFPLI1CSIV"],
   ["GLDAS-2.2 Catchment with GRACE assimilation (0.25°)", "NASA GSFC", "Modeled", "Groundwater storage (Ica and the world aquifer atlas)", "https://doi.org/10.5067/TXBMLX370XX8", "10.5067/TXBMLX370XX8"],
   ["GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", "NASA JPL", "Observed", "Total water storage (Ica and the world aquifer atlas)", "https://doi.org/10.5067/TEMSC-3JC634", "10.5067/TEMSC-3JC634"],
   ["GPM IMERG Final Monthly V07", "NASA", "Estimated", "Headwater rain; rain over each atlas aquifer", "https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07", "10.5067/GPM/IMERG/3B-MONTH/07"],
+  ["MODIS MCD12Q1 v6.1 (land cover, 500 m)", "NASA", "Classified", "Cropland mask for the atlas aquifers", "https://doi.org/10.5067/MODIS/MCD12Q1.061", "10.5067/MODIS/MCD12Q1.061"],
   ["MODIS Terra MOD09CMG v6.1 (surface reflectance, 0.05°)", "NASA", "Observed", "World mosaic on the atlas globe", "https://doi.org/10.5067/MODIS/MOD09CMG.061", "10.5067/MODIS/MOD09CMG.061"],
   ["Landsat 5 TM and Landsat 8/9 OLI, Collection 2 Level-2", "NASA / USGS", "Observed", "Before/after images", "https://www.usgs.gov/landsat-missions/landsat-collection-2", "USGS Collection 2"],
   ["SRTM 30 m elevation", "NASA / NGA", "Observed", "Headwater mask above 2,500 m, map relief", "https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003", "10.5067/MEaSUREs/SRTM/SRTMGL1.003"],

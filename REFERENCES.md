@@ -10,6 +10,7 @@
 | JPL GRACE and GRACE-FO Mascon, Coastal Resolution Improvement (CRI) | RL06.3Mv04 | https://doi.org/10.5067/TEMSC-3JC634 | Total water storage (Ica, Central Valley and the six atlas aquifers) |
 | GPM IMERG Final Precipitation L3 Monthly | V07 | https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07 | Rain in the upper Ica basin and over each atlas aquifer |
 | MODIS Terra Surface Reflectance Daily L3 Global 0.05° CMG (MOD09CMG) | 6.1 | https://doi.org/10.5067/MODIS/MOD09CMG.061 | World mosaic (April-September 2024) on the atlas globe |
+| MODIS Terra+Aqua Land Cover Type Yearly 500 m (MCD12Q1) | 6.1 | https://doi.org/10.5067/MODIS/MCD12Q1.061 | Cropland mask (IGBP classes 12 and 14, year 2020) for greenness and crop water use over the atlas aquifers |
 | Landsat 5 TM, Landsat 7 ETM+ and Landsat 8/9 OLI, Collection 2 Level-2 (NASA/USGS) | C2 L2 | https://www.usgs.gov/landsat-missions/landsat-collection-2 | Before/after true-color images; one yearly picture 2004-2024 for the Explorer time machine (Landsat 7 only for 2012) |
 | MODIS Terra Land Surface Temperature 8-Day L3 1 km (MOD11A2) | 6.1 | https://doi.org/10.5067/MODIS/MOD11A2.061 | Daytime surface temperature of fields and desert |
 | MERRA-2 single-level diagnostics, hourly (M2T1NXSLV) | 5.12.4 | https://doi.org/10.5067/VJAFPLI1CSIV | Air temperature at 2 m (regional climate) |
