@@ -171,7 +171,6 @@ export function Atlas({ m, onCase, onIca, onPick, onOpen }: {
       <header className="atlas-head">
         <p className="atlas-kicker"><span>Water stored on land and underground</span> <span>{atlas.length} irrigated aquifers · NASA, 2004–2024</span></p>
         <h1 id="atlas-title">Is that trend real?</h1>
-        <p className="atlas-purpose">Every NASA water trend, checked by its <strong>source, scale and method</strong>.</p>
       </header>
       </div></div>
       <div className="atlas-tools atlas-bottom-search">
