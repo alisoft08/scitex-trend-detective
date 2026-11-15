@@ -2,16 +2,15 @@
 // witnesses, then compare all of them. Every number comes from the engine's manifest; nothing is computed here.
 import { useEffect, useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
-import { asset } from "./data";
+import { asset, useJSON } from "./data";
 import { EVIDENCE_TEXT } from "./evidence";
 import { fmt, signed } from "./format";
 import type { Level } from "./levels";
-import type { AtlasEntry, AtlasWitness, Manifest } from "./types";
+import type { AtlasEntry, AtlasWitness, CaseFile, Manifest } from "./types";
 
 const proven = (w?: AtlasWitness) => !!w && (w.verdict === "confirmed" || w.verdict === "likely");
 const tone = (a: AtlasEntry): GlobeMarker["tone"] => !proven(a.tws) ? "flat" : (a.tws.per_decade ?? 0) < 0 ? "down" : "up";
 const arrow = (t: GlobeMarker["tone"]) => t === "down" ? "↓" : t === "up" ? "↑" : "?";
-const direction = (w?: AtlasWitness) => !w ? "—" : !proven(w) ? "not proven" : (w.per_decade ?? 0) < 0 ? "falling" : "rising";
 /** Water storage in mm per year; the other witnesses per decade in their own units. */
 function amount(w: AtlasWitness) {
   if (w.per_decade === null) return "n/a";
@@ -72,6 +71,35 @@ function facts(m: Manifest, atlas: AtlasEntry[]): string[] {
     alarms ? `A classic trend test raised ${alarms} false alarms in these series. Our engine did not.` : "",
     `21 years of NASA data, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS and MERRA-2. ${m.cases.length} case files.`,
   ].filter(Boolean);
+}
+
+const dirOf = (w: AtlasWitness): "down" | "up" | "flat" => !proven(w) ? "flat" : (w.per_decade ?? 0) < 0 ? "down" : "up";
+const bare = (w: AtlasWitness) => w.per_decade === null ? "n/a" : signed(w.units === "mm" ? w.per_decade / 10 : w.per_decade, 2);
+const VERDICT_WORD: Record<AtlasWitness["verdict"], string> = { confirmed: "Confirmed", likely: "Likely", inconclusive: "Not proven", insufficient_data: "Too little data" };
+
+/** A dot and a word: filled for confirmed, ring for likely, hollow grey when not proven. */
+function Verdict({ w, compact = false }: { w: AtlasWitness; compact?: boolean }) {
+  const d = dirOf(w);
+  const word = d === "flat" ? VERDICT_WORD[w.verdict] : `${VERDICT_WORD[w.verdict]} ${d === "down" ? "fall" : "rise"}`;
+  return <span className={`vd ${d} ${w.verdict} ${compact ? "compact" : ""}`} title={word}><i aria-hidden="true" />{compact ? <span className="sr-only">{word}</span> : word}</span>;
+}
+
+/** Annual means of the monthly anomalies, drawn as a small line (display only; no statistics here). */
+function Spark({ path, tone: t }: { path: string | null; tone: "down" | "up" | "flat" }) {
+  const { data } = useJSON<CaseFile>(path);
+  if (!data) return <svg className="spark" viewBox="0 0 120 30" aria-hidden="true" />;
+  const byYear = new Map<number, number[]>();
+  for (const s of data.series) {
+    if (s.anomaly === null || s.anomaly === undefined || !Number.isFinite(s.anomaly)) continue;
+    const y = Number(s.date.slice(0, 4));
+    byYear.set(y, [...(byYear.get(y) ?? []), s.anomaly]);
+  }
+  const pts = [...byYear.entries()].sort((p, q) => p[0] - q[0]).map(([y, v]) => [y, v.reduce((s, x) => s + x, 0) / v.length] as const);
+  if (pts.length < 3) return <svg className="spark" viewBox="0 0 120 30" aria-hidden="true" />;
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
+  const d = pts.map(([x, y], k) => `${k ? "L" : "M"}${((x - x0) / (x1 - x0 || 1)) * 116 + 2},${28 - ((y - lo) / span) * 26}`).join(" ");
+  return <svg className={`spark ${t}`} viewBox="0 0 120 30" role="img" aria-label={`Annual anomalies ${x0}–${x1}`}><path d={d} /></svg>;
 }
 
 export function Atlas({ m, onCase, onIca, onPick }: {
@@ -151,50 +179,64 @@ export function Atlas({ m, onCase, onIca, onPick }: {
       <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
     </div>
     <div className="wrap wide">
-      <div className="atlas-details" id="atlas-details">
-          <article className="atlas-card" aria-live="polite">
-            <p className="eyebrow">{a.countries.join(", ")} · {Math.round(a.area_km2).toLocaleString("en-US")} km² · {fmt(a.grace_footprints, 2)} GRACE footprints</p>
-            <h3>{a.name}</h3>
-            <p className="small">{a.description}</p>
-            <div className="atlas-witnesses">
-              {WITNESSES.map(({ key, name, kind }) => {
-                const w = a[key];
-                if (!w) return null;
-                return <button key={key} type="button" className="atlas-witness" onClick={() => onCase(w.id)}>
-                  <span className="eyebrow">{name}</span>
-                  <strong className="num">{amount(w)}</strong>
-                  <span className={`pill ${w.verdict}`}>{EVIDENCE_TEXT[w.verdict]}</span>
-                  <span className="small">{kind}{w.classic_false_alarm ? " · classic test: false alarm" : ""} · open case →</span>
-                </button>;
-              })}
-            </div>
-            <p className="atlas-reading">{a.reading}</p>
-            <p className="small">Reference: {a.reference}{a.focus ? " · Ica's rain is measured over the Andean headwaters; its fields are Villacurí's." : ""}</p>
-            {a.focus && <button className="text-button" onClick={onIca}>Open the Ica deep dive →</button>}
-          </article>
-      </div>
+      <section className="aq-profile" id="atlas-details" aria-live="polite">
+        <div className="aq-head">
+          <div className="aq-text">
+            <p className="aq-meta">{a.countries.join(", ")} <span>·</span> {Math.round(a.area_km2).toLocaleString("en-US")} km² <span>·</span> {fmt(a.grace_footprints, 2)} GRACE footprints</p>
+            <h2>{a.name}</h2>
+            <p className="aq-desc">{a.description}</p>
+            <p className="aq-reading">{a.reading}</p>
+            <p className="aq-ref">Reference: {a.reference}{a.focus ? ". Ica's rain is measured over the Andean headwaters; its fields are Villacurí's." : ""}</p>
+            {a.focus && <button className="aq-link" onClick={onIca}>Open the Ica deep dive, with its field wells</button>}
+          </div>
+          <figure className="aq-photo">
+            <img src={asset(`img/aquifers/${a.id}.jpg`)} alt={`Satellite view of ${a.name}`} />
+            <figcaption>{a.id === "ZW" ? "Landsat 8/9, 2024 median" : "MODIS Terra surface reflectance, 2024 growing season"} · NASA</figcaption>
+          </figure>
+        </div>
 
-      <div className="atlas-compare">
-        <h3>Compare the aquifers</h3>
+        <table className="aq-witnesses">
+          <caption>Six NASA witnesses, 2004–2024. Select a row to open its case file.</caption>
+          <thead><tr><th scope="col">Witness</th><th scope="col">Annual anomaly</th><th scope="col" className="r">Change</th><th scope="col">Verdict</th></tr></thead>
+          <tbody>{WITNESSES.map(({ key, name, kind }) => {
+            const w = a[key];
+            if (!w) return null;
+            const path = m.cases.find((c) => c.id === w.id)?.path ?? null;
+            return <tr key={key} onClick={() => onCase(w.id)}>
+              <th scope="row"><button type="button" onClick={(e) => { e.stopPropagation(); onCase(w.id); }}>{name}</button><small>{kind}{w.classic_false_alarm ? " · a classic test would call this significant" : ""}</small></th>
+              <td><Spark path={path} tone={dirOf(w)} /></td>
+              <td className="r num">{amount(w)}</td>
+              <td><Verdict w={w} /></td>
+            </tr>;
+          })}</tbody>
+        </table>
+      </section>
+
+      <section className="aq-compare" aria-labelledby="aq-compare-title">
+        <h2 id="aq-compare-title">All aquifers</h2>
         <div className="scroll-x">
-          <table className="data">
-            <thead><tr><th>Aquifer</th><th>Countries</th><th>GRACE footprints</th><th>Total water (GRACE)</th><th>Groundwater (GLDAS)</th>
-              <th>Rain</th><th>Cropland greenness</th><th>Crop water use</th><th>Classic-test false alarms</th></tr></thead>
-            <tbody>{atlas.map((x) => <tr key={x.id} className={x.id === a.id ? "on" : ""}>
-              <td><button className="text-button" onClick={() => pick(x.id)}>{short(x.name)}</button></td>
-              <td className="small">{x.countries.join(", ")}</td>
-              <td className="num">{fmt(x.grace_footprints, 2)}</td>
-              <td><span className={`pill ${x.tws.verdict}`}>{direction(x.tws)}</span> <span className="num">{amount(x.tws)}</span></td>
-              <td><span className={`pill ${x.gws.verdict}`}>{direction(x.gws)}</span> <span className="num">{amount(x.gws)}</span></td>
-              <td><span className={`pill ${x.rain.verdict}`}>{direction(x.rain)}</span></td>
-              <td>{x.ndvi ? <span className={`pill ${x.ndvi.verdict}`}>{direction(x.ndvi)}</span> : "—"}</td>
-              <td>{x.et ? <span className={`pill ${x.et.verdict}`}>{direction(x.et)}</span> : "—"}</td>
-              <td className="num">{[x.tws, x.gws, x.rain, x.ndvi, x.et, x.t2m].filter((w) => w?.classic_false_alarm).length || "—"}</td>
+          <table className="aq-table">
+            <thead><tr>
+              <th scope="col">Aquifer</th><th scope="col" className="r">GRACE footprints</th>
+              <th scope="col" className="r">Total water<small>GRACE, mm/yr</small></th>
+              <th scope="col" className="r">Groundwater<small>GLDAS, mm/yr</small></th>
+              <th scope="col">Rain</th><th scope="col">Cropland greenness</th><th scope="col">Crop water use</th>
+              <th scope="col" className="r">Classic-test false alarms</th>
+            </tr></thead>
+            <tbody>{atlas.map((x) => <tr key={x.id} className={x.id === a.id ? "on" : ""} onClick={() => pick(x.id)}>
+              <th scope="row"><button type="button" onClick={(e) => { e.stopPropagation(); pick(x.id); }}>{short(x.name)}</button><small>{x.countries.join(", ")}</small></th>
+              <td className="r num">{fmt(x.grace_footprints, 2)}</td>
+              <td className="r"><span className="num">{bare(x.tws)}</span><Verdict w={x.tws} compact /></td>
+              <td className="r"><span className="num">{bare(x.gws)}</span><Verdict w={x.gws} compact /></td>
+              <td><Verdict w={x.rain} /></td>
+              <td>{x.ndvi ? <Verdict w={x.ndvi} /> : "—"}</td>
+              <td>{x.et ? <Verdict w={x.et} /> : "—"}</td>
+              <td className="r num">{[x.tws, x.gws, x.rain, x.ndvi, x.et, x.t2m].filter((w) => w?.classic_false_alarm).length || "—"}</td>
             </tr>)}</tbody>
           </table>
         </div>
-        <p className="small">{m.atlas_note}</p>
-      </div>
+        <p className="aq-note">{m.atlas_note}</p>
+      </section>
     </div>
   </section>;
 }

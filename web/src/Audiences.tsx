@@ -21,7 +21,7 @@ export function Audiences({ onOpen }: { onOpen: (target: string) => void }) {
           <span className="eyebrow">{t.who}</span>
           <strong>{t.decision}</strong>
           <p>{t.does}</p>
-          <button className="text-button" onClick={() => onOpen(t.target)}>{t.cta} →</button>
+          <button className="text-button" onClick={() => onOpen(t.target)}>{t.cta}</button>
         </article>)}
       </div>
     </div>

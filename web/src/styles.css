@@ -763,3 +763,61 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .research-nav.nav-hidden { position: fixed; top: 0; left: 0; right: 0; transform: translateY(-100%); opacity: 0; pointer-events: none; }
 .no-nav .atlas-stage { height: 100svh; }
 @media (prefers-reduced-motion: reduce) { .research-nav { transition: none; } }
+/* AI-assisted: Claude (Anthropic). Editorial treatment below the globe: no boxes, hairline rules, tabular figures. */
+.atlas { min-height: 0; }
+.aq-profile, .aq-compare { --hair: rgba(255,255,255,.11); color: #e9edf6; font-variant-numeric: tabular-nums; }
+.aq-profile { padding-block: clamp(2.5rem, 5vw, 4.5rem) 1rem; scroll-margin-top: 70px; }
+.aq-head { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+.aq-meta { margin: 0 0 .6rem; font-size: .8rem; letter-spacing: .02em; color: #9aa6bf; }
+.aq-meta span { margin-inline: .35rem; color: #5d6884; }
+.aq-head h2 { margin: 0; font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3.2rem); font-weight: 300; letter-spacing: -.025em; line-height: 1.04; color: #fff; text-wrap: balance; }
+.aq-desc { margin: 1rem 0 0; max-width: 58ch; font-size: .98rem; line-height: 1.6; color: #b9c2d6; }
+.aq-reading { margin: 1.4rem 0 0; max-width: 54ch; padding-top: 1.1rem; border-top: 1px solid var(--hair); font-size: 1.12rem; line-height: 1.55; font-weight: 500; color: #fff; }
+.aq-ref { margin: .9rem 0 0; font-size: .78rem; color: #8590ab; }
+.aq-link { margin-top: 1.1rem; padding: 0; border: 0; background: none; font: inherit; font-size: .9rem; font-weight: 600; color: #f1c56b; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.aq-photo { margin: 0; }
+.aq-photo img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; filter: saturate(1.05) contrast(1.04); }
+.aq-photo figcaption { margin-top: .5rem; font-size: .72rem; color: #8590ab; }
+.aq-witnesses, .aq-table { width: 100%; border-collapse: collapse; }
+.aq-witnesses { margin-top: clamp(2rem, 4vw, 3rem); }
+.aq-witnesses caption, .aq-compare h2 { caption-side: top; text-align: left; padding-bottom: .9rem; font-size: .8rem; font-weight: 600; letter-spacing: .04em; color: #9aa6bf; }
+.aq-compare h2 { margin: 0; text-transform: none; }
+.aq-witnesses th, .aq-witnesses td, .aq-table th, .aq-table td { padding: .85rem .9rem .85rem 0; border-top: 1px solid var(--hair); text-align: left; vertical-align: middle; font-weight: 400; }
+.aq-witnesses thead th, .aq-table thead th { padding-block: .5rem; border-top: 0; font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #7f8aa5; vertical-align: bottom; }
+.aq-table thead th small { display: block; text-transform: none; letter-spacing: 0; font-weight: 400; color: #6c7792; }
+.aq-witnesses tbody tr, .aq-table tbody tr { cursor: pointer; transition: background .15s ease; }
+.aq-witnesses tbody tr:hover, .aq-table tbody tr:hover { background: rgba(255,255,255,.035); }
+.aq-witnesses tbody th button, .aq-table tbody th button { display: block; padding: 0; border: 0; background: none; font: inherit; font-size: .98rem; font-weight: 600; color: #fff; cursor: pointer; text-align: left; }
+.aq-witnesses tbody th small, .aq-table tbody th small { display: block; margin-top: .15rem; font-size: .76rem; color: #8590ab; }
+.aq-witnesses .num, .aq-table .num { font-size: 1rem; color: #fff; white-space: nowrap; }
+.r { text-align: right !important; }
+.aq-table td.r .num { margin-right: .5rem; }
+.spark { width: 140px; height: 32px; display: block; overflow: visible; }
+.spark path { fill: none; stroke: #8fa0c0; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.spark.down path { stroke: #f1c56b; } .spark.up path { stroke: #94b5da; }
+.vd { display: inline-flex; align-items: center; gap: .45rem; font-size: .85rem; color: #d5dcec; white-space: nowrap; }
+.vd i { width: .62rem; height: .62rem; border-radius: 50%; border: 1.5px solid currentColor; flex: none; }
+.vd.down { color: #f1c56b; } .vd.up { color: #94b5da; } .vd.flat { color: #8590ab; }
+.vd.confirmed i { background: currentColor; }
+.vd.likely i { background: radial-gradient(circle, currentColor 35%, transparent 40%); }
+.vd.compact { vertical-align: middle; }
+.aq-table tbody tr.on { background: rgba(241,197,107,.07); }
+.aq-compare { padding-block: 2.5rem 1rem; }
+.aq-note { margin: 1rem 0 0; max-width: 90ch; font-size: .76rem; line-height: 1.5; color: #7f8aa5; }
+.atlas .aq-compare .scroll-x { margin-inline: 0; }
+@media (max-width: 860px) { .aq-head { grid-template-columns: minmax(0, 1fr); } .spark { width: 96px; } }
+.aq-witnesses thead th:nth-child(1) { width: 34%; } .aq-witnesses thead th:nth-child(2) { width: 24%; } .aq-witnesses thead th:nth-child(3) { width: 18%; }
+.aq-witnesses td:nth-child(4), .aq-witnesses th:nth-child(4) { padding-left: 1.6rem; }
+/* "Who it is for" continues the dark editorial page: three columns split by hairlines, no cards. */
+.audiences { background: #03050a; border-bottom: 0; padding-block: 3rem 4rem; color: #e9edf6; }
+.audiences .eyebrow { color: #9aa6bf; }
+.audiences h2 { color: #fff; font-weight: 300; font-size: clamp(1.6rem, 1.1rem + 1.6vw, 2.4rem); letter-spacing: -.02em; margin-bottom: 2rem; }
+.audiences .audience-grid { gap: 0; }
+.audiences .audience-tile { background: none; border: 0; border-radius: 0; padding: .2rem 1.8rem 0; border-left: 1px solid rgba(255,255,255,.11); }
+.audiences .audience-tile:first-child { padding-left: 0; border-left: 0; }
+.audiences .audience-tile .eyebrow { font-size: .7rem; }
+.audiences .audience-tile strong { color: #fff; font-weight: 600; font-size: 1.15rem; }
+.audiences .audience-tile p { color: #b9c2d6; font-size: .92rem; line-height: 1.6; }
+.audiences .audience-tile .text-button { color: #f1c56b; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+@media (max-width: 860px) { .audiences .audience-tile { border-left: 0; padding: 1.2rem 0; border-top: 1px solid rgba(255,255,255,.11); } }
+.research-app:has(.atlas) { background: #03050a; }
