@@ -1104,3 +1104,7 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .case-cite { margin-top: .6rem; }
 .case-cite textarea { display: block; width: 100%; box-sizing: border-box; margin: .5rem 0; padding: .55rem .7rem; border: 1px solid #d5dae3; border-radius: 8px;
   font: inherit; font-size: .8rem; line-height: 1.5; color: #27295a; background: #f7f9fc; resize: vertical; }
+
+/* AI-assisted: Claude (Anthropic). A one-line statement, so the globe stays the protagonist. */
+.atlas-overlay .atlas-head p.atlas-purpose { margin-top: .5rem; max-width: 30ch; padding: .5rem .75rem; border-radius: 10px;
+  font-size: .92rem; line-height: 1.45; background: rgba(6,10,24,.5); }
