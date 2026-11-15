@@ -1,5 +1,7 @@
 // AI-assisted: Codex (OpenAI). Pick a supported zone and NASA variable.
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { CaseChat } from "./CaseChat";
+import type { ChatContext } from "./chat-contract";
 import { CaseFileView } from "./CaseFile";
 import { useEvidence } from "./evidence";
 import { useLocale, type Translation } from "./i18n";
@@ -55,6 +57,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
   const { t } = useLocale();
   const { zoneName, variableName } = useEvidence();
   const [unavailable, setUnavailable] = useState("");
+  const readChatContext = useRef<(() => ChatContext) | null>(null);
   const variable = selected.variable.replace(/_contrast$/, "");
   const inZone = m.cases.filter((c) => c.zone === selected.zone && c.kind === "case");
   const base = inZone.find((c) => c.variable === variable);
@@ -137,10 +140,11 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
         </aside>
         <div className="research-stack">
           {level === "explorer" && <Prediction key={selected.id} refCase={selected} />}
-          <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)}
+          <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)} chatContextRef={readChatContext}
             comparison={selected.kind === "contrast" && base && desert ? { field: base, desert } : undefined} />
         </div>
       </div>
+      {location.protocol !== "file:" && <CaseChat selected={selected} getContext={() => readChatContext.current?.()} />}
     </section>
   );
 }
