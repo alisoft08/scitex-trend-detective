@@ -136,6 +136,9 @@ NOTES.update({f"{z}_{v}": ["Atlas case: cropland pixels from MODIS MCD12Q1 land 
                            "inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control."]
               for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "et")})
 NOTES["ZC_t2m"] = ["Air temperature over the same box as the Central Valley water cases."]
+NOTES.update({f"{z}_gws": ["GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region: "
+                           "when both fall, that is one line of evidence, not two."]
+              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})
 NOTES.update({f"{z}_lst": ["Terra's overpass has drifted earlier since about 2020, which can cool absolute daytime temperatures; "
                            "the heat gap against natural land in the same box cancels that shared effect."]
               for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})

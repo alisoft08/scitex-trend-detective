@@ -124,7 +124,10 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
       <p className="small muted">{t("Check how the estimate changes after statistical adjustment or when one year is omitted.", "Comprueba cuánto cambia la estimación al hacer un ajuste estadístico o al omitir un año.")}</p>
       <dl className="research-facts">
         <div><dt>{t("Error model selected by AIC", "Modelo de errores elegido por AIC")}</dt><dd>{tr.arma_order ? `ARMA(${tr.arma_order[0]}, ${tr.arma_order[2]})` : t("Unavailable", "No disponible")}</dd></div>
-        <div><dt>{t("First autoregressive coefficient", "Primer coeficiente autorregresivo")}</dt><dd>{fmt(tr.phi)}</dd></div>
+        <div><dt>{t("First autoregressive coefficient", "Primer coeficiente autorregresivo")}</dt><dd>{fmt(tr.phi)}
+          {tr.arma_order?.[0] === 2 && tr.phi !== null && Math.abs(tr.phi) >= 1 && <small className="muted"> · {t(
+            "In an AR(2) model the first coefficient can exceed 1 while the error process stays stationary.",
+            "En un modelo AR(2) el primer coeficiente puede superar 1 sin que el proceso de errores deje de ser estacionario.")}</small>}</dd></div>
         <div><dt>{t("Adjusted slope", "Pendiente ajustada")}</dt><dd>{tr.beta_with_confounders_per_decade === null ? t("Unavailable", "No disponible") : `${signed(tr.beta_with_confounders_per_decade)} ${perDecade(cf.units)} (${pfull(tr.p_with_confounders)})`}</dd></div>
         <div><dt>{t("Covariates in the model", "Covariables del modelo")}</dt><dd>{tr.confounders.map(covariate).join("; ") || t("None", "Ninguna")}</dd></div>
         <div><dt>{t("Leave-one-year-out fits", "Ajustes al retirar un año")}</dt><dd>{t(
