@@ -10,6 +10,7 @@ const DATASETS: [string, string, string, string, string, string][] = [
   ["GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", "NASA JPL", "Observed", "Total water storage (Ica and the world aquifer atlas)", "https://doi.org/10.5067/TEMSC-3JC634", "10.5067/TEMSC-3JC634"],
   ["GPM IMERG Final Monthly V07", "NASA", "Estimated", "Headwater rain; rain over each atlas aquifer", "https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07", "10.5067/GPM/IMERG/3B-MONTH/07"],
   ["MODIS MCD12Q1 v6.1 (land cover, 500 m)", "NASA", "Classified", "Cropland mask for the atlas aquifers", "https://doi.org/10.5067/MODIS/MCD12Q1.061", "10.5067/MODIS/MCD12Q1.061"],
+  ["MODIS Terra MOD09A1 v6.1 (surface reflectance, 500 m)", "NASA", "Observed", "Satellite close-up of each aquifer on the globe", "https://doi.org/10.5067/MODIS/MOD09A1.061", "10.5067/MODIS/MOD09A1.061"],
   ["MODIS Terra MOD09CMG v6.1 (surface reflectance, 0.05°)", "NASA", "Observed", "World mosaic on the atlas globe", "https://doi.org/10.5067/MODIS/MOD09CMG.061", "10.5067/MODIS/MOD09CMG.061"],
   ["Landsat 5 TM and Landsat 8/9 OLI, Collection 2 Level-2", "NASA / USGS", "Observed", "Before/after images", "https://www.usgs.gov/landsat-missions/landsat-collection-2", "USGS Collection 2"],
   ["SRTM 30 m elevation", "NASA / NGA", "Observed", "Headwater mask above 2,500 m, map relief", "https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003", "10.5067/MEaSUREs/SRTM/SRTMGL1.003"],

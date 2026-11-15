@@ -2,6 +2,7 @@
 // witnesses, then compare all of them. Every number comes from the engine's manifest; nothing is computed here.
 import { useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
+import { asset } from "./data";
 import { EVIDENCE_TEXT } from "./evidence";
 import { fmt, signed } from "./format";
 import type { Level } from "./levels";
@@ -31,56 +32,90 @@ const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m"; name: st
   { key: "t2m", name: "Air temperature · MERRA-2", kind: "Reanalysis" },
 ];
 
+type Filter = "all" | GlobeMarker["tone"];
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: "all", label: "All" }, { id: "down", label: "↓ Falling" }, { id: "up", label: "↑ Rising" }, { id: "flat", label: "? Not proven" },
+];
+// Largest confirmed loss first: the globe opens on the clearest example.
+const startId = (atlas: AtlasEntry[]) => [...atlas].filter((a) => tone(a) === "down")
+  .sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0]?.id ?? atlas[0]?.id ?? "";
+
 export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase: (id: string) => void; onIca: () => void }) {
   const atlas = m.atlas ?? [];
-  const [sel, setSel] = useState<string>(atlas.find((a) => a.focus)?.id ?? atlas[0]?.id ?? "");
+  const [sel, setSel] = useState<string>(() => startId(atlas));
   const [query, setQuery] = useState("");
-  const markers: GlobeMarker[] = useMemo(() => atlas.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x), focus: x.focus })), [m.atlas]);
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<Filter>("all");
+  const shown = atlas.filter((x) => filter === "all" || tone(x) === filter);
+  const markers: GlobeMarker[] = useMemo(() => shown.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x) })), [m.atlas, filter]);
   if (atlas.length < 2) return null;
   const a = atlas.find((x) => x.id === sel) ?? atlas[0];
   const q = norm(query.trim());
-  const matches = atlas.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
+  const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
   const falling = atlas.filter((x) => tone(x) === "down").length;
-  const size = typeof window !== "undefined" ? Math.min(520, window.innerWidth - 40) : 520;
-  const pick = (id: string) => { setSel(id); };
+  const size = typeof window !== "undefined" ? Math.max(300, Math.min(720, window.innerWidth - 40, window.innerHeight - 330)) : 640;
+  const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); };
+  const toDetails = () => document.getElementById("atlas-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const callout = <div className="callout-card" key={a.id}>
+    <img src={asset(`img/aquifers/${a.id}.jpg`)} alt={`Satellite view of ${a.name} (${a.id === "ZW" ? "Landsat 8/9, 2024" : "MODIS Terra, 2024"})`} />
+    <div className="callout-body">
+      <p className="eyebrow">{a.countries.join(", ")}</p>
+      <h3>{short(a.name)}</h3>
+      <p className="callout-num"><strong className="num">{amount(a.tws)}</strong> <span className={`pill ${a.tws.verdict}`}>{EVIDENCE_TEXT[a.tws.verdict]}</span></p>
+      <p className="small">Total water from NASA GRACE, 2004–2024 · {fmt(a.grace_footprints, 2)} GRACE footprints</p>
+      <p className="callout-reading">{a.reading}</p>
+      <div className="callout-actions">
+        <button className="text-button" onClick={toDetails}>All six witnesses ↓</button>
+        {a.focus && <button className="text-button" onClick={onIca}>Ica deep dive: wells and fields →</button>}
+      </div>
+    </div>
+  </div>;
 
   return <section className="atlas" aria-labelledby="atlas-title" id="atlas">
     <div className="wrap wide">
       <header className="atlas-head">
-        <p className="eyebrow">World aquifer atlas · NASA GRACE, GLDAS, GPM IMERG, MODIS, MERRA-2 · 2004–2024</p>
-        <h2 id="atlas-title">Where can satellites see an aquifer drain?</h2>
-        <p>The same engine and the same NASA products over {atlas.length} irrigated aquifer systems. GRACE confirms a loss in {falling} of them,
-          where the aquifer spans one or more of its footprints; Ica covers a small fraction of one. Rain separates drought from pumping,
-          and MODIS shows whether the cropland above is greening.</p>
+        <p className="eyebrow">Oasis Paradox · NASA GRACE, GLDAS, GPM IMERG, MODIS, MERRA-2 · 2004–2024</p>
+        <h1 id="atlas-title">Where are the world's aquifers draining?</h1>
+        <p>One engine, the same NASA data, {atlas.length} irrigated aquifers. GRACE confirms a loss in {falling}; where the farms are
+          small, as in Ica, the satellites cannot see it, and only wells can.</p>
       </header>
 
-      <div className="atlas-grid">
-        <div className="atlas-globe">
-          <Globe markers={markers} selected={sel} onSelect={pick} size={size}
-            label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or pick an aquifer in the list." />
-          <p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p>
+      <div className="atlas-tools">
+        <div className="atlas-search">
+          <label htmlFor="aquifer-search" className="sr-only">Find an aquifer or a country</label>
+          <input id="aquifer-search" type="search" value={query} placeholder="Search an aquifer or a country…" autoComplete="off"
+            role="combobox" aria-expanded={open} aria-controls="aquifer-list"
+            onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && matches[0]) { e.preventDefault(); pick(matches[0].id); } if (e.key === "Escape") setOpen(false); }} />
+          {open && <ul id="aquifer-list" className="atlas-list" role="listbox" aria-label={`${matches.length} aquifers`}>
+            {matches.map((x) => <li key={x.id} role="option" aria-selected={x.id === a.id}>
+              <button type="button" className={`atlas-item ${x.id === a.id ? "on" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(x.id)}>
+                <span className={`atlas-dot ${tone(x)}`} aria-hidden="true">{arrow(tone(x))}</span>
+                <span className="atlas-item-text"><strong>{short(x.name)}</strong><small>{x.countries.join(", ")}</small></span>
+              </button>
+            </li>)}
+            {matches.length === 0 && <li className="small atlas-empty">No aquifer matches “{query}”.</li>}
+          </ul>}
         </div>
+        <div className="atlas-filters" role="group" aria-label="Filter by GRACE verdict">
+          {FILTERS.map((f) => <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => {
+            setFilter(f.id);
+            const keep = atlas.filter((x) => f.id === "all" || tone(x) === f.id);
+            if (keep.length && !keep.some((x) => x.id === sel)) setSel(keep[0].id);
+          }}>{f.label} <span>{atlas.filter((x) => f.id === "all" || tone(x) === f.id).length}</span></button>)}
+        </div>
+      </div>
 
-        <div className="atlas-side">
-          <div className="atlas-search">
-            <label htmlFor="aquifer-search">Find an aquifer or a country</label>
-            <input id="aquifer-search" type="search" value={query} placeholder="e.g. India, Ogallala, Brazil…" autoComplete="off"
-              aria-controls="aquifer-list" onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && matches[0]) { e.preventDefault(); pick(matches[0].id); } }} />
-            <ul id="aquifer-list" className="atlas-list" aria-label={`${matches.length} aquifers available`}>
-              {matches.map((x) => <li key={x.id}>
-                <button type="button" className={`atlas-item ${x.id === a.id ? "on" : ""}`} aria-pressed={x.id === a.id} onClick={() => pick(x.id)}>
-                  <span className={`atlas-dot ${tone(x)}`} aria-hidden="true">{arrow(tone(x))}</span>
-                  <span className="atlas-item-text"><strong>{short(x.name)}{x.focus && <em> · Case file № 001</em>}</strong>
-                    <small>{x.countries.join(", ")}</small></span>
-                </button>
-              </li>)}
-              {matches.length === 0 && <li className="small atlas-empty">No aquifer matches “{query}”. The atlas covers {atlas.length} aquifers; try a country.</li>}
-            </ul>
-          </div>
+      <div className="atlas-hero">
+        <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} callout={callout}
+          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
+        <p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p>
+      </div>
 
+      <div className="atlas-details" id="atlas-details">
           <article className="atlas-card" aria-live="polite">
-            <p className="eyebrow">{a.focus ? "Case file № 001" : "Aquifer"} · {a.countries.join(", ")} · {Math.round(a.area_km2).toLocaleString("en-US")} km² · {fmt(a.grace_footprints, 2)} GRACE footprints</p>
+            <p className="eyebrow">{a.countries.join(", ")} · {Math.round(a.area_km2).toLocaleString("en-US")} km² · {fmt(a.grace_footprints, 2)} GRACE footprints</p>
             <h3>{a.name}</h3>
             <p className="small">{a.description}</p>
             <div className="atlas-witnesses">
@@ -97,9 +132,8 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
             </div>
             <p className="atlas-reading">{a.reading}</p>
             <p className="small">Reference: {a.reference}{a.focus ? " · Ica's rain is measured over the Andean headwaters; its fields are Villacurí's." : ""}</p>
-            {a.focus && <button className="text-button" onClick={onIca}>Open the full Ica case file →</button>}
+            {a.focus && <button className="text-button" onClick={onIca}>Open the Ica deep dive →</button>}
           </article>
-        </div>
       </div>
 
       <div className="atlas-compare">

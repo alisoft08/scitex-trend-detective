@@ -19,6 +19,7 @@ const DEFAULT_CASE = "Z2_ndvi";
 const DEFAULT_PAIR = ["Z2_ndvi", "Z5_ndvi"] as const;
 const VIEWS = [
   { id: "field-lab", label: "Field lab" },
+  { id: "ica", label: "Ica deep dive" },
   { id: "investigate", label: "Detective desk" },
   { id: "map", label: "Evidence map" },
   { id: "method", label: "Trend lab" },
@@ -114,11 +115,9 @@ export default function App() {
       {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${level}`}>
-          {isHome && <HeroMap m={manifest} primary={level === "explorer"
-            ? { label: "Start the field lab →", go: () => navigate("#field-lab") }
-            : { label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
-          {isHome && <ImpactBand m={manifest} onOpen={navigate} />}
-          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => selectCase("ZW_tws_grace")} />}
+          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => navigate("#ica")} />}
+          {view === "ica" && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
+          {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Audiences onOpen={(target) => {
             if (target === "#atlas") document.getElementById("atlas")?.scrollIntoView({ behavior: "smooth", block: "start" });
             else if (target.startsWith("case:")) selectCase(target.slice(5)); else navigate(target);

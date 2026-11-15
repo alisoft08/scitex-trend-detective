@@ -1,6 +1,6 @@
 // AI-assisted: Claude (Anthropic). A dependency-free 3D globe: orthographic projection of the MODIS world mosaic drawn
 // pixel by pixel on a canvas, with HTML markers on top (real buttons, so they are clickable and keyboard-friendly).
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { asset } from "./data";
 
 export interface GlobeMarker { id: string; lonlat: [number, number]; label: string; tone: "down" | "up" | "flat"; focus?: boolean }
@@ -17,9 +17,16 @@ function project(lon: number, lat: number, lon0: number, lat0: number) {
   return { x: Math.cos(p) * Math.sin(l - l0), y: Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l - l0), visible: cosc > 0.05 };
 }
 
-export function Globe({ markers, selected, onSelect, size = 520, label }: {
+export function Globe({ markers, selected, onSelect, size = 520, label, callout }: {
   markers: GlobeMarker[]; selected: string | null; onSelect: (id: string) => void; size?: number; label: string;
+  callout?: ReactNode;   // card that pops out of the globe, tied to the selected marker by a leader line
 }) {
+  const stage = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const leader = useRef<SVGLineElement>(null);
+  const dot = useRef<SVGCircleElement>(null);
+  const firstSelect = useRef(true);
   const canvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
   const view = useRef({ lon: 0, lat: 0 });
@@ -27,7 +34,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label }: {
   const drag = useRef<{ x: number; y: number; lon: number; lat: number } | null>(null);
   const pins = useRef<Record<string, HTMLButtonElement | null>>({});
   const [ready, setReady] = useState(false);
-  const focus = markers.find((m) => m.focus) ?? markers[0];
+  const focus = markers.find((m) => m.id === selected) ?? markers.find((m) => m.focus) ?? markers[0];
   const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const flyTo = (lon: number, lat: number, dur = 1400) => {
@@ -57,6 +64,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label }: {
   }, []);
 
   useEffect(() => {
+    if (firstSelect.current) { firstSelect.current = false; return; }   // the intro flight already heads there
     const m = markers.find((x) => x.id === selected);
     if (m) flyTo(m.lonlat[0], m.lonlat[1]);
   }, [selected]);
@@ -66,7 +74,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label }: {
     if (!ready) return;
     const cv = canvas.current!;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const N = Math.round(size * dpr);
+    const N = Math.min(900, Math.round(size * dpr));          // cap the pixel work on large screens
     cv.width = N; cv.height = N;
     const g = cv.getContext("2d")!;
     const out = g.createImageData(N, N);
@@ -115,11 +123,31 @@ export function Globe({ markers, selected, onSelect, size = 520, label }: {
           el.tabIndex = p.visible ? 0 : -1;
         }
       }
+      // Leader line from the selected marker to the pop-out card, in stage coordinates.
+      const st = stage.current, bx = box.current, cd = card.current, ln = leader.current, dt = dot.current;
+      const sm = markers.find((x) => x.id === selected);
+      if (st && bx && ln && dt) {
+        const p = sm ? project(sm.lonlat[0], sm.lonlat[1], view.current.lon, view.current.lat) : null;
+        const show = !!(p && p.visible && cd && cd.offsetParent && getComputedStyle(cd).position === "absolute");
+        ln.style.display = dt.style.display = show ? "" : "none";
+        if (show && p && cd) {
+          const s = st.getBoundingClientRect(), c = cd.getBoundingClientRect();
+          const pin = pins.current[sm!.id]?.querySelector(".globe-dot")?.getBoundingClientRect();
+          const b = bx.getBoundingClientRect();
+          const mx = pin ? pin.left + pin.width / 2 - s.left : b.left - s.left + (0.5 + p.x * 0.496) * b.width;
+          const my = pin ? pin.top + pin.height / 2 - s.top : b.top - s.top + (0.5 - p.y * 0.496) * b.height;
+          const left = c.left - s.left > mx;
+          const cx2 = left ? c.left - s.left : c.right - s.left, cy2 = c.top - s.top + Math.min(70, c.height / 2);
+          ln.setAttribute("x1", String(mx)); ln.setAttribute("y1", String(my));
+          ln.setAttribute("x2", String(cx2)); ln.setAttribute("y2", String(cy2));
+          dt.setAttribute("cx", String(cx2)); dt.setAttribute("cy", String(cy2));
+        }
+      }
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [ready, size, markers]);
+  }, [ready, size, markers, selected]);
 
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("button")) return;
@@ -140,7 +168,8 @@ export function Globe({ markers, selected, onSelect, size = 520, label }: {
   };
 
   return (
-    <div className="globe" style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
+    <div className="globe-stage" ref={stage}>
+    <div className="globe" ref={box} style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; }} onKeyDown={onKey}>
       <div className="globe-halo" aria-hidden="true" />
       <canvas ref={canvas} className="globe-canvas" aria-hidden="true" />
@@ -154,6 +183,9 @@ export function Globe({ markers, selected, onSelect, size = 520, label }: {
           <span className="globe-tag">{m.label}</span>
         </button>;
       })}
+    </div>
+    <svg className="globe-leader" aria-hidden="true"><line ref={leader} /><circle ref={dot} r="4" /></svg>
+    {callout && <div className="globe-callout" ref={card}>{callout}</div>}
     </div>
   );
 }

@@ -69,9 +69,11 @@ Aquifers chosen from Richey et al. (2015) and Rodell et al. (2018).
 The app shows the **Expert** level (team decision, 15 Nov 2026). The Explorer and Analyst levels and the Explorer
 field lab remain in the code, hidden behind `EXPERT_ONLY` in `web/src/levels.ts`.
 
-- **Home:** the detective's lens over Ica (Landsat 2004 vs 2024), the impact band, the world aquifer atlas (3D globe
-  on a MODIS mosaic over a black background, aquifer search by name or country, six NASA witnesses per aquifer,
-  comparison table) and "Who it is for".
+- **Home: the world aquifer globe.** A large 3D globe on a MODIS mosaic over a black background, search by aquifer or
+  country, a quick filter by GRACE verdict, and a pop-out card with a satellite close-up of the chosen aquifer. Below:
+  six NASA witnesses per aquifer, the comparison table and "Who it is for".
+- **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
+  only aquifer with field wells.
 - **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.
 - **Detective desk:** pick a place and a NASA variable; each case file shows the verdict, the series, the false-alarm
   warning, years to detect when unproven, and (Expert) windows, jackknife and a reproduction ZIP.
@@ -123,7 +125,7 @@ Earth Engine and Earthdata credentials are never needed by the site and never go
 
 ```text
 config/        zones.geojson, comparison_zones.geojson (atlas), verdict.yaml (pre-registered thresholds)
-pipeline/      Earth Engine extraction, climate indices, zones, map images, yearly Landsat, world mosaic, JUASVI parser
+pipeline/      Earth Engine extraction, climate indices, zones, map images, yearly Landsat, world mosaic, aquifer close-ups, JUASVI parser
 engine/        trend tests and the verdict rule (Python only)
 tests/         synthetic series with known slope
 scripts/       Monte Carlo simulation, build of the web data contract
