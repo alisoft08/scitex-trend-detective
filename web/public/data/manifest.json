@@ -1,7 +1,7 @@
 {
   "project": "Oasis Paradox",
   "tagline": "What satellites can and cannot see",
-  "generated_at": "2026-11-15T19:03Z",
+  "generated_at": "2026-11-15T19:15Z",
   "period": "2004-01/2024-12",
   "zones": [
     {
@@ -2179,7 +2179,7 @@
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water rising. Yet 69% of monitored wells are falling: the farms are too small for one GRACE footprint, so the satellites cannot localise the loss.",
       "reference": "This project: wells from JUASVI (2025)",
       "impact": {
-        "grace_km3_per_yr": 0.01,
+        "grace_km3_per_yr": 0.0051,
         "cropland_km2": 151,
         "crop_water_mm3_2020_2024": 88.8,
         "crop_water_change_mm3": 17.0,
@@ -2312,7 +2312,7 @@
       "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
       "reference": "Famiglietti et al. (2011)",
       "impact": {
-        "grace_km3_per_yr": -2.49,
+        "grace_km3_per_yr": -2.4934,
         "cropland_km2": 34503,
         "crop_water_mm3_2020_2024": 12256.8,
         "crop_water_change_mm3": -887.7,
@@ -2445,7 +2445,7 @@
       "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
       "reference": "Richey et al. (2015); Rodell et al. (2018)",
       "impact": {
-        "grace_km3_per_yr": -4.94,
+        "grace_km3_per_yr": -4.9428,
         "cropland_km2": 231735,
         "crop_water_mm3_2020_2024": 101949.5,
         "crop_water_change_mm3": 5475.0,
@@ -2579,7 +2579,7 @@
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
       "reference": "Rodell et al. (2018)",
       "impact": {
-        "grace_km3_per_yr": -18.53,
+        "grace_km3_per_yr": -18.526,
         "cropland_km2": 523301,
         "crop_water_mm3_2020_2024": 191550.8,
         "crop_water_change_mm3": 61301.6,
@@ -2712,7 +2712,7 @@
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
       "reference": "Rodell et al. (2018)",
       "impact": {
-        "grace_km3_per_yr": -6.1,
+        "grace_km3_per_yr": -6.0953,
         "cropland_km2": 238674,
         "crop_water_mm3_2020_2024": 121847.5,
         "crop_water_change_mm3": 18916.0,
@@ -2846,7 +2846,7 @@
       "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
       "reference": "Richey et al. (2015); Rodell et al. (2018)",
       "impact": {
-        "grace_km3_per_yr": -8.83,
+        "grace_km3_per_yr": -8.8339,
         "cropland_km2": 1656,
         "crop_water_mm3_2020_2024": 223.8,
         "crop_water_change_mm3": 45.9,
@@ -2982,7 +2982,7 @@
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
       "reference": "Rodell et al. (2018)",
       "impact": {
-        "grace_km3_per_yr": -8.29,
+        "grace_km3_per_yr": -8.2941,
         "cropland_km2": 148218,
         "crop_water_mm3_2020_2024": 34882.6,
         "crop_water_change_mm3": 4658.7,
@@ -3118,7 +3118,7 @@
       "reading": "Its cropland is getting greener (MODIS). No proven change in stored water from space. A change this size would need about 51 years of data to show up.",
       "reference": "Richey et al. (2015)",
       "impact": {
-        "grace_km3_per_yr": -4.26,
+        "grace_km3_per_yr": -4.2564,
         "cropland_km2": 337409,
         "crop_water_mm3_2020_2024": 261327.6,
         "crop_water_change_mm3": 25285.9,

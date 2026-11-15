@@ -486,7 +486,7 @@ def water_sentence(zone, tws, rain, wells_share):
 
 def atlas_impact(zone, area_km2, tws, cases_by_id, series_long):
     """Volumes: GRACE trend (mm/yr) over the box area, and water used by crops (MODIS ET x cropland area, 2020-2024)."""
-    out = {"grace_km3_per_yr": None if tws["per_decade"] is None else round(tws["per_decade"] / 10 * area_km2 * 1e-6, 2)}
+    out = {"grace_km3_per_yr": None if tws["per_decade"] is None else round(tws["per_decade"] / 10 * area_km2 * 1e-6, 4)}
     areas = ROOT / "data" / "processed" / "atlas_cropland_area.json"
     et_id = "Z2_et" if zone == "ZW" else f"{zone}_et"
     km2 = None
