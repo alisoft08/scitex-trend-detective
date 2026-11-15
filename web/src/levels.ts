@@ -1,12 +1,13 @@
 // AI-assisted: Claude (Anthropic). Reader levels: the same evidence, told at three depths.
 import { useEffect, useState } from "react";
+import type { Translation } from "./i18n";
 
 export type Level = "explorer" | "analyst" | "expert";
 
-export const LEVELS: { id: Level; name: string; promise: string }[] = [
-  { id: "explorer", name: "Explorer", promise: "Read the evidence in plain language." },
-  { id: "analyst", name: "Analyst", promise: "Compare cases, intervals and tests." },
-  { id: "expert", name: "Expert", promise: "Inspect the model and reproduce the result." },
+export const LEVELS: { id: Level; name: Translation; promise: Translation }[] = [
+  { id: "explorer", name: ["Explorer", "Explorador"], promise: ["Read the evidence in plain language.", "Lee la evidencia en lenguaje sencillo."] },
+  { id: "analyst", name: ["Analyst", "Analista"], promise: ["Compare cases, intervals and tests.", "Compara casos, intervalos y pruebas."] },
+  { id: "expert", name: ["Expert", "Experto"], promise: ["Inspect the model and reproduce the result.", "Inspecciona el modelo y reproduce el resultado."] },
 ];
 
 const KEY = "oasis-paradox-level";

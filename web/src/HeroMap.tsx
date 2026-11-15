@@ -2,7 +2,8 @@
 // inside it in 2024. The lens tours four pieces of evidence on its own; the reader can take it over with a pointer.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { asset, brandAsset, useJSON } from "./data";
-import { signed } from "./format";
+import { useLocale } from "./i18n";
+import { verdictLabel } from "./evidence";
 import type { Manifest, MapMeta } from "./types";
 
 interface HeroMeta extends MapMeta {
@@ -27,6 +28,7 @@ const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 
 export function HeroMap({ m, primary, onMap }: {
   m: Manifest; primary: { label: string; go: () => void }; onMap: () => void;
 }) {
+  const { language, t, signed, pct } = useLocale();
   const { data: meta } = useJSON<HeroMeta>("map.json");
   const stage = useRef<HTMLDivElement>(null);
   const size = useRef({ w: 1, h: 1 });
@@ -44,17 +46,17 @@ export function HeroMap({ m, primary, onMap }: {
     const zi = m.wells.by_zone.find((z) => z.juasvi_zone === "I");
     const ndvi = c("Z2_ndvi"), lst = c("Z1_lst"), air = c("Z4_t2m");
     const out: Evidence[] = [];
-    if (ndvi) out.push({ lon: -75.95, lat: -13.89, place: "Villacurí plains", finding: `Greenness ${signed(ndvi.sen_per_decade, 2)} per decade`,
-      source: "MODIS NDVI", verdict: m.verdict_labels[ndvi.verdict], tone: ndvi.verdict });
-    if (zi) out.push({ lon: -75.72, lat: -14.0, place: "Ica Valley, north", finding: `Water table ${signed(zi.mean_rate_m_per_yr, 2)} m per year`,
-      source: `${zi.n} field wells (JUASVI)`, verdict: `${Math.round(zi.share_falling * 100)}% of wells falling`, tone: "field" });
-    if (lst) out.push({ lon: -75.68, lat: -14.22, place: "Ica Valley fields", finding: `Surface ${signed(lst.sen_per_decade, 2)} °C per decade`,
-      source: "MODIS land surface temperature", verdict: m.verdict_labels[lst.verdict], tone: lst.verdict,
-      alarm: `The classic test calls it significant. The combined evidence is inconclusive.` });
-    if (air) out.push({ lon: -75.43, lat: -13.95, place: "Andean headwaters", finding: `Air ${signed(air.sen_per_decade, 2)} °C per decade`,
-      source: "MERRA-2 reanalysis", verdict: m.verdict_labels[air.verdict], tone: air.verdict });
+    if (ndvi) out.push({ lon: -75.95, lat: -13.89, place: t("Villacurí plains", "Llanuras de Villacurí"), finding: t(`Greenness ${signed(ndvi.sen_per_decade, 2)} per decade`, `Verdor ${signed(ndvi.sen_per_decade, 2)} por década`),
+      source: "MODIS NDVI", verdict: verdictLabel(language, ndvi.verdict), tone: ndvi.verdict });
+    if (zi) out.push({ lon: -75.72, lat: -14.0, place: t("Ica Valley, north", "Norte del valle de Ica"), finding: t(`Water table ${signed(zi.mean_rate_m_per_yr, 2)} m per year`, `Nivel freático ${signed(zi.mean_rate_m_per_yr, 2)} m por año`),
+      source: t(`${zi.n} field wells (JUASVI)`, `${zi.n} pozos de campo (JUASVI)`), verdict: t(`${pct(zi.share_falling)} of wells falling`, `Descenso en el ${pct(zi.share_falling)} de pozos`), tone: "field" });
+    if (lst) out.push({ lon: -75.68, lat: -14.22, place: t("Ica Valley fields", "Campos del valle de Ica"), finding: t(`Surface ${signed(lst.sen_per_decade, 2)} °C per decade`, `Superficie ${signed(lst.sen_per_decade, 2)} °C por década`),
+      source: t("MODIS land surface temperature", "Temperatura superficial de MODIS"), verdict: verdictLabel(language, lst.verdict), tone: lst.verdict,
+      alarm: t("The classic test calls it significant. The combined evidence is inconclusive.", "La prueba clásica señala una tendencia significativa. El análisis combinado es no concluyente.") });
+    if (air) out.push({ lon: -75.43, lat: -13.95, place: t("Andean headwaters", "Cabecera andina"), finding: t(`Air ${signed(air.sen_per_decade, 2)} °C per decade`, `Aire ${signed(air.sen_per_decade, 2)} °C por década`),
+      source: t("MERRA-2 reanalysis", "Reanálisis MERRA-2"), verdict: verdictLabel(language, air.verdict), tone: air.verdict });
     return out;
-  }, [m]);
+  }, [m, language, t, signed, pct]);
 
   useEffect(() => {
     const el = stage.current;
@@ -122,16 +124,16 @@ export function HeroMap({ m, primary, onMap }: {
         {hero && (
           <>
             <div className="hm-layer hm-base">
-              <div className="hm-canvas"><img src={asset(hero.before.file)} alt="Landsat true-color image of Ica and Villacurí in 2004" /></div>
+              <div className="hm-canvas"><img src={asset(hero.before.file)} alt={t("Landsat true-color image of Ica and Villacurí in 2004", "Imagen Landsat en color natural de Ica y Villacurí en 2004")} /></div>
             </div>
             <div className="hm-layer hm-after">
-              <div className="hm-canvas"><img src={asset(hero.after.file)} alt="The same area in 2024, seen through the detective's lens" /></div>
+              <div className="hm-canvas"><img src={asset(hero.after.file)} alt={t("The same area in 2024, seen through the detective's lens", "La misma área en 2024, vista a través de la lupa")} /></div>
             </div>
             <div className="hm-layer" aria-hidden="true">
               <div className="hm-canvas">
                 {LABELS.map((l) => (
                   <span key={l.text} className={`hm-label hm-${l.kind}`} style={lpos(l.lon, l.lat)}>
-                    {l.kind === "place" && <i />}{l.text}
+                    {l.kind === "place" && <i />}{l.text === "Pacific Ocean" ? t("Pacific Ocean", "Océano Pacífico") : l.text}
                   </span>
                 ))}
               </div>
@@ -154,7 +156,7 @@ export function HeroMap({ m, primary, onMap }: {
         </div>
         {ev && (
           <div className={`hm-evidence ${cardSide}`} role="status">
-            <span className="ev-no">Evidence {String((active ?? 0) + 1).padStart(2, "0")}</span>
+            <span className="ev-no">{t("Evidence", "Evidencia")} {String((active ?? 0) + 1).padStart(2, "0")}</span>
             <span className="ev-place">{ev.place}</span>
             <strong className="ev-finding">{ev.finding}</strong>
             <span className="ev-meta">
@@ -164,28 +166,28 @@ export function HeroMap({ m, primary, onMap }: {
             {ev.alarm && <span className="ev-alarm">⚠ {ev.alarm}</span>}
           </div>
         )}
-        <span className="hm-legend" aria-hidden="true"><i className="lg-out" />2004 <i className="lg-in" />Inside the lens: 2024</span>
+        <span className="hm-legend" aria-hidden="true"><i className="lg-out" />2004 <i className="lg-in" />{t("Inside the lens: 2024", "Dentro de la lupa: 2024")}</span>
 
         <div className="hm-copy">
           <div className="wrap">
             <div className="case-line">
-              <span className="case-title">Ica, Peru · NASA Earth observations</span>
+              <span className="case-title">{t("Ica, Peru · NASA Earth observations", "Ica, Perú · Observaciones de la Tierra de NASA")}</span>
             </div>
-            <h1>Greener fields.<br />Falling water levels in <em>monitored wells</em>.</h1>
+            <h1>{t("Greener fields.", "Campos más verdes.")}<br />{t("Falling water levels in", "El agua baja en los")} <em>{t("monitored wells", "pozos monitoreados")}</em>.</h1>
             <p className="hm-lede">
-              Follow the evidence from an individual well to NASA satellites. Test what each dataset can tell you about Ica.
+              {t("Follow the evidence from an individual well to NASA satellites. Test what each dataset can tell you about Ica.", "Sigue la evidencia desde un pozo individual hasta los satélites de NASA. Comprueba qué puede decir cada serie sobre Ica.")}
             </p>
             <div className="hm-cta">
               <button className="hm-btn primary" id="hero-primary" onClick={primary.go}>{primary.label}</button>
-              <button className="hm-btn ghost" onClick={onMap}>Explore the map</button>
+              <button className="hm-btn ghost" onClick={onMap}>{t("Explore the map", "Explorar el mapa")}</button>
             </div>
           </div>
         </div>
-        <span className="hm-credit">Landsat 5 (2004) · Landsat 8/9 (2024) · NASA/USGS via Google Earth Engine</span>
-        <div className={`hm-datron ${datronSays ? "says" : ""}`} tabIndex={0} aria-label="Datron, the SciTeX guide (AI-generated illustration): Take the lens. Every trend here was cross-examined."
+        <span className="hm-credit">Landsat 5 (2004) · Landsat 8/9 (2024) · {t("NASA/USGS via Google Earth Engine", "NASA/USGS a través de Google Earth Engine")}</span>
+        <div className={`hm-datron ${datronSays ? "says" : ""}`} tabIndex={0} aria-label={t("Datron, the SciTeX guide (AI-generated illustration). Take the lens and look at the evidence.", "Datron, guía de SciTeX (ilustración generada con IA). Toma la lupa y observa la evidencia.")}
           onMouseEnter={() => setDatronSays(true)} onMouseLeave={() => setDatronSays(false)} onFocus={() => setDatronSays(true)} onBlur={() => setDatronSays(false)}>
-          <span className="hm-bubble" aria-hidden="true">Take the lens. Every trend here was cross-examined.<small>Datron, your SciTeX guide</small></span>
-          <img src={brandAsset("datron-detective.png")} alt="" title="Datron (AI-generated illustration)" />
+          <span className="hm-bubble" aria-hidden="true">{t("Take the lens and look at the evidence.", "Toma la lupa y observa la evidencia.")}<small>{t("Datron, your SciTeX guide", "Datron, tu guía de SciTeX")}</small></span>
+          <img src={brandAsset("datron-detective.png")} alt="" title={t("Datron (AI-generated illustration)", "Datron (ilustración generada con IA)")} />
         </div>
       </div>
     </header>
