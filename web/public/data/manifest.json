@@ -1,7 +1,7 @@
 {
   "project": "Oasis Paradox",
   "tagline": "What satellites can and cannot see",
-  "generated_at": "2026-11-15T19:15Z",
+  "generated_at": "2026-11-15T21:16Z",
   "period": "2004-01/2024-12",
   "zones": [
     {
@@ -2309,7 +2309,7 @@
         "years_to_detect": 51.996471
       },
       "rain_area": "aquifer box",
-      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
       "reference": "Famiglietti et al. (2011)",
       "impact": {
         "grace_km3_per_yr": -2.4934,
@@ -2442,7 +2442,7 @@
         "years_to_detect": 33.199061
       },
       "rain_area": "aquifer box",
-      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
       "reference": "Richey et al. (2015); Rodell et al. (2018)",
       "impact": {
         "grace_km3_per_yr": -4.9428,
@@ -2576,7 +2576,7 @@
         "years_to_detect": null
       },
       "rain_area": "aquifer box",
-      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
       "reference": "Rodell et al. (2018)",
       "impact": {
         "grace_km3_per_yr": -18.526,
@@ -2709,7 +2709,7 @@
         "years_to_detect": null
       },
       "rain_area": "aquifer box",
-      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
       "reference": "Rodell et al. (2018)",
       "impact": {
         "grace_km3_per_yr": -6.0953,
@@ -2843,7 +2843,7 @@
         "years_to_detect": 110.994235
       },
       "rain_area": "aquifer box",
-      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
       "reference": "Richey et al. (2015); Rodell et al. (2018)",
       "impact": {
         "grace_km3_per_yr": -8.8339,
@@ -2979,7 +2979,7 @@
         "years_to_detect": null
       },
       "rain_area": "aquifer box",
-      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
       "reference": "Rodell et al. (2018)",
       "impact": {
         "grace_km3_per_yr": -8.2941,
@@ -3126,7 +3126,7 @@
       }
     }
   ],
-  "atlas_note": "Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA products, period (2004-2024) and engine everywhere; only El Ni\u00f1o (ONI) is used as a control outside Ica.",
+  "atlas_note": "Aquifers chosen from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018), not a random sample. Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA products, period (2004-2024) and engine everywhere; only El Ni\u00f1o (ONI) is used as a control outside Ica.",
   "demo_cases": [
     {
       "id": "greening",

@@ -17,12 +17,34 @@ export const WITNESSES = [
   { id: "tws_grace", symbol: "◎", unavailable: ["The GRACE series represents coarse regional storage.", "La serie GRACE representa el almacenamiento de agua a escala regional."] },
 ] as const;
 
-const LEADS: { title: Translation; text: Translation; caseId: string; tool?: "map" | "lab" }[] = [
+type Lead = { title: Translation; text: Translation; caseId: string; tool?: "map" | "lab" };
+// Ica's own leads; for an atlas aquifer the desk builds the same four from that aquifer's cases (atlasLeads).
+const LEADS: Lead[] = [
   { title: ["The greening desert", "Un desierto más verde"], text: ["Follow the change in Villacurí.", "Sigue el cambio en Villacurí."], caseId: "Z2_ndvi" },
   { title: ["The invisible drop", "El descenso invisible"], text: ["Compare a well with the view from orbit.", "Compara un pozo con la vista desde órbita."], caseId: "ZW_tws_grace", tool: "map" },
   { title: ["The cooling oasis", "Un oasis que se enfría"], text: ["Compare the fields with the desert reference.", "Compara los campos con el desierto de referencia."], caseId: "Z2_vs_Z5_lst" },
   { title: ["When tests disagree", "Cuando las pruebas discrepan"], text: ["Try a simulation where the true change is known.", "Prueba una simulación en la que conocemos el cambio real."], caseId: "ZW_gws", tool: "lab" },
 ];
+
+const ATLAS_ZONES = ["ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"];
+function atlasLeads(m: Manifest, zone: string): Lead[] | null {
+  const z = zone.endsWith("R") && ATLAS_ZONES.includes(zone.slice(0, -1)) ? zone.slice(0, -1) : zone;
+  if (!ATLAS_ZONES.includes(z)) return null;
+  const name = PLACES[z]?.[0].replace(" (atlas)", "") ?? z;
+  const alarm = m.cases.find((c) => c.zone === z && c.kind === "case" && c.verdict === "inconclusive");
+  return [
+    { title: ["The water from space", "El agua vista desde el espacio"],
+      text: [`Follow total water from GRACE over ${name}.`, `Sigue el agua total de GRACE sobre ${name}.`], caseId: `${z}_tws_grace` },
+    { title: ["Greener than the land around", "Más verde que la tierra vecina"],
+      text: ["Cropland against natural land in the same box.", "Cultivos frente a tierra natural en el mismo recuadro."], caseId: `${z}_vs_${z}R_ndvi` },
+    { title: ["Hot or cool fields?", "¿Campos más cálidos o más frescos?"],
+      text: ["Surface heat of the cropland against natural land.", "Calor superficial de los cultivos frente a la tierra natural."], caseId: `${z}_vs_${z}R_lst` },
+    { title: ["When tests disagree", "Cuando las pruebas discrepan"],
+      text: alarm ? ["A series the engine leaves inconclusive.", "Una serie que el motor deja como no concluyente."]
+        : ["Try a simulation where the true change is known.", "Prueba una simulación en la que conocemos el cambio real."],
+      caseId: alarm?.id ?? `${z}_gws`, tool: alarm ? undefined : "lab" },
+  ];
+}
 
 function Prediction({ refCase }: { refCase: CaseRef }) {
   const { t } = useLocale();
@@ -82,7 +104,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
       <details className="research-details lead-list" open={startWithLead || undefined}>
         <summary>{t("Follow a guided case", "Explora un caso guiado")}</summary>
         <div className="lead-grid">
-          {LEADS.filter((lead) => m.cases.some((c) => c.id === lead.caseId)).map((lead) => (
+          {(atlasLeads(m, selected.zone) ?? LEADS).filter((lead) => m.cases.some((c) => c.id === lead.caseId)).map((lead) => (
             <button key={lead.caseId} className="lead-card" onClick={() => {
               setUnavailable("");
               onLead(lead.caseId, lead.tool);

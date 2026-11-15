@@ -223,7 +223,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
       </div>
       <div className="case-result">
         <div><span className={`pill ${cf.verdict}`}>{verdictText(cf.verdict)}</span><p>{verdictSummary(cf.verdict)}</p></div>
-        <div className="case-estimate"><strong className="num">{signed(tr.sen_per_decade)}</strong><span>{caseUnits(cf.units)} {t("per decade", "por década")}</span></div>
+        <div className="case-estimate"><strong className="num">{signed(tr.sen_per_decade)}</strong><span>{caseUnits(cf.units)} {t("per decade", "por década")}</span>
+          {tr.sen_per_decade !== null && <span className="case-per-year">= {signed(tr.sen_per_decade / 10)} {caseUnits(cf.units)} {t("per year", "por año")}</span>}</div>
       </div>
       {explorer && disagreement && <p className="research-callout">{t("The classic test flags a change here. Accounting for similarities between months leaves the evidence inconclusive.",
         "La prueba clásica señala un cambio. Al considerar que los meses se parecen entre sí, la evidencia queda como no concluyente.")}</p>}

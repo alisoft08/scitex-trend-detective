@@ -136,6 +136,9 @@ NOTES.update({f"{z}_{v}": ["Atlas case: cropland pixels from MODIS MCD12Q1 land 
                            "inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control."]
               for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "et")})
 NOTES["ZC_t2m"] = ["Air temperature over the same box as the Central Valley water cases."]
+NOTES.update({f"{z}_lst": ["Terra's overpass has drifted earlier since about 2020, which can cool absolute daytime temperatures; "
+                           "the heat gap against natural land in the same box cancels that shared effect."]
+              for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})
 NOTES["ZC_precip"] = ["Rain over the same box as the Central Valley water cases."]
 
 VERDICT_LABEL = {"confirmed": "Confirmed trend", "likely": "Likely trend",
@@ -473,7 +476,7 @@ def water_sentence(zone, tws, rain, wells_share):
     rain_down = rain["verdict"] in ("confirmed", "likely") and (rain["per_decade"] or 0) < 0
     if proven and tws["per_decade"] < 0:
         cause = ("Rain is also falling, so a drier climate contributes to the loss." if rain_down else
-                 "Rain shows no proven decline, so the loss points to groundwater pumping.")
+                 "Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).")
         return f"GRACE sees stored water falling. {cause}"
     if proven and tws["per_decade"] > 0:
         extra = (f" Yet {round(wells_share * 100)}% of monitored wells are falling: the farms are too small for one "
@@ -585,7 +588,8 @@ def main():
                   "simulation": "simulation.json", "witnesses": "witnesses.json"},
         "verdict_labels": VERDICT_LABEL,
         "atlas": build_atlas(cases_by_id, wells_summary["share_falling"], s),
-        "atlas_note": "Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA "
+        "atlas_note": "Aquifers chosen from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018), not a random "
+                      "sample. Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA "
                       "products, period (2004-2024) and engine everywhere; only El Niño (ONI) is used as a control "
                       "outside Ica.",
         "demo_cases": [

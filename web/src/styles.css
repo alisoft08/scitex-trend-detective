@@ -990,3 +990,47 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .tool-levels { display: flex; justify-content: flex-end; padding-top: .72rem; }
 .tool-levels .level-switch { margin: 0; }
 .tool-levels + .research-page { padding-top: .75rem; }
+
+/* AI-assisted: Claude (Anthropic). Review changes: purpose and steps on the globe, headline chart, main series. */
+.atlas-purpose { margin: .5rem 0 0; max-width: 46ch; font-size: .95rem; line-height: 1.5; color: #d5dcec; text-shadow: 0 1px 8px rgba(0,0,0,.9); }
+.atlas-steps { display: flex; flex-wrap: wrap; gap: .3rem 1rem; list-style: none; margin: .7rem 0 0; padding: 0; font-size: .82rem; color: #e9edf6; }
+.atlas-steps li { display: inline-flex; align-items: center; gap: .4rem; text-shadow: 0 1px 6px rgba(0,0,0,.9); }
+.atlas-steps b { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: rgba(241,197,107,.9); color: #1a1c3a; font-size: .72rem; }
+.atlas-links { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-top: .7rem; pointer-events: auto; }
+.atlas-links a { font-size: .8rem; font-weight: 600; color: #c9d6ee; text-decoration: none; border-bottom: 1px solid rgba(201,214,238,.35); padding-bottom: 1px; }
+.atlas-links a:hover { color: #fff; border-bottom-color: #fff; }
+.detect { margin: 1.4rem 0 2.6rem; }
+.detect h3, .aq-table-title { margin: 0 0 .5rem; font-size: clamp(1.25rem, 1rem + .8vw, 1.6rem); font-weight: 400; letter-spacing: -.01em; color: #27295a; }
+.detect-finding { margin: 0 0 1rem; max-width: 72ch; font-size: 1rem; line-height: 1.6; color: #27295a; }
+.detect-chart { margin: 0; }
+.detect-plot { position: relative; max-width: 900px; }
+.detect-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.detect-band { fill: #f2f4f8; }
+.detect-band-label { font-size: 11px; fill: #71706f; font-family: inherit; }
+.detect-grid { stroke: #e9ecf2; stroke-width: 1; }
+.detect-zero { stroke: #9aa0ad; stroke-width: 1; stroke-dasharray: 3 3; }
+.detect-axis { stroke: #b8bdc8; }
+.detect-tick { font-size: 11px; fill: #71706f; font-variant-numeric: tabular-nums; }
+.detect-axis-label { font-size: 11.5px; fill: #4d5170; font-weight: 600; }
+.detect-ci { stroke-width: 2; stroke-linecap: round; opacity: .55; }
+.detect-dot { stroke-width: 2; }
+.detect-hit { fill: transparent; }
+.detect-label { font-size: 12px; font-weight: 600; fill: #27295a; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+.detect-pt { cursor: pointer; outline: none; }
+.detect-pt.on .detect-dot, .detect-pt:focus-visible .detect-dot { stroke-width: 3.5; }
+.detect-pt:focus-visible .detect-label { text-decoration: underline; }
+.detect-tip { position: absolute; transform: translate(-50%, calc(-100% - 14px)); display: grid; gap: .15rem; padding: .5rem .7rem; border-radius: 8px;
+  background: #fff; border: 1px solid #dfe3ea; box-shadow: 0 8px 24px rgba(39,41,90,.16); font-size: .8rem; color: #27295a; white-space: nowrap; pointer-events: none; }
+.detect-tip strong { font-size: .86rem; }
+.detect-tip-hint { color: #71706f; font-size: .72rem; }
+.detect-chart figcaption { margin-top: .5rem; font-size: .76rem; line-height: 1.5; color: #71706f; }
+.detect-legend { display: inline-flex; align-items: center; gap: .3rem; margin-right: .8rem; color: #4d5170; font-weight: 600; }
+.detect-legend i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; display: inline-block; }
+.detect-legend i.ring { background: #fff; }
+.aq-series { margin-top: clamp(2rem, 4vw, 3rem); }
+.aq-series .case-plot { margin: .4rem 0 0; }
+.aq-period { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--hair); }
+.aq-period label { font-size: .82rem; font-weight: 600; color: #4d5170; display: inline-flex; gap: .4rem; align-items: center; }
+.aq-period select { font: inherit; font-size: .85rem; padding: .3rem .5rem; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: #27295a; }
+.aq-period p { flex: 1 1 100%; margin: 0; font-size: .88rem; line-height: 1.55; color: #27295a; font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) { .atlas-purpose { font-size: .86rem; } .atlas-steps { font-size: .76rem; } .detect-label { font-size: 13px; } }

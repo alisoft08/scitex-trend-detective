@@ -4,9 +4,11 @@ import { useMemo, useState } from "react";
 import { asset, useJSON } from "./data";
 import { HeroMap } from "./HeroMap";
 import { LensHero, type LensStop } from "./LensHero";
-import { fmt } from "./format";
+import { fmt, signed } from "./format";
+import { useLocale } from "./i18n";
+import { CasePlot } from "./CaseFile";
 import { amount, dirOf, proven, short, Spark, Verdict, WITNESSES } from "./Atlas";
-import type { AtlasEntry, Manifest } from "./types";
+import type { AtlasEntry, CaseFile, Manifest, PeriodGrid, Window } from "./types";
 
 interface Tour { [zone: string]: { ratio: number; bbox: [number, number, number, number]; stops: { lon: number; lat: number; change: string }[] } }
 
@@ -45,6 +47,8 @@ export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
         <p className="aq-ref">Reference: {a.reference}{ica ? ". Ica's rain is measured over the Andean headwaters; its fields are Villacurí's." : ""}</p>
         {ica && <button className="aq-link" onClick={onIca}>Open the Ica deep dive, with its field wells</button>}
       </div>
+
+      <MainSeries m={m} a={a} onCase={onCase} />
 
       <table className="aq-witnesses" id="aq-witnesses">
         <caption>{WITNESSES.filter(({ key }) => a[key]).length} NASA witnesses, 2004–2024. Select a row to open its case file.</caption>
@@ -161,7 +165,7 @@ function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onC
         <span>{(im.grace_km3_per_yr ?? 0) < 0 ? "of water lost" : "of water gained"} each year across the box (GRACE trend × {Math.round(a.area_km2).toLocaleString("en-US")} km²){ica ? "; the satellites see a net gain while wells fall" : ""}{a.id === "ZIN" ? ". Rodell et al. (2009, Nature) measured 17.7 km³ a year in 2002–2008 for this region with GRACE" : ""}</span></div>
       {im.crop_water_mm3_2020_2024 !== undefined && <div><strong className="num">{fmtN(im.crop_water_mm3_2020_2024! >= 1000 ? im.crop_water_mm3_2020_2024! / 1000 : im.crop_water_mm3_2020_2024!, 1)} {im.crop_water_mm3_2020_2024! >= 1000 ? "km³" : "million m³"}</strong>
         <span>{ica ? `of water used by crops each year, 2020–2024 (MODIS ET × ${fmtN(im.cropland_km2, 0)} km² of cropland in Villacurí, where almost no rain falls; a lower bound)`
-          : `evaporated each year by ${fmtN(im.cropland_km2, 0)} km² of cropland, 2020–2024 (MODIS ET; rain and irrigation together)`}</span></div>}
+          : `evaporated each year by ${fmtN(im.cropland_km2, 0)} km² of cropland, 2020–2024 (MODIS ET; rain and irrigation together, so not comparable with the GRACE loss)`}</span></div>}
       <div><strong className="num">{fmtN(a.grace_footprints, 2)}</strong><span>GRACE footprints cover this box: {a.grace_footprints >= 1 ? "large enough for the satellites to resolve a regional loss" : "too small for the satellites to localise a loss"}</span></div>
     </section>}
 
@@ -204,4 +208,37 @@ function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onC
       <div className="aq-leads-grid">{leads.map((l) => <button key={l.title} type="button" onClick={l.go}><strong>{l.title}</strong><span>{l.text}</span></button>)}</div>
     </section>
   </>;
+}
+
+/** The aquifer's GRACE record, large, with the period selector: steps 3 and 4 of the challenge on the page itself. */
+function MainSeries({ m, a, onCase }: { m: Manifest; a: AtlasEntry; onCase: (id: string) => void }) {
+  const { pfull } = useLocale();
+  const ref = m.cases.find((c) => c.id === a.tws.id);
+  const { data: cf } = useJSON<CaseFile>(ref?.path ?? null);
+  const { data: grid } = useJSON<PeriodGrid>(`periods/${a.tws.id}.json`);
+  const [from, setFrom] = useState(2004);
+  const [to, setTo] = useState(2024);
+  if (!cf) return null;
+  const sel = grid?.periods.find((r) => r.start === from && r.end === to);
+  const full = from === 2004 && to === 2024;
+  const win = sel && !full && sel.sen_per_decade !== null
+    ? { start: from, end: to, sen_per_decade: sel.sen_per_decade, p_block_bootstrap: sel.p_block_bootstrap } as Window : undefined;
+  const perYear = (v: number | null | undefined) => v === null || v === undefined ? "n/a" : `${signed(v / 10, 2)} mm/yr`;
+  return <section className="aq-series" aria-labelledby="aq-series-title">
+    <div className="aq-section-head">
+      <h2 id="aq-series-title">Total water from GRACE, month by month</h2>
+      <button className="aq-link" onClick={() => onCase(a.tws.id)}>Open the full case file</button>
+    </div>
+    <p className="aq-gaps-lede">Each month compared with the average for that month of the year, 2004–2024, with the full-period trend.
+      Shaded months have no GRACE data (the gap between GRACE and GRACE-FO, 2017–2018).</p>
+    <CasePlot cf={cf} window={win} />
+    {grid && <div className="aq-period">
+      <label>From <select value={from} onChange={(e) => { const s = Number(e.target.value); setFrom(s); if (to - s + 1 < grid.min_years) setTo(Math.min(2024, s + grid.min_years - 1)); }}>
+        {grid.starts.map((y) => <option key={y} value={y}>{y}</option>)}</select></label>
+      <label>To <select value={to} onChange={(e) => setTo(Number(e.target.value))}>
+        {grid.ends.filter((y) => y - from + 1 >= grid.min_years).map((y) => <option key={y} value={y}>{y}</option>)}</select></label>
+      {sel && <p role="status"><strong>{from}–{to}: {perYear(sel.sen_per_decade)}</strong> · block-bootstrap Mann-Kendall {pfull(sel.p_block_bootstrap)} · AR(1) regression {pfull(sel.p_arma)} · <b>{sel.result === "both" ? "both tests significant" : sel.result === "one" ? "only one test significant" : sel.result === "none" ? "not significant" : "too few valid months"}</b>.
+        {full ? " The verdict for the full record also needs the robustness checks." : " The verdict uses the full 2004–2024 record."}</p>}
+    </div>}
+  </section>;
 }

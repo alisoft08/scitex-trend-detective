@@ -18,8 +18,8 @@ import { useJSON } from "./data";
 import type { Manifest } from "./types";
 
 const LEVEL = "expert";
-const DEFAULT_CASE = "Z2_ndvi";
-const DEFAULT_PAIR = ["Z2_ndvi", "Z5_ndvi"] as const;
+const DEFAULT_CASE = "ZIN_tws_grace";   // the desk opens on the clearest confirmed loss, not on Ica
+const DEFAULT_PAIR = ["ZIN_tws_grace", "ZW_tws_grace"] as const;   // a loss GRACE sees, and one it cannot
 const VIEWS = [
   { id: "ica", label: "Ica deep dive" },
   { id: "investigate", label: "Detective desk" },

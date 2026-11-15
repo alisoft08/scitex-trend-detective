@@ -2,6 +2,7 @@
 // witnesses, then compare all of them. Every number comes from the engine's manifest; nothing is computed here.
 import { useEffect, useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
+import { DetectabilityChart } from "./DetectabilityChart";
 import { asset, useJSON } from "./data";
 import { EVIDENCE_TEXT } from "./evidence";
 import { fmt, signed } from "./format";
@@ -47,7 +48,7 @@ const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("
 function Welcome({ onDone }: { onDone: () => void }) {
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
-    const t1 = setTimeout(() => setLeaving(true), 2300), t2 = setTimeout(onDone, 3100);
+    const t1 = setTimeout(() => setLeaving(true), 1500), t2 = setTimeout(onDone, 2200);
     const skip = (e: KeyboardEvent) => { if (e.key === "Escape" || e.key === "Enter") { clearTimeout(t1); clearTimeout(t2); onDone(); } };
     window.addEventListener("keydown", skip);
     return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener("keydown", skip); };
@@ -65,7 +66,7 @@ function facts(m: Manifest, atlas: AtlasEntry[]): string[] {
   const alarms = atlas.reduce((n, a) => n + [a.tws, a.gws, a.rain, a.ndvi, a.et, a.t2m].filter((w) => w?.classic_false_alarm).length, 0);
   const greening = atlas.filter((a) => proven(a.ndvi) && (a.ndvi?.per_decade ?? 0) > 0 && falling.includes(a)).length;
   return [
-    `One engine, the same NASA data, ${atlas.length} irrigated aquifers. GRACE confirms a loss in ${falling.length}.`,
+    `One engine, the same NASA data, ${atlas.length} irrigated aquifers chosen from published GRACE hotspots. GRACE confirms a loss in ${falling.length}.`,
     worst ? `${short(worst.name)} loses ${amount(worst.tws).replace("−", "")} of water: the largest confirmed loss in the atlas.` : "",
     "Where the farms are small, as in Ica, GRACE cannot see the loss. Only wells can.",
     greening ? `In ${greening} draining aquifers the cropland is getting greener and using more water.` : "",
@@ -76,9 +77,9 @@ function facts(m: Manifest, atlas: AtlasEntry[]): string[] {
 
 export const dirOf = (w: AtlasWitness): "down" | "up" | "flat" => !proven(w) ? "flat" : (w.per_decade ?? 0) < 0 ? "down" : "up";
 export const bare = (w: AtlasWitness) => w.per_decade === null ? "n/a" : signed(w.units === "mm" ? w.per_decade / 10 : w.per_decade, 2);
-const VERDICT_WORD: Record<AtlasWitness["verdict"], string> = { confirmed: "Confirmed", likely: "Likely", inconclusive: "Not proven", insufficient_data: "Too little data" };
+const VERDICT_WORD: Record<AtlasWitness["verdict"], string> = { confirmed: "Confirmed", likely: "Likely", inconclusive: "Inconclusive", insufficient_data: "Insufficient data" };
 
-/** A dot and a word: filled for confirmed, ring for likely, hollow grey when not proven. */
+/** A dot and a word: filled for confirmed, ring for likely, hollow grey when inconclusive. */
 export function Verdict({ w, compact = false }: { w: AtlasWitness; compact?: boolean }) {
   const d = dirOf(w);
   const word = d === "flat" ? VERDICT_WORD[w.verdict] : `${VERDICT_WORD[w.verdict]} ${d === "down" ? "fall" : "rise"}`;
@@ -126,6 +127,10 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
   const a = atlas.find((x) => x.id === sel) ?? atlas[0];
   const q = norm(query.trim());
   const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
+  // Detectability finding, from the manifest: which aquifers span two or more GRACE footprints, and what GRACE says there.
+  const big = atlas.filter((x) => x.grace_footprints >= 2);
+  const bigLoss = big.filter((x) => proven(x.tws) && (x.tws.per_decade ?? 0) < 0);
+  const bigRest = big.filter((x) => !bigLoss.includes(x));
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
   const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
   const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); onPick?.(); onOpen(id); };
@@ -154,6 +159,10 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
         <h1 id="atlas-title">Where are aquifers draining?</h1>
+        <p className="atlas-purpose">A trend detective for the world's irrigated aquifers, built on NASA satellite data and honest statistics.</p>
+        <ol className="atlas-steps">
+          <li><b>1</b>Pick an aquifer</li><li><b>2</b>See its NASA time series</li><li><b>3</b>Is the trend real?</li>
+        </ol>
       </header>
 
       <div className="atlas-tools">
@@ -175,19 +184,30 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
           </ul>}
         </div>
       </div>
+      <nav className="atlas-links" aria-label="Tools for every aquifer">
+        <a href="#investigate">Detective desk</a><a href="#method">Trend lab</a><a href="#compare">Compare</a><a href="#sources">Sources</a>
+      </nav>
 
       </div></div>
       {(() => { const list = facts(m, atlas); return <p className="atlas-blurb" key={fact} aria-live="polite">{list[fact % list.length]}</p>; })()}
-      <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
+      <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> inconclusive · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
     </div>
     <div className="aq-overview">
       <div className="wrap wide">
         <header className="aq-overview-head">
           <p className="aq-kicker">The atlas</p>
           <h2>{atlas.length} irrigated aquifers, one engine</h2>
-          <p>Each aquifer is read with the same NASA data and the same pre-registered rule, 2004–2024. Select one to open its page,
-            with the 2004 and 2024 satellite views and its six witnesses.</p>
+          <p>Each aquifer is read with the same NASA data and the same pre-registered rule, 2004–2024. The aquifers were chosen
+            from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018), so they are not a random sample of the world.</p>
         </header>
+        <section className="detect" aria-labelledby="detect-title">
+          <h3 id="detect-title">Can a satellite see your aquifer?</h3>
+          <p className="detect-finding">Of the {big.length} aquifers that span two or more GRACE footprints, {bigLoss.length} show a confirmed or likely loss{bigRest.length > 0 && <>; {bigRest.map((a) => short(a.name)).join(" and ")} {bigRest.length > 1 ? "are" : "is"} inconclusive</>}.
+            Ica covers 3% of one footprint: GRACE sees a net rise there while {Math.round(m.wells.share_falling * 100)}% of its monitored wells fall.
+            Below one footprint, only wells can watch an aquifer.</p>
+          <DetectabilityChart atlas={atlas} onOpen={(id) => pick(id)} />
+        </section>
+        <h3 className="aq-table-title">All aquifers</h3>
         <div className="scroll-x">
           <table className="aq-table">
             <thead><tr>
@@ -209,7 +229,7 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
             </tr>)}</tbody>
           </table>
         </div>
-        <p className="aq-note">{m.atlas_note} Verdict marks: filled dot confirmed, ring likely, hollow not proven; gold falling, blue rising.</p>
+        <p className="aq-note">{m.atlas_note} Verdict marks: filled dot confirmed, ring likely, hollow inconclusive; gold falling, blue rising.</p>
       </div>
     </div>
   </section>;
