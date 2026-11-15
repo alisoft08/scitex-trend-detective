@@ -82,8 +82,9 @@ field lab remain in the code, hidden behind `EXPERT_ONLY` in `web/src/levels.ts`
 - **Home: the world aquifer globe.** A large 3D globe on a MODIS mosaic over a black background, search by aquifer or
   country, a quick filter by GRACE verdict, and a pop-out card with a satellite close-up of the chosen aquifer. Below:
   six NASA witnesses per aquifer, the comparison table and "Who it is for".
-- **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): a 2004 / 2024 lens
-  (MODIS, same season; Landsat for Ica), the reading, and six NASA witnesses with annual sparklines.
+- **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): Ica's landing view for
+  every aquifer (2004 outside the lens, 2024 inside; the lens tours the places where the surface changed most), the
+  reading, and six NASA witnesses with annual sparklines.
 - **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
   only aquifer with field wells.
 - **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.

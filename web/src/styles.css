@@ -885,3 +885,7 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .period-controls .research-field { min-width: 110px; }
 .period-result { flex: 1 1 100%; margin: .2rem 0 0; font-size: .9rem; line-height: 1.55; color: var(--ink); font-variant-numeric: tabular-nums; }
 .period-result b { font-weight: 700; }
+
+/* AI-assisted: Claude (Anthropic). The lens view takes any picture ratio (set by LensHero as --ratio). */
+.hm-stage .hm-canvas { width: max(100cqw, calc(var(--ratio, 1.765) * 100cqh)); aspect-ratio: var(--ratio, 1.765); }
+.ev-note { display: block; margin-top: .35rem; font-style: italic; }
