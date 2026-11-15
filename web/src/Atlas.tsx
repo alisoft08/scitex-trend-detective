@@ -80,7 +80,6 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
         <h1 id="atlas-title">Where are aquifers draining?</h1>
-        <p className="sr-only">One engine, the same NASA data, {atlas.length} irrigated aquifers; GRACE confirms a loss in {falling}.</p>
       </header>
 
       <div className="atlas-tools">
@@ -111,6 +110,8 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
       </div>
 
       </div></div>
+      <p className="atlas-blurb">One engine, the same NASA data, {atlas.length} irrigated aquifers. GRACE confirms a loss in {falling};
+        where the farms are small, as in Ica, the satellites cannot see it, and only wells can.</p>
       <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
     </div>
     <div className="wrap wide">

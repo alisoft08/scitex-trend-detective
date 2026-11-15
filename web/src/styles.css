@@ -718,3 +718,6 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .atlas-stage-foot .atlas-legend { font-size: .72rem; opacity: .8; }
 .atlas-stage .globe-stage { padding-top: 2.5vh; }
 .atlas-stage-foot .atlas-legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .15rem; padding: .3rem .75rem; border-radius: 999px; background: rgba(2,4,9,.7); backdrop-filter: blur(6px); opacity: 1; color: #c9d1e3; }
+.atlas-blurb { position: absolute; top: 1.3rem; right: clamp(16px, 2.8vw, 40px); z-index: 5; max-width: 340px; margin: 0;
+  color: #fff; font-size: .92rem; line-height: 1.5; text-align: right; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 18px rgba(0,0,0,.85); }
+@media (max-width: 960px) { .atlas-blurb { position: static; max-width: none; text-align: left; padding: 0 16px 1rem; } }
