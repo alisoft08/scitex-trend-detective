@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { asset } from "./data";
 
-export interface GlobeMarker { id: string; lonlat: [number, number]; label: string; tone: "down" | "up" | "flat"; focus?: boolean }
+export interface GlobeMarker {
+  id: string; lonlat: [number, number]; label: string; tone: "down" | "up" | "flat"; focus?: boolean;
+  thumb?: string; value?: string;            // mini card: satellite close-up and the headline number
+  dir?: "ne" | "nw" | "se" | "sw";           // where the mini card sits relative to the point
+}
+const OFFSET: Record<NonNullable<GlobeMarker["dir"]>, [number, number]> = { ne: [46, -54], nw: [-46, -54], se: [46, 54], sw: [-46, 54] };
 
 // The texture is plate carrée from lon -180..180 and lat 90..-90 (pipeline/world_map.py).
 const TEX_N = 90, TEX_S = -90;
@@ -202,7 +207,17 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
           style={{ visibility: "hidden" }} onClick={() => onSelect(m.id)}
           aria-pressed={selected === m.id} aria-label={m.label}>
           <span className="globe-dot" aria-hidden="true">{m.tone === "down" ? "↓" : m.tone === "up" ? "↑" : "?"}</span>
-          <span className="globe-tag">{m.label}</span>
+          {m.thumb ? (() => {
+            const [dx, dy] = OFFSET[m.dir ?? "ne"];
+            const len = Math.hypot(dx, dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+            return <>
+              <span className="globe-stem" aria-hidden="true" style={{ width: len, transform: `rotate(${ang}deg)` }} />
+              <span className={`globe-mini ${m.dir ?? "ne"}`} aria-hidden="true" style={{ left: `calc(50% + ${dx}px)`, top: `calc(50% + ${dy}px)` }}>
+                <img src={m.thumb} alt="" loading="lazy" />
+                <span className="globe-mini-text"><b>{m.label}</b>{m.value && <i>{m.value}</i>}</span>
+              </span>
+            </>;
+          })() : <span className="globe-tag">{m.label}</span>}
         </button>;
       })}
     </div>

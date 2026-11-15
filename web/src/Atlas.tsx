@@ -32,6 +32,10 @@ const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m"; name: st
   { key: "t2m", name: "Air temperature · MERRA-2", kind: "Reanalysis" },
 ];
 
+// Mini-card side per aquifer, chosen so neighbours (Arabia and Tigris-Euphrates, California and the High Plains) do not overlap.
+const MINI_DIR: Record<string, NonNullable<GlobeMarker["dir"]>> = {
+  ZW: "sw", ZC: "nw", ZHP: "ne", ZIN: "se", ZNC: "ne", ZAR: "sw", ZTE: "nw", ZGU: "se",
+};
 type Filter = "all" | GlobeMarker["tone"];
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "All" }, { id: "down", label: "↓ Falling" }, { id: "up", label: "↑ Rising" }, { id: "flat", label: "? Not proven" },
@@ -47,7 +51,8 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
   const shown = atlas.filter((x) => filter === "all" || tone(x) === filter);
-  const markers: GlobeMarker[] = useMemo(() => shown.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x) })), [m.atlas, filter]);
+  const markers: GlobeMarker[] = useMemo(() => shown.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x),
+    thumb: asset(`img/aquifers/${x.id}.jpg`), value: x.tws.per_decade === null ? undefined : amount(x.tws), dir: MINI_DIR[x.id] ?? "ne" })), [m.atlas, filter]);
   if (atlas.length < 2) return null;
   const a = atlas.find((x) => x.id === sel) ?? atlas[0];
   const q = norm(query.trim());
