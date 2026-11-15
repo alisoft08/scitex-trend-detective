@@ -28,12 +28,15 @@ const VIEWS = [
   { id: "method", key: "method" },
   { id: "sources", key: "sources" },
 ] as const;
-type ViewId = (typeof VIEWS)[number]["id"];
-const ALIAS: Record<string, ViewId> = { top: "case", verdict: "case", where: "map", methods: "method", about: "sources", data: "sources" };
+type DeckId = (typeof VIEWS)[number]["id"];
+/** "mission" is the Explorer mission; every other route is a deck view. Without a hash the app opens on the home (case). */
+type ViewId = DeckId | "mission";
+const ALIAS: Record<string, ViewId> = { explorer: "mission", top: "case", verdict: "case", where: "map", methods: "method", about: "sources", data: "sources" };
 
 function viewFromHash(): ViewId | null {
   const h = location.hash.replace(/^#/, "");
   if (VIEWS.some((v) => v.id === h)) return h as ViewId;
+  if (/^(mission|explorer)(-[0-5])?$/.test(h)) return "mission";
   return ALIAS[h] ?? null;
 }
 
@@ -41,13 +44,15 @@ function viewFromHash(): ViewId | null {
 function useView(): [ViewId, (v: ViewId) => void] {
   const [view, setViewState] = useState<ViewId>(() => viewFromHash() ?? "case");
   useEffect(() => {
-    const on = () => { const v = viewFromHash(); if (v) { setViewState(v); window.scrollTo(0, 0); } };
+    const on = () => { const v = viewFromHash() ?? (location.hash === "" ? "case" : null); if (v) { setViewState(v); window.scrollTo(0, 0); } };
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
   const setView = (v: ViewId) => {
     setViewState(v);
-    if (location.hash !== `#${v}`) { try { history.pushState(null, "", `#${v}`); } catch { /* sandboxed: state only */ } }
+    // The mission keeps a clean URL, so reloading the page always lands on the home (the lens map).
+    const target = v === "mission" ? location.pathname + location.search : `#${v}`;
+    if (v === "mission" ? location.hash !== "" : location.hash !== `#${v}`) { try { history.pushState(null, "", target); } catch { /* sandboxed: state only */ } }
     window.scrollTo(0, 0);
   };
   return [view, setView];
@@ -148,12 +153,10 @@ export default function App() {
   const [level, setLevel] = useLevel();
   const [welcomeOpen, closeWelcome, openWelcome] = useWelcome();
   const [lang, setLang] = useLang();
-  const [fullTool, setFullTool] = useState(false);
   const [view, setView] = useView();
   const [tabs, setTabs] = useState<Record<string, string>>({});
-  const tabOf = (v: ViewId, first: string) => tabs[v] ?? first;
-  const setTab = (v: ViewId) => (t: string) => setTabs((s) => ({ ...s, [v]: t }));
-  useEffect(() => { if (level === "explorer") setFullTool(false); }, [level]);
+  const tabOf = (v: DeckId, first: string) => tabs[v] ?? first;
+  const setTab = (v: DeckId) => (t: string) => setTabs((s) => ({ ...s, [v]: t }));
   // A shareable link straight into the Explorer mission: …#mission (or #explorer); #mission-3 opens chapter 3.
   const [missionStart, setMissionStart] = useState(0);
   const [missionKey, setMissionKey] = useState(0);
@@ -161,7 +164,7 @@ export default function App() {
     const go = () => {
       const h = /^#(mission|explorer)(?:-([0-5]))?$/.exec(location.hash);
       if (!h) return;
-      setLevel("explorer"); setFullTool(false); closeWelcome();
+      setLevel("explorer"); closeWelcome();
       setMissionStart(Number(h[2] ?? 0)); setMissionKey((k) => k + 1); window.scrollTo(0, 0);
     };
     go();
@@ -169,7 +172,8 @@ export default function App() {
     return () => window.removeEventListener("hashchange", go);
   }, []);
   const [pick, setPick] = useState<Pick>({ zone: "Z2", variable: "ndvi", vsDesert: false });
-  const missionMode = level === "explorer" && !fullTool;
+  const missionMode = view === "mission";
+  const startMission = () => { setLevel("explorer"); setMissionStart(0); setMissionKey((k) => k + 1); setView("mission"); };
 
   // Arrow keys move between views (not while typing or using a slider).
   useEffect(() => {
@@ -217,18 +221,22 @@ export default function App() {
   return (
     <>
       <Nav level={level} setLevel={setLevel} onHelp={openWelcome} lang={lang} setLang={setLang} mission={missionMode} view={view} setView={setView} />
-      <Welcome open={welcomeOpen} level={level} lang={lang} onClose={closeWelcome} onPick={setLevel} />
+      <Welcome open={welcomeOpen} level={level} lang={lang} onClose={closeWelcome}
+        onPick={(l) => { if (l === "explorer") startMission(); else { setLevel(l); if (missionMode) setView("case"); } }} />
       {missionMode && (
-        <Mission key={missionKey} m={m} lang={lang} startAt={missionStart} onFullTool={() => { setFullTool(true); setView("investigate"); }}
-          onAnalyst={() => { setLevel("analyst"); setView("case"); }} />
+        <Mission key={missionKey} m={m} lang={lang} startAt={missionStart} onFullTool={() => setView("evidence")}
+          onAnalyst={() => { setLevel("analyst"); setView("evidence"); }} />
       )}
 
       {!missionMode && (
         <main className={`deck lv-${level}`}>
           {view === "case" && (
             <section className="view view-case" id="v-case" aria-label="The case">
-              <HeroMap m={m} onStart={() => setView("evidence")} onMap={() => setView("map")}
-                onMission={() => { setLevel("explorer"); window.scrollTo(0, 0); }} />
+              <HeroMap m={m} onMap={() => setView("map")}
+                primary={level === "explorer"
+                  ? { label: `${d.m.brief.start} →`, go: startMission }
+                  : { label: "See the evidence →", go: () => setView("evidence") }}
+                onMission={level === "explorer" ? undefined : startMission} />
             </section>
           )}
 
