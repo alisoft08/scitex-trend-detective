@@ -757,3 +757,9 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
   color: #27295a; font-size: .8rem; font-weight: 600; line-height: 1.35; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
 @media (max-width: 960px) { .atlas-datron { position: static; justify-content: flex-end; padding: 0 16px; } }
 @media (prefers-reduced-motion: reduce) { .atlas-welcome, .atlas.ready .atlas-overlay, .atlas.ready .atlas-blurb, .atlas.ready .atlas-datron { animation: none; transition: none; } }
+
+/* AI-assisted: Claude (Anthropic). Globe home without the white bar until an aquifer is picked. */
+.research-nav { transition: transform .45s ease, opacity .45s ease; }
+.research-nav.nav-hidden { position: fixed; top: 0; left: 0; right: 0; transform: translateY(-100%); opacity: 0; pointer-events: none; }
+.no-nav .atlas-stage { height: 100svh; }
+@media (prefers-reduced-motion: reduce) { .research-nav { transition: none; } }

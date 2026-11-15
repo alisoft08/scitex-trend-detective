@@ -92,10 +92,13 @@ export default function App() {
     ? [a, b] : lastPair;
   const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer"));
   const isHome = !VIEWS.some((v) => v.id === view);
+  // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
+  const [picked, setPicked] = useState(false);
+  const showNav = !isHome || picked;
 
   return (
     <>
-      <header className="topnav research-nav">
+      <header className={`topnav research-nav ${showNav ? "" : "nav-hidden"}`} aria-hidden={!showNav || undefined}>
         <div className="wrap wide">
           <a href="#case" className="brand" aria-label="Oasis Paradox home">Oasis <span>Paradox</span></a>
           <nav className="nav" aria-label="Investigation tools">
@@ -114,8 +117,8 @@ export default function App() {
       {error && <p className="wrap error" role="alert">{error}</p>}
       {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
       {manifest && selectedCase && (
-        <main className={`research-app lv-${level}`}>
-          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => navigate("#ica")} />}
+        <main className={`research-app lv-${level} ${showNav ? "" : "no-nav"}`}>
+          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} />}
           {view === "ica" && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Audiences onOpen={(target) => {

@@ -2,7 +2,7 @@
 // witnesses, then compare all of them. Every number comes from the engine's manifest; nothing is computed here.
 import { useEffect, useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
-import { asset, brandAsset } from "./data";
+import { asset } from "./data";
 import { EVIDENCE_TEXT } from "./evidence";
 import { fmt, signed } from "./format";
 import type { Level } from "./levels";
@@ -78,7 +78,9 @@ function facts(m: Manifest, atlas: AtlasEntry[]): string[] {
   ].filter(Boolean);
 }
 
-export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase: (id: string) => void; onIca: () => void }) {
+export function Atlas({ m, onCase, onIca, onPick }: {
+  m: Manifest; level?: Level; onCase: (id: string) => void; onIca: () => void; onPick?: () => void;
+}) {
   const atlas = m.atlas ?? [];
   const [sel, setSel] = useState<string>(() => startId(atlas));
   const [query, setQuery] = useState("");
@@ -101,7 +103,7 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
   const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
-  const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); };
+  const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); onPick?.(); };
   const toDetails = () => document.getElementById("atlas-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const callout = <div className="callout-card" key={a.id}>
     <img src={asset(`img/aquifers/${a.id}.jpg`)} alt={`Satellite view of ${a.name} (${a.id === "ZW" ? "Landsat 8/9, 2024" : "MODIS Terra, 2024"})`} />
@@ -149,7 +151,7 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
         </div>
         <div className="atlas-filters" role="group" aria-label="Filter by GRACE verdict">
           {FILTERS.map((f) => <button key={f.id} type="button" aria-pressed={filter === f.id} onClick={() => {
-            setFilter(f.id);
+            setFilter(f.id); onPick?.();
             const keep = atlas.filter((x) => f.id === "all" || tone(x) === f.id);
             if (keep.length && !keep.some((x) => x.id === sel)) setSel(keep[0].id);
           }}>{f.label} <span>{atlas.filter((x) => f.id === "all" || tone(x) === f.id).length}</span></button>)}
@@ -158,10 +160,6 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
 
       </div></div>
       {(() => { const list = facts(m, atlas); return <p className="atlas-blurb" key={fact} aria-live="polite">{list[fact % list.length]}</p>; })()}
-      <div className="atlas-datron">
-        <p>Pick an aquifer on the globe to open its case file.</p>
-        <img src={brandAsset("datron-detective.png")} alt="Datron, the SciTeX guide (AI-generated illustration)" />
-      </div>
       <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
     </div>
     <div className="wrap wide">
