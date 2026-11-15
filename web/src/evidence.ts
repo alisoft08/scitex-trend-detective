@@ -1,46 +1,134 @@
-// AI-assisted: Codex (OpenAI). Presentation of the published scientific records.
-import { DATA_TYPE_TEXT, fmt, signed } from "./format";
-import type { CaseFile, Verdict } from "./types";
+// AI-assisted: Codex (OpenAI). Localize scientific metadata by stable dataset identifiers.
+import { translate, useLocale, type Language, type Translation } from "./i18n";
+import type { CaseFile, DataType, Verdict } from "./types";
 
-export const EVIDENCE_TEXT: Record<Verdict, string> = {
-  confirmed: "Strong evidence",
-  likely: "Suggestive evidence",
-  inconclusive: "Inconclusive",
-  insufficient_data: "Insufficient data",
+export const PLACES: Record<string, Translation> = {
+  Z2: ["Villacurí fields", "Campos de Villacurí"],
+  Z1: ["Ica Valley fields", "Campos del valle de Ica"],
+  Z5: ["Desert reference", "Desierto de referencia"],
+  Z4: ["Andean headwaters", "Cabecera andina"],
+  ZW: ["Ica–Villacurí region", "Región Ica–Villacurí"],
 };
 
-export const EVIDENCE_SUMMARY: Record<Verdict, string> = {
-  confirmed: "The result meets the Oasis Paradox criteria for a trend.",
-  likely: "The tests suggest a trend, with less agreement across the checks.",
-  inconclusive: "The data leave the existence of a trend uncertain.",
-  insufficient_data: "This series has too few valid observations to judge a trend.",
+const verdicts: Record<Verdict, Translation> = {
+  confirmed: ["Strong evidence", "Evidencia sólida"],
+  likely: ["Suggestive evidence", "Indicios de tendencia"],
+  inconclusive: ["Inconclusive", "No concluyente"],
+  insufficient_data: ["Insufficient data", "Datos insuficientes"],
 };
 
-const VARIABLES: Record<string, [string, string]> = {
-  ndvi: ["An index of vegetation greenness from reflected light.", "Greenness can change with vegetation density or condition. This index alone does not attribute the change to irrigation."],
-  et: ["Estimated evapotranspiration from soil and vegetation.", "The product estimates water transferred to the atmosphere. The series cannot resolve the water source or pumping volumes."],
-  lst: ["Daytime land surface temperature measured by MODIS.", "The daytime surface and the air above it are distinct measurements. Changes in local overpass time may affect Terra comparisons."],
-  precip: ["Estimated precipitation from GPM IMERG for the Andean headwaters.", "This result describes the upper basin, where the series was extracted."],
-  t2m: ["Air temperature at two metres from the MERRA-2 atmospheric reanalysis.", "This reanalysis has regional resolution. It is distinct from MODIS daytime surface temperature."],
-  gws: ["Groundwater storage estimated by a land model that assimilates GRACE.", "The result describes modeled storage across the region. Individual wells measure local depths below ground."],
-  tws_grace: ["Regional changes in total water storage inferred from gravity.", "GRACE combines water in several stores over a broad area. It cannot resolve where within that area a local change occurred."],
+export const verdictLabel = (language: Language, verdict: Verdict) => translate(language, ...verdicts[verdict]);
+
+const summaries: Record<Verdict, Translation> = {
+  confirmed: ["The result meets the Oasis Paradox criteria for a trend.", "El resultado cumple los criterios de tendencia de Oasis Paradox."],
+  likely: ["The tests suggest a trend, with less agreement across the checks.", "Las pruebas sugieren una tendencia, con menor concordancia entre las comprobaciones."],
+  inconclusive: ["The data leave the existence of a trend uncertain.", "Los datos no permiten determinar si hay una tendencia."],
+  insufficient_data: ["This series has too few valid observations to judge a trend.", "Esta serie tiene muy pocas observaciones válidas para evaluar una tendencia."],
+};
+
+const types: Record<DataType, Translation> = {
+  observed: ["Observed", "Observación"], modeled: ["Modeled", "Modelo"],
+  estimated: ["Estimated", "Estimación"], classified: ["Classified", "Clasificación"],
+};
+
+export const VARIABLES: Record<string, { name: Translation; short: Translation; resolution: Translation; description: Translation; limit: Translation }> = {
+  ndvi: {
+    name: ["Vegetation greenness (NDVI)", "Verdor de la vegetación (NDVI)"], short: ["Greenness", "Verdor"],
+    resolution: ["250 m, 16-day composites (monthly maximum)", "250 m, compuestos de 16 días (máximo mensual)"],
+    description: ["An index of vegetation greenness from reflected light.", "Índice de verdor de la vegetación calculado a partir de la luz reflejada."],
+    limit: ["Greenness can change with vegetation density or condition. This index alone does not attribute the change to irrigation.", "El verdor puede cambiar con la densidad o el estado de la vegetación. Este índice por sí solo no permite atribuir el cambio al riego."],
+  },
+  et: {
+    name: ["Evapotranspiration from soil and crops", "Evapotranspiración del suelo y los cultivos"], short: ["Evapotranspiration", "Evapotranspiración"],
+    resolution: ["500 m, 8-day (gap-filled)", "500 m, intervalos de 8 días (con relleno de vacíos)"],
+    description: ["Estimated evapotranspiration from soil and vegetation.", "Estimación del agua que pasa a la atmósfera desde el suelo y la vegetación."],
+    limit: ["The series cannot resolve the water source or pumping volumes.", "La serie no permite distinguir la procedencia del agua ni el volumen de bombeo."],
+  },
+  lst: {
+    name: ["Land surface temperature (daytime)", "Temperatura diurna de la superficie terrestre"], short: ["Surface temperature", "Temperatura superficial"],
+    resolution: ["1 km, 8-day (monthly mean)", "1 km, intervalos de 8 días (promedio mensual)"],
+    description: ["Daytime land surface temperature measured by MODIS.", "Temperatura diurna de la superficie terrestre obtenida con MODIS."],
+    limit: ["The daytime surface and the air above it are distinct measurements. Changes in local overpass time may affect Terra comparisons.", "La temperatura de la superficie y la del aire son mediciones distintas. Los cambios en la hora de paso de Terra pueden influir en las comparaciones."],
+  },
+  precip: {
+    name: ["Rainfall", "Precipitación"], short: ["Rainfall", "Precipitación"],
+    resolution: ["0.1° (~11 km), monthly", "0,1° (~11 km), mensual"],
+    description: ["Estimated precipitation from GPM IMERG for the Andean headwaters.", "Precipitación estimada por GPM IMERG para la cabecera andina."],
+    limit: ["This result describes the upper basin, where the series was extracted.", "Este resultado describe la cuenca alta, donde se extrajo la serie."],
+  },
+  t2m: {
+    name: ["Air temperature at 2 m (reanalysis)", "Temperatura del aire a 2 m (reanálisis)"], short: ["Air temperature", "Temperatura del aire"],
+    resolution: ["0.5° × 0.625° (~55 km), hourly (monthly mean)", "0,5° × 0,625° (~55 km), horario (promedio mensual)"],
+    description: ["Air temperature at two metres from the MERRA-2 atmospheric reanalysis.", "Temperatura del aire a dos metros del reanálisis atmosférico MERRA-2."],
+    limit: ["This reanalysis has regional resolution. It is distinct from MODIS daytime surface temperature.", "El reanálisis tiene resolución regional y mide una variable distinta de la temperatura superficial diurna de MODIS."],
+  },
+  gws: {
+    name: ["Groundwater storage (model)", "Almacenamiento de agua subterránea (modelo)"], short: ["Groundwater · GLDAS", "Agua subterránea · GLDAS"],
+    resolution: ["0.25° (~28 km), daily", "0,25° (~28 km), diario"],
+    description: ["Groundwater storage estimated by a land model that assimilates GRACE.", "Almacenamiento de agua subterránea estimado por un modelo terrestre que asimila GRACE."],
+    limit: ["The result describes modeled storage across the region. Individual wells measure local depths below ground.", "El resultado describe el almacenamiento regional modelado. Los pozos individuales miden la profundidad local bajo la superficie."],
+  },
+  tws_grace: {
+    name: ["Total water storage (GRACE satellites)", "Almacenamiento total de agua (satélites GRACE)"], short: ["Total water · GRACE", "Agua total · GRACE"],
+    resolution: ["3° mascons (~330 km), monthly", "Celdas de concentración de masa de 3° (~330 km), mensual"],
+    description: ["Regional changes in total water storage inferred from gravity.", "Cambios regionales en el almacenamiento total de agua inferidos a partir de la gravedad."],
+    limit: ["GRACE combines water in several stores over a broad area. It cannot resolve where within that area a local change occurred.", "GRACE combina el agua de distintas reservas en un área amplia. Su resolución impide localizar cambios dentro de esa área."],
+  },
+};
+
+const masks: Record<string, Translation> = {
+  Z1: ["Cropland mask: annual maximum NDVI above 0.4 in any year from 2020 to 2024.", "Máscara agrícola: NDVI máximo anual superior a 0,4 en algún año de 2020 a 2024."],
+  Z5: ["Low-NDVI reference: annual maximum NDVI below 0.12 in every year from 2004 to 2024.", "Referencia de NDVI bajo: NDVI máximo anual inferior a 0,12 en todos los años de 2004 a 2024."],
+  ZW: ["Entire configured study box.", "Recuadro completo del área de estudio."],
+  Z4: ["Above 2,500 m (SRTM) within the level-7 HydroBASINS Ica basin.", "Por encima de 2.500 m (SRTM) dentro de la cuenca de Ica de nivel 7 de HydroBASINS."],
 };
 
 export const WELL_SOURCE = "https://www.juasvi.com/pdfs/1760390572-informe-rmp-sep2025.pdf";
 export const GRACE_SOURCE = "https://data.nasa.gov/dataset/jpl-grace-and-grace-fo-mascon-ocean-ice-and-hydrology-equivalent-water-height-coastal-reso-30063";
 export const GLDAS_SOURCE = "https://disc.gsfc.nasa.gov/datasets/GLDAS_CLSM025_DA1_D_2.2/summary";
 
-export function describes(cf: CaseFile) {
-  if (cf.kind === "contrast") return [
-    "Field minus desert reference, after standardizing each series by calendar month.",
-    "The masks were selected using vegetation data. The result describes the difference in these selected areas and does not establish its cause.",
-  ];
-  return VARIABLES[cf.variable] ?? [cf.definition, ""];
+export function useEvidence() {
+  const { t, fmt, signed } = useLocale();
+  const zoneName = (id: string, fallback = id) => PLACES[id] ? t(...PLACES[id]) : fallback;
+  const baseVariable = (id: string) => id.replace(/_contrast$/, "");
+  const variableName = (id: string, fallback = id, compact = false) => {
+    const type = baseVariable(id);
+    if (id.endsWith("_contrast")) return type === "ndvi" ? t("Greenness gap", "Brecha de verdor") : t("Surface temperature gap", "Brecha de temperatura superficial");
+    const entry = VARIABLES[type];
+    return entry ? t(...(compact ? entry.short : entry.name)) : fallback;
+  };
+  const caseTitle = (variable: string, zone: string, fallback: string) => variable.endsWith("_contrast")
+    ? t(`${variableName(variable)}: ${zoneName(zone)} minus desert`, `${variableName(variable)}: ${zoneName(zone)} menos el desierto`)
+    : variableName(variable, fallback);
+  const caseUnits = (units: string) => units
+    .replace("NDVI units", "NDVI").replace("standard deviations", t("SD", "DE"))
+    .replace("degC", "°C").replace("mm/month", t("mm/month", "mm/mes"));
+  const perDecade = (units: string) => `${caseUnits(units)}/${t("decade", "década")}`;
+  const casePeriod = (period: string) => period.replace("/", t(" to ", " a "));
+  const interval = (limits: [number | null, number | null]) =>
+    limits.every((limit) => limit !== null) ? t(`${fmt(limits[0])} to ${fmt(limits[1])}`, `${fmt(limits[0])} a ${fmt(limits[1])}`) : t("Unavailable", "No disponible");
+  const estimate = (cf: CaseFile) => `${signed(cf.trend.sen_per_decade)} ${perDecade(cf.units)}`;
+  const dataKind = (cf: CaseFile) => cf.kind === "contrast" ? t("Derived from observations", "Derivado de observaciones")
+    : cf.variable === "t2m" ? t("Reanalysis", "Reanálisis") : t(...types[cf.data_type]);
+  const describes = (cf: CaseFile) => {
+    if (cf.kind === "contrast") return [
+      t("Field minus desert reference, after standardizing each series by calendar month.", "Diferencia entre el campo y el desierto de referencia tras estandarizar cada serie por mes calendario."),
+      t("Vegetation data define the masks. The trend describes how the gap changed in the selected areas.", "Los datos de vegetación definen las máscaras. La tendencia describe cómo cambió la brecha en las áreas seleccionadas."),
+    ];
+    const entry = VARIABLES[cf.variable];
+    return entry ? [t(...entry.description), t(...entry.limit)] : [cf.definition, ""];
+  };
+  const resolution = (cf: CaseFile) => {
+    const entry = VARIABLES[baseVariable(cf.variable)];
+    return entry ? t(...entry.resolution) : cf.source.resolution;
+  };
+  const mask = (zone: string) => t(...(masks[zone === "Z2" ? "Z1" : zone] ?? masks.ZW));
+  const covariate = (name: string) => {
+    const coastal = /^Coastal El Niño index \(lag (\d+) months\)$/.exec(name);
+    if (coastal) return t(name, `Índice de El Niño costero (rezago de ${coastal[1]} meses)`);
+    if (name === "Upper-basin rain, previous 12 months") return t(name, "Precipitación en la cuenca alta durante los 12 meses previos");
+    return name;
+  };
+  return { zoneName, variableName, caseTitle, caseUnits, perDecade, casePeriod, interval, estimate, dataKind, describes, resolution, mask, covariate,
+    verdictText: (verdict: Verdict) => t(...verdicts[verdict]), verdictSummary: (verdict: Verdict) => t(...summaries[verdict]) };
 }
-
-export const casePeriod = (period: string) => period.replace("/", " to ");
-export const caseUnits = (units: string) => units.replace("NDVI units", "NDVI").replace("standard deviations", "SD").replace("degC", "°C");
-export const interval = (limits: [number | null, number | null]) =>
-  limits.every((limit) => limit !== null) ? `${fmt(limits[0])} to ${fmt(limits[1])}` : "Unavailable";
-export const estimate = (cf: CaseFile) => `${signed(cf.trend.sen_per_decade)} ${caseUnits(cf.units)}/decade`;
-export const dataKind = (cf: CaseFile) => cf.kind === "contrast" ? "Derived from observations" : cf.variable === "t2m" ? "Reanalysis" : DATA_TYPE_TEXT[cf.data_type];
