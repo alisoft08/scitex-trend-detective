@@ -1,45 +1,49 @@
 // AI-assisted: Codex (OpenAI). Pick a supported zone and NASA variable.
 import { useState } from "react";
 import { CaseFileView } from "./CaseFile";
+import { useEvidence } from "./evidence";
+import { useLocale, type Translation } from "./i18n";
 import type { Level } from "./levels";
 import type { CaseRef, Manifest } from "./types";
 
-export const PLACES: Record<string, string> = {
-  Z2: "Villacurí fields", Z1: "Ica Valley fields", Z5: "Desert reference", Z4: "Andean headwaters", ZW: "Ica–Villacurí region",
-};
-
 export const WITNESSES = [
-  { id: "ndvi", label: "Vegetation greenness", symbol: "↗", unavailable: "The greenness series covers fields and the desert reference." },
-  { id: "et", label: "Evapotranspiration", symbol: "◌", unavailable: "The ET series covers the two cropland masks." },
-  { id: "lst", label: "Surface temperature", symbol: "☼", unavailable: "Surface temperature was extracted for fields and the desert reference." },
-  { id: "precip", label: "Rainfall", symbol: "⋮", unavailable: "This pipeline uses the IMERG series for the Andean headwaters." },
-  { id: "t2m", label: "Air temperature", symbol: "≈", unavailable: "MERRA-2 describes the headwaters or the wider region at this resolution." },
-  { id: "gws", label: "Groundwater · GLDAS", symbol: "≋", unavailable: "GLDAS groundwater storage is available for the wider region." },
-  { id: "tws_grace", label: "Total water · GRACE", symbol: "◎", unavailable: "The GRACE series represents coarse regional storage." },
+  { id: "ndvi", symbol: "↗", unavailable: ["The greenness series covers fields and the desert reference.", "La serie de verdor cubre los campos y el desierto de referencia."] },
+  { id: "et", symbol: "◌", unavailable: ["The ET series covers the two cropland masks.", "La serie de evapotranspiración cubre las dos máscaras agrícolas."] },
+  { id: "lst", symbol: "☼", unavailable: ["Surface temperature was extracted for fields and the desert reference.", "La temperatura superficial se extrajo para los campos y el desierto de referencia."] },
+  { id: "precip", symbol: "⋮", unavailable: ["The IMERG record used here covers the Andean headwaters.", "La serie IMERG utilizada aquí cubre la cabecera andina."] },
+  { id: "t2m", symbol: "≈", unavailable: ["MERRA-2 describes the headwaters or the wider region at this resolution.", "A esta resolución, MERRA-2 describe la cabecera de cuenca o la región completa."] },
+  { id: "gws", symbol: "≋", unavailable: ["GLDAS groundwater storage is available for the wider region.", "El almacenamiento de agua subterránea de GLDAS está disponible para la región completa."] },
+  { id: "tws_grace", symbol: "◎", unavailable: ["The GRACE series represents coarse regional storage.", "La serie GRACE representa el almacenamiento de agua a escala regional."] },
 ] as const;
 
-const LEADS: { title: string; text: string; caseId: string; tool?: "map" | "lab" }[] = [
-  { title: "The greening desert", text: "Follow the change in Villacurí.", caseId: "Z2_ndvi" },
-  { title: "The invisible drop", text: "Compare a well with the view from orbit.", caseId: "ZW_tws_grace", tool: "map" },
-  { title: "The cooling oasis", text: "Compare the fields with the desert reference.", caseId: "Z2_vs_Z5_lst" },
-  { title: "When tests disagree", text: "Try a simulation where the true change is known.", caseId: "ZW_gws", tool: "lab" },
+const LEADS: { title: Translation; text: Translation; caseId: string; tool?: "map" | "lab" }[] = [
+  { title: ["The greening desert", "Un desierto más verde"], text: ["Follow the change in Villacurí.", "Sigue el cambio en Villacurí."], caseId: "Z2_ndvi" },
+  { title: ["The invisible drop", "El descenso invisible"], text: ["Compare a well with the view from orbit.", "Compara un pozo con la vista desde órbita."], caseId: "ZW_tws_grace", tool: "map" },
+  { title: ["The cooling oasis", "Un oasis que se enfría"], text: ["Compare the fields with the desert reference.", "Compara los campos con el desierto de referencia."], caseId: "Z2_vs_Z5_lst" },
+  { title: ["When tests disagree", "Cuando las pruebas discrepan"], text: ["Try a simulation where the true change is known.", "Prueba una simulación en la que conocemos el cambio real."], caseId: "ZW_gws", tool: "lab" },
 ];
 
 function Prediction({ refCase }: { refCase: CaseRef }) {
-  const [choice, setChoice] = useState("");
-  const [revealed, setRevealed] = useState(false);
-  const choices = ["Going up", "Going down", "Evidence may be unclear"];
+  const { t } = useLocale();
+  const [choice, setChoice] = useState<number | null>(null);
+  const choices = [t("Going up", "Sube"), t("Going down", "Baja"), t("Evidence may be unclear", "La evidencia puede ser insuficiente")];
+  const rising = (refCase.sen_per_decade ?? 0) > 0;
   const conclusion = refCase.verdict === "confirmed" || refCase.verdict === "likely"
-    ? `The full-period estimate points ${(refCase.sen_per_decade ?? 0) > 0 ? "up" : "down"}. The evidence is ${refCase.verdict === "confirmed" ? "strong under the Oasis Paradox rule" : "suggestive"}.`
-    : "The available evidence leaves the direction uncertain. Look at the estimate and the conclusions from the two approaches.";
+    ? [
+        rising ? t("The full-period estimate points up.", "La estimación del periodo completo apunta al alza.")
+          : t("The full-period estimate points down.", "La estimación del periodo completo apunta a la baja."),
+        refCase.verdict === "confirmed" ? t("It meets the Oasis Paradox criteria.", "Cumple los criterios de Oasis Paradox.")
+          : t("The evidence suggests a trend.", "La evidencia sugiere una tendencia."),
+      ].join(" ")
+    : t("The data leave the direction uncertain. Compare the estimate with the conclusions from each test.", "Los datos dejan incierta la dirección del cambio. Compara la estimación con las conclusiones de cada prueba.");
   return (
     <details className="research-details prediction-note">
-      <summary>Make a prediction <span>optional</span></summary>
-      <p>What do you expect the series to show?</p>
+      <summary>{t("Make a prediction", "Haz una predicción")} <span>{t("optional", "opcional")}</span></summary>
+      <p>{t("What do you expect the series to show?", "¿Qué esperas que muestre la serie?")}</p>
       <div className="toggle">
-        {choices.map((label) => <button key={label} type="button" aria-pressed={choice === label} onClick={() => { setChoice(label); setRevealed(true); }}>{label}</button>)}
+        {choices.map((label, index) => <button key={index} type="button" aria-pressed={choice === index} onClick={() => setChoice(index)}>{label}</button>)}
       </div>
-      {revealed && <p role="status">{conclusion}</p>}
+      {choice !== null && <p role="status">{conclusion}</p>}
     </details>
   );
 }
@@ -48,6 +52,8 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
   m: Manifest; level: Level; selected: CaseRef; onCase: (id: string) => void; caseLink: (id: string) => string;
   startWithLead: boolean; onLead: (id: string, tool?: "map" | "lab") => void;
 }) {
+  const { t } = useLocale();
+  const { zoneName, variableName } = useEvidence();
   const [unavailable, setUnavailable] = useState("");
   const variable = selected.variable.replace(/_contrast$/, "");
   const inZone = m.cases.filter((c) => c.zone === selected.zone && c.kind === "case");
@@ -62,24 +68,25 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
     setUnavailable(available ? "" : id);
     if (available && variable !== id) onCase(available.id);
   };
+  const witnessLabel = (id: string) => variableName(id, id, true);
 
   return (
     <section className="wrap wide research-page">
       <div className="research-heading">
-        <p className="eyebrow">Ica, Peru · NASA Earth observations</p>
-        <h1>Detective desk</h1>
+        <p className="eyebrow">{t("Ica, Peru · NASA Earth observations", "Ica, Perú · Observaciones de la Tierra de NASA")}</p>
+        <h1>{t("Detective desk", "Mesa de investigación")}</h1>
       </div>
 
       <details className="research-details lead-list" open={startWithLead || undefined}>
-        <summary>Follow a guided case</summary>
+        <summary>{t("Follow a guided case", "Explora un caso guiado")}</summary>
         <div className="lead-grid">
           {LEADS.filter((lead) => m.cases.some((c) => c.id === lead.caseId)).map((lead) => (
             <button key={lead.caseId} className="lead-card" onClick={() => {
               setUnavailable("");
               onLead(lead.caseId, lead.tool);
             }}>
-              <strong>{lead.title} <span aria-hidden="true">↗</span></strong>
-              <span>{lead.text}</span>
+              <strong>{t(...lead.title)} <span aria-hidden="true">↗</span></strong>
+              <span>{t(...lead.text)}</span>
             </button>
           ))}
         </div>
@@ -87,7 +94,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
 
       <div className="research-desk">
         <aside className="desk-controls panel">
-          <label className="research-field">Study area
+          <label className="research-field">{t("Study area", "Área de estudio")}
             <select value={selected.zone} onChange={(e) => {
               const zone = e.target.value;
               const choices = m.cases.filter((c) => c.zone === zone && c.kind === "case");
@@ -95,36 +102,36 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
               setUnavailable(next.variable !== variable ? variable : "");
               onCase(next.id);
             }}>
-              {m.zones.filter((z) => m.cases.some((c) => c.zone === z.id)).map((z) => <option key={z.id} value={z.id}>{PLACES[z.id] ?? z.name}</option>)}
+              {m.zones.filter((z) => m.cases.some((c) => c.zone === z.id)).map((z) => <option key={z.id} value={z.id}>{zoneName(z.id, z.name)}</option>)}
             </select>
           </label>
-          <label className="research-field witness-select">NASA variable
+          <label className="research-field witness-select">{t("NASA variable", "Variable de NASA")}
             <select value={unavailable || variable} onChange={(e) => chooseWitness(e.target.value)}>
-              {WITNESSES.map((w) => <option key={w.id} value={w.id}>{w.label}{!inZone.some((c) => c.variable === w.id) ? " (other area)" : ""}</option>)}
+              {WITNESSES.map((w) => <option key={w.id} value={w.id}>{witnessLabel(w.id)}{!inZone.some((c) => c.variable === w.id) && t(" (other area)", " (otra área)")}</option>)}
             </select>
           </label>
           <fieldset className="research-witnesses">
-            <legend>NASA variable</legend>
+            <legend>{t("NASA variable", "Variable de NASA")}</legend>
             {WITNESSES.map((w) => {
               const available = inZone.find((c) => c.variable === w.id);
               return <button key={w.id} className="witness-option" data-unavailable={!available} aria-pressed={variable === w.id}
                 onClick={() => chooseWitness(w.id)}>
-                <span className="witness-symbol" aria-hidden="true">{w.symbol}</span><span>{w.label}</span>
-                {!available && <span className="witness-status">Other area</span>}
+                <span className="witness-symbol" aria-hidden="true">{w.symbol}</span><span>{witnessLabel(w.id)}</span>
+                {!available && <span className="witness-status">{t("Other area", "Otra área")}</span>}
               </button>;
             })}
           </fieldset>
           {missing && <div role="status" className="research-note">
-            <strong>{missing.label}</strong><p>{missing.unavailable}</p>
+            <strong>{witnessLabel(missing.id)}</strong><p>{t(missing.unavailable[0], missing.unavailable[1])}</p>
             {alternative && <button className="text-button" onClick={() => { setUnavailable(""); onCase(alternative.id); }}>
-              Open {PLACES[alternative.zone] ?? alternative.zone_name} →
+              {t("Open", "Abrir")} {zoneName(alternative.zone, alternative.zone_name)} →
             </button>}
           </div>}
           {base && contrast && (
             <label className="compare-toggle">
               <input type="checkbox" id="toggle-desert" checked={selected.kind === "contrast"}
                 onChange={(e) => onCase(e.target.checked ? contrast.id : base.id)} />
-              Compare with desert reference
+              {t("Compare with desert reference", "Comparar con el desierto de referencia")}
             </label>
           )}
         </aside>
