@@ -99,7 +99,7 @@ export default function App() {
   const a = route.params.get("left"), b = route.params.get("right");
   const pair: readonly [string, string] = a && b && a !== b && manifest?.cases.some((c) => c.id === a) && manifest.cases.some((c) => c.id === b)
     ? [a, b] : lastPair;
-  const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer") && v.id !== "map");
+  const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer") && v.id !== "map" && v.id !== "ica");   // Ica is one aquifer: reached from its own page
   const isAquifer = view === "aquifer";
   const isHome = !VIEWS.some((v) => v.id === view) && !isAquifer;
   // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
