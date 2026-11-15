@@ -1034,3 +1034,16 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .aq-period select { font: inherit; font-size: .85rem; padding: .3rem .5rem; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: #27295a; }
 .aq-period p { flex: 1 1 100%; margin: 0; font-size: .88rem; line-height: 1.55; color: #27295a; font-variant-numeric: tabular-nums; }
 @media (max-width: 700px) { .atlas-purpose { font-size: .86rem; } .atlas-steps { font-size: .76rem; } .detect-label { font-size: 13px; } }
+
+/* AI-assisted: Claude (Anthropic). The problem in three real examples: memory, scale, a single witness. */
+.three-ways { margin: 1.4rem 0 2.6rem; }
+.three-ways h3 { margin: 0 0 .5rem; font-size: clamp(1.25rem, 1rem + .8vw, 1.6rem); font-weight: 400; letter-spacing: -.01em; color: #27295a; }
+.three-ways-lede { margin: 0 0 1.1rem; max-width: 72ch; font-size: 1rem; line-height: 1.6; color: #27295a; }
+.three-ways-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.three-way { display: flex; flex-direction: column; gap: .5rem; min-width: 0; padding: 1.1rem 1.15rem 1rem; border-radius: 12px; background: #f5f7fb; border: 1px solid #e6e9f0; }
+.three-way-no { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #3c78bb; }
+.three-way strong { font-size: 1.05rem; line-height: 1.35; color: #27295a; text-wrap: balance; }
+.three-way p { margin: 0; flex: 1; font-size: .9rem; line-height: 1.6; color: #3f4566; }
+.three-way .text-button { align-self: flex-start; margin-top: .35rem; }
+@media (max-width: 900px) { .three-ways-grid { grid-template-columns: minmax(0, 1fr); } }
+.audiences-lede { margin: .2rem 0 1.1rem; max-width: 72ch; line-height: 1.6; color: #3f4566; }

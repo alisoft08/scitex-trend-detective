@@ -124,7 +124,7 @@ export default function App() {
       {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${LEVEL} ${showNav ? "" : "no-nav"}`}>
-          {isHome && <Atlas m={manifest} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
+          {isHome && <Atlas m={manifest} onCase={selectCase} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
           {isAquifer && <AquiferPage m={manifest} id={route.params.get("id") ?? ""} onCase={selectCase} onIca={() => navigate("#ica")} onBack={() => navigate("#atlas")} onGo={navigate} />}
           {view === "ica" && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}

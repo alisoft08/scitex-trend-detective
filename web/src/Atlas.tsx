@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
 import { DetectabilityChart } from "./DetectabilityChart";
+import { ThreeWays } from "./ThreeWays";
 import { asset, useJSON } from "./data";
 import { EVIDENCE_TEXT } from "./evidence";
 import { fmt, signed } from "./format";
@@ -104,7 +105,7 @@ export function Spark({ path, tone: t }: { path: string | null; tone: "down" | "
   return <svg className={`spark ${t}`} viewBox="0 0 120 30" role="img" aria-label={`Annual anomalies ${x0}–${x1}`}><path d={d} /></svg>;
 }
 
-export function Atlas({ m, onIca, onPick, onOpen }: {
+export function Atlas({ m, onCase, onIca, onPick, onOpen }: {
   m: Manifest; level?: Level; onCase?: (id: string) => void; onIca: () => void; onPick?: () => void;
   onOpen: (id: string) => void;   // open the aquifer's own page
 }) {
@@ -131,6 +132,9 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
   const big = atlas.filter((x) => x.grace_footprints >= 2);
   const bigLoss = big.filter((x) => proven(x.tws) && (x.tws.per_decade ?? 0) < 0);
   const bigRest = big.filter((x) => !bigLoss.includes(x));
+  // GRACE trend (mm/yr) x box area (km2) -> km3/yr; compared with Rodell et al. (2009), Nature 460, 999.
+  const zin = atlas.find((x) => x.id === "ZIN");
+  const rodell = zin?.tws.per_decade != null ? Math.abs(zin.tws.per_decade / 10) * zin.area_km2 / 1e6 : null;
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
   const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
   const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); onPick?.(); onOpen(id); };
@@ -158,10 +162,11 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
           label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; or search above." />
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
-        <h1 id="atlas-title">Where are aquifers draining?</h1>
-        <p className="atlas-purpose">A trend detective for the world's irrigated aquifers, built on NASA satellite data and honest statistics.</p>
+        <h1 id="atlas-title">Is that trend real?</h1>
+        <p className="atlas-purpose">Satellite trends can fool you in three ways: memory, scale and a single witness. Oasis Paradox checks
+          all three, on NASA data for {atlas.length} irrigated aquifers, before it calls a trend real.</p>
         <ol className="atlas-steps">
-          <li><b>1</b>Pick an aquifer</li><li><b>2</b>See its NASA time series</li><li><b>3</b>Is the trend real?</li>
+          <li><b>1</b>Pick an aquifer</li><li><b>2</b>See its NASA time series</li><li><b>3</b>Get an honest verdict</li>
         </ol>
       </header>
 
@@ -194,16 +199,18 @@ export function Atlas({ m, onIca, onPick, onOpen }: {
     </div>
     <div className="aq-overview">
       <div className="wrap wide">
+        <ThreeWays m={m} onCase={onCase ?? (() => undefined)} onOpen={(id) => pick(id)} />
         <header className="aq-overview-head">
           <p className="aq-kicker">The atlas</p>
           <h2>{atlas.length} irrigated aquifers, one engine</h2>
           <p>Each aquifer is read with the same NASA data and the same pre-registered rule, 2004–2024. The aquifers were chosen
-            from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018), so they are not a random sample of the world.</p>
+            from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018), so they are not a random sample of the world.
+            {rodell && <> Sanity check: for Northwest India the engine's GRACE trend amounts to {fmt(rodell, 3)} km³ of water lost per
+            year, against 17.7 km³ per year in Rodell et al. (2009) for 2002–2008, a different period and outline.</>}</p>
         </header>
         <section className="detect" aria-labelledby="detect-title">
           <h3 id="detect-title">Can a satellite see your aquifer?</h3>
           <p className="detect-finding">Of the {big.length} aquifers that span two or more GRACE footprints, {bigLoss.length} show a confirmed or likely loss{bigRest.length > 0 && <>; {bigRest.map((a) => short(a.name)).join(" and ")} {bigRest.length > 1 ? "are" : "is"} inconclusive</>}.
-            Ica covers 3% of one footprint: GRACE sees a net rise there while {Math.round(m.wells.share_falling * 100)}% of its monitored wells fall.
             Below one footprint, only wells can watch an aquifer.</p>
           <DetectabilityChart atlas={atlas} onOpen={(id) => pick(id)} />
         </section>
