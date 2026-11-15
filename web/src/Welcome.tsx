@@ -85,8 +85,7 @@ export function Welcome({ open, level, lang, onClose, onPick }: {
                 <button key={l.id} id={`wl-level-${l.id}`} ref={i === 0 ? first : undefined}
                   className={`wl-level ${level === l.id ? "current" : ""}`} onClick={() => { onPick(l.id); onClose(); }}>
                   <span className="wl-stage">
-                    <img src={brandAsset(DATRON[l.id].img)} alt={DATRON[l.id].alt} />
-                    <span className="wl-ai">AI-generated</span>
+                    <img src={brandAsset(DATRON[l.id].img)} alt={`${DATRON[l.id].alt} (AI-generated illustration)`} />
                   </span>
                   <span className="wl-name">{lv[l.id].name}</span>
                   <span className="wl-who">{lv[l.id].who}</span>
