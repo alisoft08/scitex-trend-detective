@@ -72,9 +72,10 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
     </div>
   </div>;
 
+  void callout; // pop-out card kept for later: pass callout={callout} to <Globe> to show it again
   return <section className="atlas" aria-labelledby="atlas-title" id="atlas">
     <div className="atlas-stage">
-      <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} callout={callout}
+      <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
           label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">

@@ -17,16 +17,18 @@ function project(lon: number, lat: number, lon0: number, lat0: number) {
   return { x: Math.cos(p) * Math.sin(l - l0), y: Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l - l0), visible: cosc > 0.05 };
 }
 
-export function Globe({ markers, selected, onSelect, size = 520, label, callout }: {
+export function Globe({ markers, selected, onSelect, size = 520, label, callout, autoRotate = false }: {
   markers: GlobeMarker[]; selected: string | null; onSelect: (id: string) => void; size?: number; label: string;
   callout?: ReactNode;   // card that pops out of the globe, tied to the selected marker by a leader line
+  autoRotate?: boolean;  // spin slowly on its own; pauses while dragged or after a pick
 }) {
   const stage = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const leader = useRef<SVGLineElement>(null);
   const dot = useRef<SVGCircleElement>(null);
-  const firstSelect = useRef(true);
+  const lastSelected = useRef(selected);
+  const idleUntil = useRef(0);
   const canvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
   const view = useRef({ lon: 0, lat: 0 });
@@ -57,16 +59,19 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
       setReady(true);
     };
     img.src = asset("img/world_modis.jpg");
-    if (focus) {
+    if (autoRotate) {
+      view.current = { lon: focus ? focus.lonlat[0] : 0, lat: 22 };   // tilted north so the Arctic and the curvature show
+    } else if (focus) {
       view.current = { lon: focus.lonlat[0] + (reduced ? 0 : 140), lat: reduced ? focus.lonlat[1] : 10 };
       if (!reduced) anim.current = { from: [view.current.lon, view.current.lat], to: [focus.lonlat[0], Math.max(-55, focus.lonlat[1])], t0: performance.now() + 400, dur: 3600 };
     }
   }, []);
 
   useEffect(() => {
-    if (firstSelect.current) { firstSelect.current = false; return; }   // the intro flight already heads there
+    if (lastSelected.current === selected) return;   // mount (also React's double mount in dev): no flight
+    lastSelected.current = selected;
     const m = markers.find((x) => x.id === selected);
-    if (m) flyTo(m.lonlat[0], m.lonlat[1]);
+    if (m) { flyTo(m.lonlat[0], m.lonlat[1]); idleUntil.current = performance.now() + 8000; }
   }, [selected]);
 
   // Render loop: only redraws while the view changes.
@@ -80,7 +85,15 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
     const out = g.createImageData(N, N);
     const r = N / 2 - 2, cx = N / 2, cy = N / 2;
     let raf = 0, last = { lon: NaN, lat: NaN }, lastStep = 1;
+    let lastT = performance.now(), lastSpin = 0;
     const draw = () => {
+      const now = performance.now(), dtS = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+      // Slow spin, west to east as seen from space (about 6 degrees a second), redrawn ~20 times a second.
+      const spinning = autoRotate && !reduced && !anim.current && !drag.current && now > idleUntil.current;
+      if (spinning && now - lastSpin > 50) {
+        view.current = { lon: view.current.lon - 6 * Math.max(dtS, Math.min(0.2, (now - lastSpin) / 1000)), lat: view.current.lat };
+        lastSpin = now;
+      } else if (!spinning) lastSpin = now;
       const a = anim.current;
       if (a) {
         const k = Math.min(1, Math.max(0, (performance.now() - a.t0) / a.dur));
@@ -179,7 +192,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
   return (
     <div className="globe-stage" ref={stage}>
     <div className="globe" ref={box} style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; }} onKeyDown={onKey}>
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; idleUntil.current = performance.now() + 4000; }} onKeyDown={onKey}>
       <div className="globe-halo" aria-hidden="true" />
       <canvas ref={canvas} className="globe-canvas" aria-hidden="true" />
       {!ready && <p className="globe-loading">Loading MODIS mosaic…</p>}
