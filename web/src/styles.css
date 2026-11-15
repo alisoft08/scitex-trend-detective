@@ -905,3 +905,31 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .aq-tool-row select { font: inherit; font-size: .88rem; padding: .4rem .6rem; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: #27295a; }
 @media (max-width: 960px) { .aq-tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.6rem; } .aq-tools-grid > div:nth-child(3) { padding-left: 0; border-left: 0; } }
 @media (max-width: 560px) { .aq-tools-grid { grid-template-columns: minmax(0, 1fr); } .aq-tools-grid > div { padding-left: 0; border-left: 0; } }
+/* AI-assisted: Claude (Anthropic). Ica's tools for every aquifer: impact, evidence map, gaps, guided cases. */
+.aq-impact { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 2.2rem; padding-block: 1.4rem; border-block: 1px solid var(--hair); }
+.aq-impact > div { padding: 0 1.4rem; border-left: 1px solid var(--hair); display: grid; gap: .35rem; align-content: start; }
+.aq-impact > div:first-child { padding-left: 0; border-left: 0; }
+.aq-impact strong { font-size: clamp(1.6rem, 1.1rem + 1.4vw, 2.3rem); font-weight: 300; letter-spacing: -.02em; color: #27295a; }
+.aq-impact span { font-size: .86rem; line-height: 1.5; color: #4d5170; }
+.aq-map, .aq-gaps, .aq-leads { margin-top: clamp(2.2rem, 4vw, 3.5rem); }
+.aq-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .6rem; }
+.aq-map h2, .aq-gaps h2, .aq-leads h2 { margin: 0 0 .9rem; font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem); font-weight: 300; letter-spacing: -.02em; color: #27295a; }
+.aq-switch { font-size: .85rem; color: #4d5170; display: inline-flex; gap: .4rem; align-items: center; cursor: pointer; }
+.aq-map-figure { position: relative; margin: 0; }
+.aq-map-figure img { display: block; width: 100%; height: min(70vh, 720px); object-fit: cover; border-radius: 4px; }
+.aq-map-figure .aq-map-layer { position: absolute; inset: 0; mix-blend-mode: normal; opacity: .9; }
+.aq-map-figure figcaption { margin-top: .6rem; font-size: .76rem; line-height: 1.5; color: #71706f; }
+.aq-map-legend { display: inline-flex; align-items: center; gap: .25rem; margin-right: .8rem; font-weight: 600; color: #4d5170; }
+.aq-map-legend i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
+.aq-gaps-lede { margin: -.3rem 0 1rem; max-width: 72ch; font-size: .95rem; line-height: 1.6; color: #4d5170; }
+.aq-gaps .aq-witnesses { margin-top: 0; }
+.aq-leads-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--hair); }
+.aq-leads-grid button { display: grid; gap: .35rem; align-content: start; text-align: left; padding: 1rem 1.2rem 1rem 0; border: 0; border-bottom: 1px solid var(--hair); background: none; font: inherit; cursor: pointer; }
+.aq-leads-grid button + button { padding-left: 1.2rem; border-left: 1px solid var(--hair); }
+.aq-leads-grid button:hover strong { text-decoration: underline; text-underline-offset: 4px; }
+.aq-leads-grid strong { font-size: 1rem; font-weight: 600; color: #304b9a; }
+.aq-leads-grid span { font-size: .86rem; line-height: 1.5; color: #4d5170; }
+@media (max-width: 860px) {
+  .aq-impact { grid-template-columns: minmax(0, 1fr); row-gap: 1.2rem; } .aq-impact > div { padding-left: 0; border-left: 0; }
+  .aq-leads-grid { grid-template-columns: minmax(0, 1fr); } .aq-leads-grid button + button { padding-left: 0; border-left: 0; }
+}

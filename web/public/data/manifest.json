@@ -1,7 +1,7 @@
 {
   "project": "Oasis Paradox",
   "tagline": "What satellites can and cannot see",
-  "generated_at": "2026-11-15T15:54Z",
+  "generated_at": "2026-11-15T19:03Z",
   "period": "2004-01/2024-12",
   "zones": [
     {
@@ -87,6 +87,55 @@
       "role": "aquifer",
       "description": "One of the world's largest aquifers, under Brazil, Paraguay, Argentina and Uruguay, in a humid region.",
       "mask": "none (box 58.5\u00b0W-47.0\u00b0W, 31.0\u00b0S-16.0\u00b0S; approximate, not the official aquifer boundary)"
+    },
+    {
+      "id": "ZCR",
+      "name": "Central Valley: natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+    },
+    {
+      "id": "ZHPR",
+      "name": "High Plains (Ogallala): natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+    },
+    {
+      "id": "ZINR",
+      "name": "Northwest India (Punjab: natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+    },
+    {
+      "id": "ZNCR",
+      "name": "North China Plain: natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+    },
+    {
+      "id": "ZARR",
+      "name": "Arabian aquifer system (Saq): natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+    },
+    {
+      "id": "ZTER",
+      "name": "Tigris-Euphrates basin: natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+    },
+    {
+      "id": "ZGUR",
+      "name": "Guarani aquifer system: natural land (reference)",
+      "role": "reference",
+      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
     }
   ],
   "cases": [
@@ -452,6 +501,25 @@
       "units": "\u00b0C"
     },
     {
+      "id": "ZC_lst",
+      "path": "cases/ZC_lst.json",
+      "kind": "case",
+      "zone": "ZC",
+      "zone_name": "Central Valley, California",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.30854,
+      "ci95": [
+        -0.414962,
+        1.130383
+      ],
+      "units": "\u00b0C"
+    },
+    {
       "id": "ZHP_tws_grace",
       "path": "cases/ZHP_tws_grace.json",
       "kind": "case",
@@ -562,6 +630,25 @@
       "ci95": [
         -0.015083,
         0.900468
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZHP_lst",
+      "path": "cases/ZHP_lst.json",
+      "kind": "case",
+      "zone": "ZHP",
+      "zone_name": "High Plains (Ogallala), United States",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.257261,
+      "ci95": [
+        -0.515114,
+        1.005913
       ],
       "units": "\u00b0C"
     },
@@ -680,6 +767,25 @@
       "units": "\u00b0C"
     },
     {
+      "id": "ZIN_lst",
+      "path": "cases/ZIN_lst.json",
+      "kind": "case",
+      "zone": "ZIN",
+      "zone_name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -0.913597,
+      "ci95": [
+        -1.325758,
+        -0.515082
+      ],
+      "units": "\u00b0C"
+    },
+    {
       "id": "ZNC_tws_grace",
       "path": "cases/ZNC_tws_grace.json",
       "kind": "case",
@@ -790,6 +896,25 @@
       "ci95": [
         0.134085,
         0.938928
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZNC_lst",
+      "path": "cases/ZNC_lst.json",
+      "kind": "case",
+      "zone": "ZNC",
+      "zone_name": "North China Plain",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.68055,
+      "ci95": [
+        0.149344,
+        1.200959
       ],
       "units": "\u00b0C"
     },
@@ -908,6 +1033,25 @@
       "units": "\u00b0C"
     },
     {
+      "id": "ZAR_lst",
+      "path": "cases/ZAR_lst.json",
+      "kind": "case",
+      "zone": "ZAR",
+      "zone_name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.260618,
+      "ci95": [
+        -0.463658,
+        0.955002
+      ],
+      "units": "\u00b0C"
+    },
+    {
       "id": "ZTE_tws_grace",
       "path": "cases/ZTE_tws_grace.json",
       "kind": "case",
@@ -1018,6 +1162,25 @@
       "ci95": [
         0.38577,
         0.783272
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZTE_lst",
+      "path": "cases/ZTE_lst.json",
+      "kind": "case",
+      "zone": "ZTE",
+      "zone_name": "Tigris-Euphrates basin",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.109449,
+      "ci95": [
+        -0.277907,
+        0.471873
       ],
       "units": "\u00b0C"
     },
@@ -1136,9 +1299,295 @@
       "units": "\u00b0C"
     },
     {
+      "id": "ZGU_lst",
+      "path": "cases/ZGU_lst.json",
+      "kind": "case",
+      "zone": "ZGU",
+      "zone_name": "Guarani aquifer system, South America",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.039664,
+      "ci95": [
+        -0.343956,
+        0.453305
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZCR_ndvi",
+      "path": "cases/ZCR_ndvi.json",
+      "kind": "case",
+      "zone": "ZCR",
+      "zone_name": "Central Valley: natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.003999,
+      "ci95": [
+        -0.018605,
+        0.01044
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZCR_lst",
+      "path": "cases/ZCR_lst.json",
+      "kind": "case",
+      "zone": "ZCR",
+      "zone_name": "Central Valley: natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.252515,
+      "ci95": [
+        -0.788264,
+        1.327602
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZHPR_ndvi",
+      "path": "cases/ZHPR_ndvi.json",
+      "kind": "case",
+      "zone": "ZHPR",
+      "zone_name": "High Plains (Ogallala): natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.001578,
+      "ci95": [
+        -0.017162,
+        0.011899
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZHPR_lst",
+      "path": "cases/ZHPR_lst.json",
+      "kind": "case",
+      "zone": "ZHPR",
+      "zone_name": "High Plains (Ogallala): natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.0694,
+      "ci95": [
+        -0.725949,
+        0.758549
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZINR_ndvi",
+      "path": "cases/ZINR_ndvi.json",
+      "kind": "case",
+      "zone": "ZINR",
+      "zone_name": "Northwest India (Punjab: natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.029553,
+      "ci95": [
+        0.020737,
+        0.036824
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZINR_lst",
+      "path": "cases/ZINR_lst.json",
+      "kind": "case",
+      "zone": "ZINR",
+      "zone_name": "Northwest India (Punjab: natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": -0.612582,
+      "ci95": [
+        -1.060094,
+        -0.168463
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZNCR_ndvi",
+      "path": "cases/ZNCR_ndvi.json",
+      "kind": "case",
+      "zone": "ZNCR",
+      "zone_name": "North China Plain: natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.034623,
+      "ci95": [
+        0.03146,
+        0.037862
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZNCR_lst",
+      "path": "cases/ZNCR_lst.json",
+      "kind": "case",
+      "zone": "ZNCR",
+      "zone_name": "North China Plain: natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.04264,
+      "ci95": [
+        -0.505213,
+        0.453835
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZARR_ndvi",
+      "path": "cases/ZARR_ndvi.json",
+      "kind": "case",
+      "zone": "ZARR",
+      "zone_name": "Arabian aquifer system (Saq): natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": 0.003201,
+      "ci95": [
+        0.001548,
+        0.004593
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZARR_lst",
+      "path": "cases/ZARR_lst.json",
+      "kind": "case",
+      "zone": "ZARR",
+      "zone_name": "Arabian aquifer system (Saq): natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.20423,
+      "ci95": [
+        -0.237405,
+        0.660271
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZTER_ndvi",
+      "path": "cases/ZTER_ndvi.json",
+      "kind": "case",
+      "zone": "ZTER",
+      "zone_name": "Tigris-Euphrates basin: natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": 0.0104,
+      "ci95": [
+        0.00403,
+        0.016655
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZTER_lst",
+      "path": "cases/ZTER_lst.json",
+      "kind": "case",
+      "zone": "ZTER",
+      "zone_name": "Tigris-Euphrates basin: natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.597627,
+      "ci95": [
+        0.098799,
+        1.065845
+      ],
+      "units": "\u00b0C"
+    },
+    {
+      "id": "ZGUR_ndvi",
+      "path": "cases/ZGUR_ndvi.json",
+      "kind": "case",
+      "zone": "ZGUR",
+      "zone_name": "Guarani aquifer system: natural land (reference)",
+      "variable": "ndvi",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.009509,
+      "ci95": [
+        0.00067,
+        0.018901
+      ],
+      "units": "NDVI units"
+    },
+    {
+      "id": "ZGUR_lst",
+      "path": "cases/ZGUR_lst.json",
+      "kind": "case",
+      "zone": "ZGUR",
+      "zone_name": "Guarani aquifer system: natural land (reference)",
+      "variable": "lst",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.02681,
+      "ci95": [
+        -0.321601,
+        0.423402
+      ],
+      "units": "\u00b0C"
+    },
+    {
       "id": "Z2_vs_Z5_ndvi",
       "path": "contrasts/Z2_vs_Z5_ndvi.json",
       "kind": "contrast",
+      "ref_zone": "Z5",
       "zone": "Z2",
       "zone_name": "Villacur\u00ed plains",
       "variable": "ndvi_contrast",
@@ -1158,6 +1607,7 @@
       "id": "Z1_vs_Z5_ndvi",
       "path": "contrasts/Z1_vs_Z5_ndvi.json",
       "kind": "contrast",
+      "ref_zone": "Z5",
       "zone": "Z1",
       "zone_name": "Ica Valley",
       "variable": "ndvi_contrast",
@@ -1177,6 +1627,7 @@
       "id": "Z2_vs_Z5_lst",
       "path": "contrasts/Z2_vs_Z5_lst.json",
       "kind": "contrast",
+      "ref_zone": "Z5",
       "zone": "Z2",
       "zone_name": "Villacur\u00ed plains",
       "variable": "lst_contrast",
@@ -1196,6 +1647,7 @@
       "id": "Z1_vs_Z5_lst",
       "path": "contrasts/Z1_vs_Z5_lst.json",
       "kind": "contrast",
+      "ref_zone": "Z5",
       "zone": "Z1",
       "zone_name": "Ica Valley",
       "variable": "lst_contrast",
@@ -1208,6 +1660,286 @@
       "ci95": [
         -0.510039,
         -0.176969
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZC_vs_ZCR_ndvi",
+      "path": "contrasts/ZC_vs_ZCR_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZCR",
+      "zone": "ZC",
+      "zone_name": "Central Valley, California",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.080199,
+      "ci95": [
+        -0.056481,
+        0.216931
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZC_vs_ZCR_lst",
+      "path": "contrasts/ZC_vs_ZCR_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZCR",
+      "zone": "ZC",
+      "zone_name": "Central Valley, California",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.051532,
+      "ci95": [
+        -0.089441,
+        0.181531
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZHP_vs_ZHPR_ndvi",
+      "path": "contrasts/ZHP_vs_ZHPR_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZHPR",
+      "zone": "ZHP",
+      "zone_name": "High Plains (Ogallala), United States",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": -0.218651,
+      "ci95": [
+        -0.349285,
+        -0.095674
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZHP_vs_ZHPR_lst",
+      "path": "contrasts/ZHP_vs_ZHPR_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZHPR",
+      "zone": "ZHP",
+      "zone_name": "High Plains (Ogallala), United States",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.085935,
+      "ci95": [
+        -0.024666,
+        0.197436
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZIN_vs_ZINR_ndvi",
+      "path": "contrasts/ZIN_vs_ZINR_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZINR",
+      "zone": "ZIN",
+      "zone_name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.010731,
+      "ci95": [
+        -0.263462,
+        0.237077
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZIN_vs_ZINR_lst",
+      "path": "contrasts/ZIN_vs_ZINR_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZINR",
+      "zone": "ZIN",
+      "zone_name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -0.278237,
+      "ci95": [
+        -0.394118,
+        -0.161723
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZNC_vs_ZNCR_ndvi",
+      "path": "contrasts/ZNC_vs_ZNCR_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZNCR",
+      "zone": "ZNC",
+      "zone_name": "North China Plain",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -0.580273,
+      "ci95": [
+        -0.698691,
+        -0.459587
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZNC_vs_ZNCR_lst",
+      "path": "contrasts/ZNC_vs_ZNCR_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZNCR",
+      "zone": "ZNC",
+      "zone_name": "North China Plain",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": 0.456402,
+      "ci95": [
+        0.365054,
+        0.543163
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZAR_vs_ZARR_ndvi",
+      "path": "contrasts/ZAR_vs_ZARR_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZARR",
+      "zone": "ZAR",
+      "zone_name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.060966,
+      "ci95": [
+        -0.885842,
+        0.834114
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZAR_vs_ZARR_lst",
+      "path": "contrasts/ZAR_vs_ZARR_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZARR",
+      "zone": "ZAR",
+      "zone_name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.049333,
+      "ci95": [
+        -0.362437,
+        0.450671
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZTE_vs_ZTER_ndvi",
+      "path": "contrasts/ZTE_vs_ZTER_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZTER",
+      "zone": "ZTE",
+      "zone_name": "Tigris-Euphrates basin",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.077081,
+      "ci95": [
+        -0.077416,
+        0.239308
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZTE_vs_ZTER_lst",
+      "path": "contrasts/ZTE_vs_ZTER_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZTER",
+      "zone": "ZTE",
+      "zone_name": "Tigris-Euphrates basin",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": -0.258213,
+      "ci95": [
+        -0.407312,
+        -0.097187
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZGU_vs_ZGUR_ndvi",
+      "path": "contrasts/ZGU_vs_ZGUR_ndvi.json",
+      "kind": "contrast",
+      "ref_zone": "ZGUR",
+      "zone": "ZGU",
+      "zone_name": "Guarani aquifer system, South America",
+      "variable": "ndvi_contrast",
+      "label": "Vegetation greenness (NDVI)",
+      "short": "Greenness",
+      "witness": "greenness",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.164828,
+      "ci95": [
+        -0.362791,
+        0.008138
+      ],
+      "units": "standard deviations"
+    },
+    {
+      "id": "ZGU_vs_ZGUR_lst",
+      "path": "contrasts/ZGU_vs_ZGUR_lst.json",
+      "kind": "contrast",
+      "ref_zone": "ZGUR",
+      "zone": "ZGU",
+      "zone_name": "Guarani aquifer system, South America",
+      "variable": "lst_contrast",
+      "label": "Land surface temperature (daytime)",
+      "short": "Surface heat",
+      "witness": "heat",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.002073,
+      "ci95": [
+        -0.13693,
+        0.143046
       ],
       "units": "standard deviations"
     }
@@ -1407,9 +2139,52 @@
         "classic_false_alarm": false,
         "years_to_detect": null
       },
+      "lst": {
+        "id": "Z2_lst",
+        "verdict": "confirmed",
+        "per_decade": -2.275209,
+        "ci95": [
+          -2.789974,
+          -1.850781
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "ndvi_gap": {
+        "id": "Z2_vs_Z5_ndvi",
+        "verdict": "confirmed",
+        "per_decade": 0.947461,
+        "ci95": [
+          0.61261,
+          1.262877
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "lst_gap": {
+        "id": "Z2_vs_Z5_lst",
+        "verdict": "confirmed",
+        "per_decade": -0.967529,
+        "ci95": [
+          -1.112522,
+          -0.817908
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
       "rain_area": "Andean headwaters",
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water rising. Yet 69% of monitored wells are falling: the farms are too small for one GRACE footprint, so the satellites cannot localise the loss.",
-      "reference": "This project: wells from JUASVI (2025)"
+      "reference": "This project: wells from JUASVI (2025)",
+      "impact": {
+        "grace_km3_per_yr": 0.01,
+        "cropland_km2": 151,
+        "crop_water_mm3_2020_2024": 88.8,
+        "crop_water_change_mm3": 17.0,
+        "crop_water_verdict": "likely"
+      }
     },
     {
       "id": "ZC",
@@ -1497,9 +2272,52 @@
         "classic_false_alarm": false,
         "years_to_detect": null
       },
+      "lst": {
+        "id": "ZC_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.30854,
+        "ci95": [
+          -0.414962,
+          1.130383
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": 78.185346
+      },
+      "ndvi_gap": {
+        "id": "ZC_vs_ZCR_ndvi",
+        "verdict": "inconclusive",
+        "per_decade": 0.080199,
+        "ci95": [
+          -0.056481,
+          0.216931
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 58.657342
+      },
+      "lst_gap": {
+        "id": "ZC_vs_ZCR_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.051532,
+        "ci95": [
+          -0.089441,
+          0.181531
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 51.996471
+      },
       "rain_area": "aquifer box",
       "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
-      "reference": "Famiglietti et al. (2011)"
+      "reference": "Famiglietti et al. (2011)",
+      "impact": {
+        "grace_km3_per_yr": -2.49,
+        "cropland_km2": 34503,
+        "crop_water_mm3_2020_2024": 12256.8,
+        "crop_water_change_mm3": -887.7,
+        "crop_water_verdict": "inconclusive"
+      }
     },
     {
       "id": "ZHP",
@@ -1587,9 +2405,52 @@
         "classic_false_alarm": true,
         "years_to_detect": 54.994214
       },
+      "lst": {
+        "id": "ZHP_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.257261,
+        "ci95": [
+          -0.515114,
+          1.005913
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": 99.110568
+      },
+      "ndvi_gap": {
+        "id": "ZHP_vs_ZHPR_ndvi",
+        "verdict": "likely",
+        "per_decade": -0.218651,
+        "ci95": [
+          -0.349285,
+          -0.095674
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "lst_gap": {
+        "id": "ZHP_vs_ZHPR_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.085935,
+        "ci95": [
+          -0.024666,
+          0.197436
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": true,
+        "years_to_detect": 33.199061
+      },
       "rain_area": "aquifer box",
       "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
-      "reference": "Richey et al. (2015); Rodell et al. (2018)"
+      "reference": "Richey et al. (2015); Rodell et al. (2018)",
+      "impact": {
+        "grace_km3_per_yr": -4.94,
+        "cropland_km2": 231735,
+        "crop_water_mm3_2020_2024": 101949.5,
+        "crop_water_change_mm3": 5475.0,
+        "crop_water_verdict": "inconclusive"
+      }
     },
     {
       "id": "ZIN",
@@ -1678,9 +2539,52 @@
         "classic_false_alarm": true,
         "years_to_detect": 31.287465
       },
+      "lst": {
+        "id": "ZIN_lst",
+        "verdict": "confirmed",
+        "per_decade": -0.913597,
+        "ci95": [
+          -1.325758,
+          -0.515082
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "ndvi_gap": {
+        "id": "ZIN_vs_ZINR_ndvi",
+        "verdict": "inconclusive",
+        "per_decade": -0.010731,
+        "ci95": [
+          -0.263462,
+          0.237077
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 223.559996
+      },
+      "lst_gap": {
+        "id": "ZIN_vs_ZINR_lst",
+        "verdict": "confirmed",
+        "per_decade": -0.278237,
+        "ci95": [
+          -0.394118,
+          -0.161723
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
       "rain_area": "aquifer box",
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
-      "reference": "Rodell et al. (2018)"
+      "reference": "Rodell et al. (2018)",
+      "impact": {
+        "grace_km3_per_yr": -18.53,
+        "cropland_km2": 523301,
+        "crop_water_mm3_2020_2024": 191550.8,
+        "crop_water_change_mm3": 61301.6,
+        "crop_water_verdict": "confirmed"
+      }
     },
     {
       "id": "ZNC",
@@ -1768,9 +2672,52 @@
         "classic_false_alarm": false,
         "years_to_detect": null
       },
+      "lst": {
+        "id": "ZNC_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.68055,
+        "ci95": [
+          0.149344,
+          1.200959
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": true,
+        "years_to_detect": 33.568432
+      },
+      "ndvi_gap": {
+        "id": "ZNC_vs_ZNCR_ndvi",
+        "verdict": "confirmed",
+        "per_decade": -0.580273,
+        "ci95": [
+          -0.698691,
+          -0.459587
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "lst_gap": {
+        "id": "ZNC_vs_ZNCR_lst",
+        "verdict": "confirmed",
+        "per_decade": 0.456402,
+        "ci95": [
+          0.365054,
+          0.543163
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
       "rain_area": "aquifer box",
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
-      "reference": "Rodell et al. (2018)"
+      "reference": "Rodell et al. (2018)",
+      "impact": {
+        "grace_km3_per_yr": -6.1,
+        "cropland_km2": 238674,
+        "crop_water_mm3_2020_2024": 121847.5,
+        "crop_water_change_mm3": 18916.0,
+        "crop_water_verdict": "confirmed"
+      }
     },
     {
       "id": "ZAR",
@@ -1859,9 +2806,52 @@
         "classic_false_alarm": false,
         "years_to_detect": null
       },
+      "lst": {
+        "id": "ZAR_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.260618,
+        "ci95": [
+          -0.463658,
+          0.955002
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": 52.732691
+      },
+      "ndvi_gap": {
+        "id": "ZAR_vs_ZARR_ndvi",
+        "verdict": "inconclusive",
+        "per_decade": -0.060966,
+        "ci95": [
+          -0.885842,
+          0.834114
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 267.101192
+      },
+      "lst_gap": {
+        "id": "ZAR_vs_ZARR_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.049333,
+        "ci95": [
+          -0.362437,
+          0.450671
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 110.994235
+      },
       "rain_area": "aquifer box",
       "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
-      "reference": "Richey et al. (2015); Rodell et al. (2018)"
+      "reference": "Richey et al. (2015); Rodell et al. (2018)",
+      "impact": {
+        "grace_km3_per_yr": -8.83,
+        "cropland_km2": 1656,
+        "crop_water_mm3_2020_2024": 223.8,
+        "crop_water_change_mm3": 45.9,
+        "crop_water_verdict": "inconclusive"
+      }
     },
     {
       "id": "ZTE",
@@ -1952,9 +2942,52 @@
         "classic_false_alarm": false,
         "years_to_detect": null
       },
+      "lst": {
+        "id": "ZTE_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.109449,
+        "ci95": [
+          -0.277907,
+          0.471873
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": 89.864858
+      },
+      "ndvi_gap": {
+        "id": "ZTE_vs_ZTER_ndvi",
+        "verdict": "inconclusive",
+        "per_decade": 0.077081,
+        "ci95": [
+          -0.077416,
+          0.239308
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 89.031149
+      },
+      "lst_gap": {
+        "id": "ZTE_vs_ZTER_lst",
+        "verdict": "likely",
+        "per_decade": -0.258213,
+        "ci95": [
+          -0.407312,
+          -0.097187
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
       "rain_area": "aquifer box",
       "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
-      "reference": "Rodell et al. (2018)"
+      "reference": "Rodell et al. (2018)",
+      "impact": {
+        "grace_km3_per_yr": -8.29,
+        "cropland_km2": 148218,
+        "crop_water_mm3_2020_2024": 34882.6,
+        "crop_water_change_mm3": 4658.7,
+        "crop_water_verdict": "likely"
+      }
     },
     {
       "id": "ZGU",
@@ -2045,9 +3078,52 @@
         "classic_false_alarm": false,
         "years_to_detect": null
       },
+      "lst": {
+        "id": "ZGU_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.039664,
+        "ci95": [
+          -0.343956,
+          0.453305
+        ],
+        "units": "\u00b0C",
+        "classic_false_alarm": false,
+        "years_to_detect": 131.351684
+      },
+      "ndvi_gap": {
+        "id": "ZGU_vs_ZGUR_ndvi",
+        "verdict": "inconclusive",
+        "per_decade": -0.164828,
+        "ci95": [
+          -0.362791,
+          0.008138
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": true,
+        "years_to_detect": 35.040002
+      },
+      "lst_gap": {
+        "id": "ZGU_vs_ZGUR_lst",
+        "verdict": "inconclusive",
+        "per_decade": 0.002073,
+        "ci95": [
+          -0.13693,
+          0.143046
+        ],
+        "units": "standard deviations",
+        "classic_false_alarm": false,
+        "years_to_detect": 447.201913
+      },
       "rain_area": "aquifer box",
       "reading": "Its cropland is getting greener (MODIS). No proven change in stored water from space. A change this size would need about 51 years of data to show up.",
-      "reference": "Richey et al. (2015)"
+      "reference": "Richey et al. (2015)",
+      "impact": {
+        "grace_km3_per_yr": -4.26,
+        "cropland_km2": 337409,
+        "crop_water_mm3_2020_2024": 261327.6,
+        "crop_water_change_mm3": 25285.9,
+        "crop_water_verdict": "inconclusive"
+      }
     }
   ],
   "atlas_note": "Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA products, period (2004-2024) and engine everywhere; only El Ni\u00f1o (ONI) is used as a control outside Ica.",

@@ -98,10 +98,15 @@ CASES = [  # (zone, variable, covariates)
     ("ZC", "gws", ["oni"]),
     # World aquifer atlas: GRACE, GLDAS and IMERG rain over each aquifer box, ENSO control only.
     *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")
-      for v in ("tws_grace", "gws", "precip", "ndvi", "et", "t2m")
+      for v in ("tws_grace", "gws", "precip", "ndvi", "et", "t2m", "lst")
       if (z, v) not in {("ZC", "tws_grace"), ("ZC", "gws")}],
 ]
-CONTRASTS = [("Z2", "ndvi"), ("Z1", "ndvi"), ("Z2", "lst"), ("Z1", "lst")]
+CASES += [(f"{z}R", v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]   # atlas reference land
+
+# (field zone, variable, reference zone, covariates): cropland minus land that is not irrigated
+CONTRASTS = [("Z2", "ndvi", "Z5", ["icen_like", "oni"]), ("Z1", "ndvi", "Z5", ["icen_like", "oni"]),
+             ("Z2", "lst", "Z5", ["icen_like", "oni"]), ("Z1", "lst", "Z5", ["icen_like", "oni"]),
+             *[(z, v, f"{z}R", ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]]
 CONTRAST_META = {
     "ndvi": ("Greenness gap", "greenness",
              "Field NDVI minus reference NDVI after standardizing each series by calendar month."),
@@ -167,7 +172,8 @@ ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacuri plains", "Z4": "the 
                "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region",
                "ZC": "California's Central Valley",
                "ZHP": "the High Plains aquifer", "ZIN": "northwest India", "ZNC": "the North China Plain",
-               "ZAR": "the Arabian aquifer system", "ZTE": "the Tigris-Euphrates basin", "ZGU": "the Guarani aquifer system"}
+               "ZAR": "the Arabian aquifer system", "ZTE": "the Tigris-Euphrates basin", "ZGU": "the Guarani aquifer system",
+               **{f"{z}R": "natural land in the same box" for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")}}
 
 
 def summary_text(case, meta, zone_id):
@@ -217,7 +223,7 @@ def covariates(s, ci, names):
     return X, full_icen
 
 
-def case_payload(zone, var, raw, res, meta, kind="case", extra=None):
+def case_payload(zone, var, raw, res, meta, kind="case", extra=None, ref="Z5"):
     zm = ZONES[zone]
     series = []
     for d, v, a in zip(IDX, raw.values, res["anomaly"]):
@@ -225,7 +231,7 @@ def case_payload(zone, var, raw, res, meta, kind="case", extra=None):
                        "value": None if not np.isfinite(v) else round(float(v), 4),
                        "anomaly": a, "valid": bool(np.isfinite(v))})
     payload = {
-        "id": f"{zone}_{var}" if kind == "case" else f"{zone}_vs_Z5_{var}",
+        "id": f"{zone}_{var}" if kind == "case" else f"{zone}_vs_{ref}_{var}",
         "kind": kind,
         "zone": {"id": zone, "name": zm["name"], "role": zm["role"], "description": zm["description"]},
         "variable": var if kind == "case" else f"{var}_contrast",
@@ -372,19 +378,23 @@ def build_case(zone, var, cov, s, ci, cfg):
     return payload
 
 
-def build_contrast(zone, var, s, ci, cfg):
+def build_contrast(zone, var, s, ci, cfg, ref="Z5", cov=("icen_like", "oni")):
     a = get_series(s, zone, var)
-    b = get_series(s, "Z5", var)
+    b = get_series(s, ref, var)
     za = T.standardized_anomaly(a.values, IDX.month.values)
     zb = T.standardized_anomaly(b.values, IDX.month.values)
     d = pd.Series(za - zb, index=IDX)
-    X, full_icen = covariates(s, ci, ["icen_like", "oni"])
-    X["icen_like"] = full_icen
+    X, full_icen = covariates(s, ci, list(cov))
+    if full_icen is not None:
+        X["icen_like"] = full_icen
     res = run_case(d, X, cfg, already_anomaly=True, seed=7)
     short, witness, definition = CONTRAST_META[var]
-    meta = {**VARS[var], "label": f"{short}: {ZONES[zone]['name']} minus desert",
+    other = "desert" if ref == "Z5" else "natural land"
+    meta = {**VARS[var], "label": f"{short}: {ZONES[zone]['name'].split(',')[0]} {'' if ref == 'Z5' else 'cropland '}minus {other}",
             "short": short, "units": "standard deviations", "witness": witness, "definition": definition}
-    payload = case_payload(zone, var, d, res, meta, kind="contrast")
+    if ref != "Z5":
+        meta["definition"] = definition.replace("reference", "natural land in the same box")
+    payload = case_payload(zone, var, d, res, meta, kind="contrast", ref=ref)
     for p in payload["series"]:
         p["value"] = p["anomaly"]
     return payload
@@ -396,9 +406,9 @@ def reproduce_case(case_id):
     for zone, var, cov in CASES:
         if case_id == f"{zone}_{var}":
             return build_case(zone, var, cov, s, ci, cfg)
-    for zone, var in CONTRASTS:
-        if case_id == f"{zone}_vs_Z5_{var}":
-            return build_contrast(zone, var, s, ci, cfg)
+    for zone, var, ref, cov in CONTRASTS:
+        if case_id == f"{zone}_vs_{ref}_{var}":
+            return build_contrast(zone, var, s, ci, cfg, ref, cov)
     raise SystemExit(f"Unknown case: {case_id}")
 
 
@@ -408,7 +418,8 @@ COUNTRIES = {"ZW": ["Peru"], "ZC": ["United States"], "ZHP": ["United States"], 
              "ZNC": ["China"], "ZAR": ["Saudi Arabia", "Jordan"], "ZTE": ["Iraq", "Iran", "Syria", "Turkey"],
              "ZGU": ["Brazil", "Paraguay", "Argentina", "Uruguay"]}
 # Field witnesses per atlas zone: (greenness, crop water use, air temperature); Ica uses its Villacurí fields.
-FIELD_CASES = {"ZW": ("Z2_ndvi", "Z2_et", "ZW_t2m")}
+FIELD_CASES = {"ZW": ("Z2_ndvi", "Z2_et", "ZW_t2m", "Z2_lst", "Z2_vs_Z5_ndvi", "Z2_vs_Z5_lst")}
+FIELD_KEYS = ("ndvi", "et", "t2m", "lst", "ndvi_gap", "lst_gap")
 ATLAS = [
     ("ZW", (-75.85, -14.10), "ZW_tws_grace", "ZW_gws", "Z4_precip", "This project: wells from JUASVI (2025)"),
     ("ZC", (-120.60, 37.65), "ZC_tws_grace", "ZC_gws", "ZC_precip", "Famiglietti et al. (2011)"),
@@ -473,7 +484,24 @@ def water_sentence(zone, tws, rain, wells_share):
     return f"No proven change in stored water from space.{more}"
 
 
-def build_atlas(cases_by_id, wells_share):
+def atlas_impact(zone, area_km2, tws, cases_by_id, series_long):
+    """Volumes: GRACE trend (mm/yr) over the box area, and water used by crops (MODIS ET x cropland area, 2020-2024)."""
+    out = {"grace_km3_per_yr": None if tws["per_decade"] is None else round(tws["per_decade"] / 10 * area_km2 * 1e-6, 2)}
+    areas = ROOT / "data" / "processed" / "atlas_cropland_area.json"
+    et_id = "Z2_et" if zone == "ZW" else f"{zone}_et"
+    km2 = None
+    if zone == "ZW":
+        km2 = json.loads((ROOT / "data" / "processed" / "cropland_area.json").read_text())["Z2"]["km2_at_250m"]
+    elif areas.exists():
+        km2 = json.loads(areas.read_text())["km2"].get(zone)
+    if km2 and et_id in cases_by_id:
+        v = et_volume(series_long, "Z2" if zone == "ZW" else zone, cases_by_id[et_id], km2)
+        out.update({"cropland_km2": round(km2), "crop_water_mm3_2020_2024": v["mm3_2020_2024"],
+                    "crop_water_change_mm3": v["change_mm3_per_yr"], "crop_water_verdict": v["verdict"]})
+    return out
+
+
+def build_atlas(cases_by_id, wells_share, series_long=None):
     out = []
     for zone, (lon, lat), tws_id, gws_id, rain_id, ref in ATLAS:
         if tws_id not in cases_by_id:
@@ -489,11 +517,13 @@ def build_atlas(cases_by_id, wells_share):
             "description": ZONES[zone]["description"], "lonlat": [lon, lat], "focus": zone == "ZW",
             "area_km2": round(float(area), -2), "grace_footprints": round(float(area / mascon_area_km2(lat)), 2),
             "tws": tws, "gws": gws, "rain": rain,
-            **{k: witness_summary(cases_by_id[i]) for k, i in zip(("ndvi", "et", "t2m"), FIELD_CASES.get(
-                zone, (f"{zone}_ndvi", f"{zone}_et", f"{zone}_t2m"))) if i in cases_by_id}, "rain_area": "Andean headwaters" if zone == "ZW" else "aquifer box",
+            **{k: witness_summary(cases_by_id[i]) for k, i in zip(FIELD_KEYS, FIELD_CASES.get(
+                zone, (f"{zone}_ndvi", f"{zone}_et", f"{zone}_t2m", f"{zone}_lst",
+                       f"{zone}_vs_{zone}R_ndvi", f"{zone}_vs_{zone}R_lst"))) if i in cases_by_id}, "rain_area": "Andean headwaters" if zone == "ZW" else "aquifer box",
             "reading": None, "reference": ref,
         })
         out[-1]["reading"] = atlas_reading(zone, tws, rain, wells_share, out[-1].get("ndvi"), out[-1].get("et"))
+        out[-1]["impact"] = atlas_impact(zone, area, tws, cases_by_id, series_long)
     return out
 
 
@@ -518,11 +548,11 @@ def main():
               f"p_boot={payload['trend']['p_block_bootstrap']} p_arma={payload['trend']['p_arma']} "
               f"p_classic={payload['trend']['p_mk_classic']} crit={payload['criteria']}", flush=True)
 
-    for zone, var in CONTRASTS:
-        payload = build_contrast(zone, var, s, ci, cfg)
+    for zone, var, ref, cov in CONTRASTS:
+        payload = build_contrast(zone, var, s, ci, cfg, ref, cov)
         meta = {**VARS[var], "units": payload["units"]}
         (OUT / "contrasts" / f"{payload['id']}.json").write_text(json.dumps(payload))
-        manifest_cases.append({"id": payload["id"], "path": f"contrasts/{payload['id']}.json", "kind": "contrast",
+        manifest_cases.append({"id": payload["id"], "path": f"contrasts/{payload['id']}.json", "kind": "contrast", "ref_zone": ref,
                                "zone": zone, "zone_name": ZONES[zone]["name"], "variable": f"{var}_contrast",
                                "label": meta["label"], "short": meta["short"], "witness": payload["witness"],
                                "data_type": "observed", "verdict": payload["verdict"],
@@ -554,7 +584,7 @@ def main():
         "files": {"zones": "zones.geojson", "wells": "wells.geojson", "map": "map.json",
                   "simulation": "simulation.json", "witnesses": "witnesses.json"},
         "verdict_labels": VERDICT_LABEL,
-        "atlas": build_atlas(cases_by_id, wells_summary["share_falling"]),
+        "atlas": build_atlas(cases_by_id, wells_summary["share_falling"], s),
         "atlas_note": "Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA "
                       "products, period (2004-2024) and engine everywhere; only El Niño (ONI) is used as a control "
                       "outside Ica.",

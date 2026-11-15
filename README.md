@@ -86,7 +86,9 @@ field lab remain in the code, hidden behind `EXPERT_ONLY` in `web/src/levels.ts`
   every aquifer (2004 outside the lens, 2024 inside; the lens tours the places where the surface changed most), the
   reading, six NASA witnesses with annual sparklines, and "Analyze" links that open each witness's case file, a
   comparison with another aquifer, the trend lab and the sources. The bar's Detective desk and Compare open the
-  aquifer you were viewing.
+  aquifer you were viewing. Each page also has Ica's tools: impact volumes (GRACE trend x area; crop
+  evapotranspiration x cropland), an evidence map (per-pixel greenness trend), cropland against natural land in the
+  same box (greenness and heat gaps, like Ica's fields against the desert) and guided cases.
 - **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
   only aquifer with field wells.
 - **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.

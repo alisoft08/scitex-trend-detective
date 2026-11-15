@@ -30,6 +30,7 @@ Marking:
 - Claude (Anthropic) built the page of each aquifer (`web/src/AquiferPage.tsx`: 2004/2024 lens, reading, six witnesses with annual sparklines), the white overview of all aquifers under the globe, the editorial styling, and the 2004/2024 MODIS pictures (`pipeline/aquifer_pairs.py`).
 - Claude (Anthropic) wrote the user-selected period analysis (`engine/periods.py`, tests in `tests/test_periods.py`, `scripts/period_grid.py`) and its controls in the case file, plus the "First look" question, to cover steps 3 and 4 of the challenge.
 - Claude (Anthropic) generalized Ica's lens view into `web/src/LensHero.tsx` and gave every aquifer page that landing view; the lens stops come from `pipeline/aquifer_tour.py` (largest visible-band greenness change between the 2004 and 2024 MODIS pictures, water and clouds excluded).
+- Claude (Anthropic) gave every atlas aquifer Ica's tools: a natural-land reference zone (`<zone>R`, MODIS MCD12Q1) and cropland-minus-reference contrasts, cropland surface temperature, per-aquifer evidence maps and cropland areas (`pipeline/atlas_maps.py`), impact volumes and guided cases on the aquifer page.
 - The verdict texts in the app are produced by deterministic templates from the engine's numbers. No language model writes text at runtime.
 
 The project idea, the choice of Ica, the statistical design (pre-registered thresholds, consensus of tests, control zone)

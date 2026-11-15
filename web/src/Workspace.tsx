@@ -6,6 +6,9 @@ import type { CaseRef, Manifest } from "./types";
 
 export const PLACES: Record<string, string> = {
   Z2: "Villacurí fields", Z1: "Ica Valley fields", Z5: "Desert reference", Z4: "Andean headwaters", ZW: "Ica–Villacurí region",
+  ZCR: "Central Valley · natural land", ZHPR: "High Plains · natural land", ZINR: "NW India · natural land",
+  ZNCR: "North China Plain · natural land", ZARR: "Arabia · natural land", ZTER: "Tigris–Euphrates · natural land",
+  ZGUR: "Guarani · natural land",
   ZC: "Central Valley, CA (atlas)", ZHP: "High Plains, US (atlas)", ZIN: "Northwest India (atlas)",
   ZNC: "North China Plain (atlas)", ZAR: "Arabian aquifers (atlas)", ZTE: "Tigris–Euphrates (atlas)", ZGU: "Guarani aquifer (atlas)",
 };
@@ -55,8 +58,9 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
   const variable = selected.variable.replace(/_contrast$/, "");
   const inZone = m.cases.filter((c) => c.zone === selected.zone && c.kind === "case");
   const base = inZone.find((c) => c.variable === variable);
-  const contrast = m.cases.find((c) => c.id === `${selected.zone}_vs_Z5_${variable}`);
-  const desert = m.cases.find((c) => c.id === `Z5_${variable}`);
+  // Cropland minus its reference land: Ica's desert (Z5) or the atlas aquifer's natural land (<zone>R).
+  const contrast = m.cases.find((c) => c.kind === "contrast" && c.zone === selected.zone && c.variable === `${variable}_contrast`);
+  const desert = contrast ? m.cases.find((c) => c.id === `${contrast.ref_zone ?? "Z5"}_${variable}`) : undefined;
   const missing = WITNESSES.find((w) => w.id === unavailable);
   const alternative = m.cases.find((c) => c.variable === unavailable && c.kind === "case");
 
@@ -127,7 +131,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
             <label className="compare-toggle">
               <input type="checkbox" id="toggle-desert" checked={selected.kind === "contrast"}
                 onChange={(e) => onCase(e.target.checked ? contrast.id : base.id)} />
-              Compare with desert reference
+              Compare with {contrast?.ref_zone && contrast.ref_zone !== "Z5" ? "natural land (reference)" : "desert reference"}
             </label>
           )}
         </aside>

@@ -22,13 +22,14 @@ export function amount(w: AtlasWitness) {
 export const short = (name: string) => name.replace(/ \(([^)]*)\)/, (m, inner: string) => inner.includes(",") ? "" : m).split(",")[0];
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-export const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m"; name: string; kind: string }[] = [
+export const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m" | "lst"; name: string; kind: string }[] = [
   { key: "tws", name: "Total water · GRACE", kind: "Observed" },
   { key: "gws", name: "Groundwater · GLDAS", kind: "Model" },
   { key: "rain", name: "Rain · GPM IMERG", kind: "Estimated" },
   { key: "ndvi", name: "Cropland greenness · MODIS", kind: "Observed" },
   { key: "et", name: "Crop water use · MODIS ET", kind: "Estimated" },
   { key: "t2m", name: "Air temperature · MERRA-2", kind: "Reanalysis" },
+  { key: "lst", name: "Cropland surface heat · MODIS LST", kind: "Observed" },
 ];
 
 // Mini-card side per aquifer, chosen so neighbours (Arabia and Tigris-Euphrates, California and the High Plains) do not overlap.

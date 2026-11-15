@@ -27,6 +27,7 @@ export interface CaseRef {
   sen_per_decade: number | null;
   ci95: [number | null, number | null];
   units: string;
+  ref_zone?: string;   // contrasts: the reference zone (Z5 desert in Ica, <zone>R natural land in the atlas)
 }
 
 export interface WellsZone {
@@ -109,7 +110,10 @@ export interface AtlasWitness {
 export interface AtlasEntry {
   id: string; name: string; description: string; lonlat: [number, number]; focus: boolean;
   area_km2: number; grace_footprints: number; tws: AtlasWitness; gws: AtlasWitness; rain: AtlasWitness;
-  countries: string[]; ndvi?: AtlasWitness; et?: AtlasWitness; t2m?: AtlasWitness;
+  countries: string[]; ndvi?: AtlasWitness; et?: AtlasWitness; t2m?: AtlasWitness; lst?: AtlasWitness;
+  ndvi_gap?: AtlasWitness; lst_gap?: AtlasWitness;
+  impact?: { grace_km3_per_yr: number | null; cropland_km2?: number; crop_water_mm3_2020_2024?: number;
+    crop_water_change_mm3?: number; crop_water_verdict?: string };
   rain_area: string; reading: string; reference: string;
 }
 

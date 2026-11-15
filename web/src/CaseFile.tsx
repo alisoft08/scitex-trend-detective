@@ -41,7 +41,7 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
       tone={cf.witness === "greenness" ? "green" : cf.witness === "heat" ? "heat" : cf.witness === "water" ? "water" : "climate"} window={window} />
     <figcaption className="plot-legend small">
       <span><i className="plot-key" />{reference ? cf.zone.name : mode === "value" ? "Monthly values" : cf.kind === "contrast" ? "Monthly standardized gap" : "Monthly anomalies"}</span>
-      {reference && <span><i className="plot-key dashed" />Desert reference</span>}
+      {reference && <span><i className="plot-key dashed" />{reference.zone.id === "Z5" ? "Desert reference" : "Natural land (reference)"}</span>}
       {mode === "anomaly" && <span><i className="plot-key trend" />Full-period trend</span>}
       {cf.n_valid < cf.n && <span><i className="plot-key gap" />{cf.n - cf.n_valid} missing months</span>}
     </figcaption>
@@ -51,7 +51,7 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
 function FieldComparison({ field, desert }: { field: CaseRef; desert: CaseRef }) {
   const a = useJSON<CaseFile>(field.path), b = useJSON<CaseFile>(desert.path);
   return <div className="panel analysis-panel">
-    <div className="panel-heading"><h3>Field and desert reference</h3><p>Monthly observations on the same axis.</p></div>
+    <div className="panel-heading"><h3>{desert.zone === "Z5" ? "Field and desert reference" : "Cropland and natural land in the same box"}</h3><p>Monthly observations on the same axis.</p></div>
     {a.error || b.error ? <p className="error" role="alert">{a.error ?? b.error}</p>
       : a.data && b.data ? <CasePlot cf={a.data} reference={b.data} mode="value" /> : <p className="loading">Loading the two records…</p>}
   </div>;
@@ -129,7 +129,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
     ? { start: from, end: to, sen_per_decade: sel.sen_per_decade, p_block_bootstrap: sel.p_block_bootstrap } as Window : undefined;
   const period = casePeriod(cf.period);
   const fieldMask = manifest.zones.find((z) => z.id === cf.zone.id)?.mask;
-  const desertMask = manifest.zones.find((z) => z.id === "Z5")?.mask?.replace("never-green desert", "Low-NDVI reference");
+  const refZone = cf.kind === "contrast" ? (manifest.cases.find((c) => c.id === cf.id)?.ref_zone ?? "Z5") : "Z5";
+  const desertMask = manifest.zones.find((z) => z.id === refZone)?.mask?.replace("never-green desert", "Low-NDVI reference");
   const showRaw = !explorer && cf.kind === "case" && mode === "value";
   const disagreement = cf.classic_test_says_significant && cf.verdict === "inconclusive";
 
@@ -169,7 +170,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
     {(!comparison || !explorer) && <section className="panel analysis-panel">
       <div className="analysis-toolbar">
         <div className="panel-heading">
-          <h3>{comparison ? "Standardized field–desert gap" : "Monthly record"}</h3>
+          <h3>{comparison ? (refZone === "Z5" ? "Standardized field–desert gap" : "Standardized cropland–natural land gap") : "Monthly record"}</h3>
           <p>{explorer ? "Each month is compared with the average for that month of the year." : `${cf.n_valid} of ${cf.n} valid months · ${cf.source.resolution}`}</p>
         </div>
         {!explorer && !comparison && <div className="toggle" role="group" aria-label="Chart values">

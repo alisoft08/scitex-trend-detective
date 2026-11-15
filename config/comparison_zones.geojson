@@ -259,6 +259,265 @@
      ]
     ]
    }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZCR",
+    "name": "Central Valley: natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -122.4,
+       35.0
+      ],
+      [
+       -118.8,
+       35.0
+      ],
+      [
+       -118.8,
+       40.3
+      ],
+      [
+       -122.4,
+       40.3
+      ],
+      [
+       -122.4,
+       35.0
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZHPR",
+    "name": "High Plains (Ogallala): natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -104.5,
+       32.0
+      ],
+      [
+       -96.5,
+       32.0
+      ],
+      [
+       -96.5,
+       43.5
+      ],
+      [
+       -104.5,
+       43.5
+      ],
+      [
+       -104.5,
+       32.0
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZINR",
+    "name": "Northwest India (Punjab: natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       70.0,
+       24.0
+      ],
+      [
+       79.0,
+       24.0
+      ],
+      [
+       79.0,
+       32.5
+      ],
+      [
+       70.0,
+       32.5
+      ],
+      [
+       70.0,
+       24.0
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZNCR",
+    "name": "North China Plain: natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       113.0,
+       34.5
+      ],
+      [
+       119.5,
+       34.5
+      ],
+      [
+       119.5,
+       40.5
+      ],
+      [
+       113.0,
+       40.5
+      ],
+      [
+       113.0,
+       34.5
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZARR",
+    "name": "Arabian aquifer system (Saq): natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       37.0,
+       23.0
+      ],
+      [
+       48.0,
+       23.0
+      ],
+      [
+       48.0,
+       31.0
+      ],
+      [
+       37.0,
+       31.0
+      ],
+      [
+       37.0,
+       23.0
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZTER",
+    "name": "Tigris-Euphrates basin: natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       38.0,
+       30.0
+      ],
+      [
+       49.0,
+       30.0
+      ],
+      [
+       49.0,
+       38.5
+      ],
+      [
+       38.0,
+       38.5
+      ],
+      [
+       38.0,
+       30.0
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "ZGUR",
+    "name": "Guarani aquifer system: natural land (reference)",
+    "role": "reference",
+    "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
+    "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -58.5,
+       -31.0
+      ],
+      [
+       -47.0,
+       -31.0
+      ],
+      [
+       -47.0,
+       -16.0
+      ],
+      [
+       -58.5,
+       -16.0
+      ],
+      [
+       -58.5,
+       -31.0
+      ]
+     ]
+    ]
+   }
   }
  ]
 }

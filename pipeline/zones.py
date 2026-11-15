@@ -95,6 +95,18 @@ def modis_cropland():
     return lc.eq(12).Or(lc.eq(14)).selfMask()
 
 
+def modis_natural():
+    """Atlas reference land: MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 (shrublands, savannas, grasslands, barren),
+    i.e. land that is neither cropland, forest, water nor city. It plays the role of Ica's desert control."""
+    lc = ee.ImageCollection("MODIS/061/MCD12Q1").filterDate("2020-01-01", "2021-01-01").first().select("LC_Type1")
+    return lc.eq(6).Or(lc.eq(7)).Or(lc.eq(9)).Or(lc.eq(10)).Or(lc.eq(16)).selfMask()
+
+
+def is_atlas(zone: str) -> bool:
+    """Atlas aquifer box ('ZIN') or its reference land ('ZINR')."""
+    return zone in AQUIFERS or (zone.endswith("R") and zone[:-1] in AQUIFERS)
+
+
 def zone_masks():
     """Return {zone_id: (region_geometry, mask_image_or_None)}."""
     crop = cropland_mask()
@@ -108,4 +120,5 @@ def zone_masks():
         "ZW": (rect(WATER_BLOCK), None),
         "ZC": (rect(CENTRAL_VALLEY), None),
         **{k: (rect(b), modis_cropland()) for k, b in AQUIFERS.items()},  # the mask applies to field variables only
+        **{f"{k}R": (rect(b), modis_natural()) for k, b in AQUIFERS.items()},
     }
