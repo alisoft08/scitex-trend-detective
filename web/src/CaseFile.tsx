@@ -1,5 +1,7 @@
 // AI-assisted: Codex (OpenAI). One scientific record, progressively disclosed.
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type MutableRefObject } from "react";
+import type { ChatContext, HoveredPoint } from "./chat-contract";
+import { summarizeCase } from "./chat-summary";
 import { TrendChart } from "./charts";
 import { useJSON } from "./data";
 import { Validation, hasExtractionCheck } from "./Validation";
@@ -37,8 +39,10 @@ export function EffectBar({ est, limits }: { est: number | null; limits: [number
   </span>;
 }
 
-export function CasePlot({ cf, mode = "anomaly", simple = false, reference, window }: {
-  cf: CaseFile; mode?: "anomaly" | "value"; simple?: boolean; reference?: CaseFile; window?: Window;
+type InspectPoint = (point: Omit<HoveredPoint, "chart">) => void;
+
+export function CasePlot({ cf, mode = "anomaly", simple = false, reference, window, onInspect }: {
+  cf: CaseFile; mode?: "anomaly" | "value"; simple?: boolean; reference?: CaseFile; window?: Window; onInspect?: InspectPoint;
 }) {
   const { t } = useLocale();
   const { caseUnits, zoneName } = useEvidence();
@@ -49,7 +53,7 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
     : t("Monthly anomalies", "Anomalías mensuales");
   const missing = cf.n - cf.n_valid;
   return <figure className="case-plot">
-    <TrendChart series={cf.series} trend={cf.trend} mode={mode} units={units} simple={simple} reference={reference?.series}
+    <TrendChart series={cf.series} trend={cf.trend} mode={mode} units={units} simple={simple} reference={reference?.series} onInspect={onInspect}
       tone={cf.witness === "greenness" ? "green" : cf.witness === "heat" ? "heat" : cf.witness === "water" ? "water" : "climate"} window={window} />
     <figcaption className="plot-legend small">
       <span><i className="plot-key" />{label}</span>
@@ -60,7 +64,7 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
   </figure>;
 }
 
-function FieldComparison({ field, desert }: { field: CaseRef; desert: CaseRef }) {
+function FieldComparison({ field, desert, onInspect }: { field: CaseRef; desert: CaseRef; onInspect: InspectPoint }) {
   const { t } = useLocale();
   const a = useJSON<CaseFile>(field.path), b = useJSON<CaseFile>(desert.path);
   return <div className="panel analysis-panel">
@@ -70,7 +74,7 @@ function FieldComparison({ field, desert }: { field: CaseRef; desert: CaseRef })
         "La misma variable en dos áreas y en la misma escala. Compara cuándo ambas series se mueven juntas y cuándo se separan.")}</p>
     </div>
     {a.error || b.error ? <p className="error" role="alert">{t("Could not load the field and desert records.", "No se pudieron cargar las series del campo y el desierto.")}</p>
-      : a.data && b.data ? <CasePlot cf={a.data} reference={b.data} mode="value" />
+      : a.data && b.data ? <CasePlot cf={a.data} reference={b.data} mode="value" onInspect={onInspect} />
       : <p className="loading">{t("Loading the two records…", "Cargando las dos series…")}</p>}
   </div>;
 }
@@ -142,8 +146,9 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
   </div>;
 }
 
-export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
+export function CaseFileView({ caseRef, level, manifest, href, comparison, chatContextRef }: {
   caseRef: CaseRef; level: Level; manifest: Manifest; href: string; comparison?: { field: CaseRef; desert: CaseRef };
+  chatContextRef: MutableRefObject<(() => ChatContext) | null>;
 }) {
   const { t, signed, pfull, language } = useLocale();
   const { casePeriod, caseTitle, caseUnits, perDecade, zoneName, interval, verdictText, verdictSummary, dataKind, describes, resolution, mask } = useEvidence();
@@ -152,15 +157,41 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
   const [periodIndex, setPeriodIndex] = useState(-1);
   const [exportState, setExportState] = useState<"preparing" | "ready" | "error" | null>(null);
   const extractionDetails = useRef<HTMLDetailsElement>(null);
+  const lastPoint = useRef<{ point: HoveredPoint; mode: ChatContext["chartMode"] }>();
+  const explorer = level === "explorer", expert = level === "expert";
+  const activeWindow = expert ? cf?.trend.windows[periodIndex] : undefined;
+  const showRaw = !explorer && cf?.kind === "case" && mode === "value";
+  const caseChartVisible = !comparison || !explorer;
+  const chartMode = showRaw || !caseChartVisible ? "Original values" : "Anomalies";
+
+  useLayoutEffect(() => {
+    if (error || !cf || cf.id !== caseRef.id) return;
+    const read = (): ChatContext => {
+      const last = lastPoint.current;
+      const pointVisible = last?.point.chart === "field-desert" ? Boolean(comparison)
+        : caseChartVisible && last?.mode === chartMode;
+      return summarizeCase(cf, {
+        userLevel: explorer ? "Explorer" : expert ? "Expert" : "Analyst",
+        chartMode,
+        sensitivityWindow: activeWindow ?? null,
+        hoveredPoint: pointVisible ? last?.point : undefined,
+        language,
+      }, {
+        studyArea: zoneName(cf.zone.id, cf.zone.name),
+        nasaVariable: caseTitle(cf.variable, cf.zone.id, cf.label),
+        unit: caseUnits(cf.units),
+        slopeUnit: perDecade(cf.units),
+      });
+    };
+    chatContextRef.current = read;
+    return () => { if (chatContextRef.current === read) chatContextRef.current = null; };
+  }, [activeWindow, caseChartVisible, caseRef.id, caseTitle, caseUnits, cf, chartMode, chatContextRef, comparison, error, expert, explorer, language, perDecade, zoneName]);
   if (error) return <p role="alert" className="error">{t("Could not load this case.", "No se pudo cargar este caso.")}</p>;
   if (!cf || cf.id !== caseRef.id) return <p className="loading" role="status">{t("Opening the case file…", "Abriendo el expediente…")}</p>;
 
-  const explorer = level === "explorer", expert = level === "expert";
   const tr = cf.trend;
   const [definition, limit] = describes(cf);
   const title = caseTitle(cf.variable, cf.zone.id, cf.label);
-  const activeWindow = expert ? tr.windows[periodIndex] : undefined;
-  const showRaw = !explorer && cf.kind === "case" && mode === "value";
   const disagreement = cf.classic_test_says_significant && cf.verdict === "inconclusive";
   const checkAvailable = !explorer && hasExtractionCheck(cf.id);
 
@@ -198,8 +229,10 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
         {" · "}<a href={`https://doi.org/${cf.source.doi}`} target="_blank" rel="noreferrer">{t("Product source", "Fuente del producto")}</a>
       </p>
     </section>
-    {comparison && <FieldComparison {...comparison} />}
-    {(!comparison || !explorer) && <section className="panel analysis-panel">
+    {comparison && <FieldComparison {...comparison} onInspect={(point) => {
+      lastPoint.current = { point: { ...point, chart: "field-desert" }, mode: "Original values" };
+    }} />}
+    {caseChartVisible && <section className="panel analysis-panel">
       <div className="analysis-toolbar">
         <div className="panel-heading">
           <h3>{comparison ? t("Standardized field–desert gap", "Brecha estandarizada entre campo y desierto") : t("Monthly record", "Serie mensual")}</h3>
@@ -220,7 +253,9 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison }: {
               "Son dos vistas de la misma serie de NASA extraída por Oasis Paradox. Los valores originales conservan los niveles observados o estimados. Las anomalías restan el promedio de cada mes calendario para reducir el ciclo estacional y estimar la tendencia de largo plazo.")}</p>
           {checkAvailable && <button className="text-button small" onClick={showExtraction}>{t("See how our extraction compares with NASA →", "Ver el cotejo de nuestra extracción con NASA →")}</button>}
         </div>}
-      <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} />
+      <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} onInspect={(point) => {
+        lastPoint.current = { point: { ...point, chart: "case" }, mode: chartMode };
+      }} />
       {expert && tr.windows.length > 0 && <div className="window-controls">
         <label className="research-field">{t("Sensitivity window", "Ventana de sensibilidad")}
           <select value={periodIndex} onChange={(e) => setPeriodIndex(Number(e.target.value))}>

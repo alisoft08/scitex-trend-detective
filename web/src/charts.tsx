@@ -1,6 +1,7 @@
 // AI-assisted: Claude (Anthropic). Hand-rolled SVG charts; colors come from CSS theme tokens.
 import { useState } from "react";
 import type { SeriesPoint, Trend, Window } from "./types";
+import type { HoveredPoint } from "./chat-contract";
 import { useLocale } from "./i18n";
 
 function niceTicks(min: number, max: number, count = 5): number[] {
@@ -40,9 +41,10 @@ export function TrendChart(props: {
   simple?: boolean;
   reference?: SeriesPoint[];
   window?: Window;
+  onInspect?: (point: Omit<HoveredPoint, "chart">) => void;
 }) {
   const { t, fmt } = useLocale();
-  const { series, trend, mode, tone, units, simple, reference, window } = props;
+  const { series, trend, mode, tone, units, simple, reference, window, onInspect } = props;
   const H = props.height ?? 300;
   const m = { l: 58, r: 14, t: 14, b: 30 };
   const iw = W - m.l - m.r;
@@ -85,7 +87,12 @@ export function TrendChart(props: {
     const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
     const px = ((e.clientX - r.left) / r.width) * W;
     const i = Math.round(((px - m.l) / iw) * T * 12);
-    setHover(i >= 0 && i < n ? i : null);
+    const point = series[i];
+    setHover(point ? i : null);
+    const value = ys[i];
+    if (point && value != null && onInspect) {
+      onInspect({ date: point.date, value, unit: units, referenceValue: comparison?.[i] ?? undefined });
+    }
   }
   const hp = hover !== null ? series[hover] : null;
   const hv = hover !== null ? ys[hover] : null;
