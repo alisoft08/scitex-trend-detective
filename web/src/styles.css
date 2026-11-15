@@ -672,3 +672,23 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
   .globe-callout { position: static; transform: none; width: 100%; max-width: 560px; margin-top: 1rem; }
   .atlas .atlas-legend { text-align: center; padding-left: 0; }
 }
+/* AI-assisted: Claude (Anthropic). Full-width globe stage: the globe fills the width and is cropped top and bottom. */
+.atlas { padding-block: 0 2.6rem; }
+.atlas-stage { position: relative; height: calc(100svh - 60px); min-height: 560px; overflow: hidden; }
+.atlas-stage .globe-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 0; }
+.atlas-stage .globe { flex: none; max-width: none !important; }
+.atlas-overlay { position: absolute; top: 0; left: 0; right: 0; z-index: 5; padding-block: 1.2rem 4rem; pointer-events: none;
+  background: linear-gradient(180deg, rgba(2,4,9,.94) 0%, rgba(2,4,9,.7) 55%, rgba(2,4,9,0) 100%); }
+.atlas-overlay .atlas-head, .atlas-overlay .atlas-tools { pointer-events: auto; }
+.atlas-overlay .atlas-head h1 { font-size: clamp(1.6rem, 1rem + 2.2vw, 2.7rem); }
+.atlas-overlay .atlas-head p:last-child { max-width: 62ch; }
+.atlas-stage-foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; padding-block: 2.5rem .8rem; pointer-events: none;
+  background: linear-gradient(0deg, rgba(2,4,9,.9) 0%, rgba(2,4,9,0) 100%); }
+.atlas-stage-foot .atlas-legend { padding-left: 0; text-align: left; margin: 0; }
+.atlas-stage .globe-callout { right: 3%; top: 58%; width: min(380px, 30vw); }
+@media (max-width: 960px) {
+  .atlas-stage { height: auto; min-height: 0; overflow: visible; }
+  .atlas-overlay, .atlas-stage-foot { position: static; background: none; padding-block: 1rem; }
+  .atlas-stage .globe-stage { position: static; flex-direction: column; }
+  .atlas-stage .globe-callout { position: static; transform: none; width: auto; margin: 1rem 16px 0; }
+}

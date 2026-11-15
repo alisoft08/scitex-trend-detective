@@ -53,7 +53,8 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   const q = norm(query.trim());
   const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
   const falling = atlas.filter((x) => tone(x) === "down").length;
-  const size = typeof window !== "undefined" ? Math.max(300, Math.min(720, window.innerWidth - 40, window.innerHeight - 330)) : 640;
+  // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
+  const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.94))) : 1200;
   const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); };
   const toDetails = () => document.getElementById("atlas-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const callout = <div className="callout-card" key={a.id}>
@@ -72,7 +73,10 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   </div>;
 
   return <section className="atlas" aria-labelledby="atlas-title" id="atlas">
-    <div className="wrap wide">
+    <div className="atlas-stage">
+      <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} callout={callout}
+          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
+      <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
         <p className="eyebrow">Oasis Paradox · NASA GRACE, GLDAS, GPM IMERG, MODIS, MERRA-2 · 2004–2024</p>
         <h1 id="atlas-title">Where are the world's aquifers draining?</h1>
@@ -107,12 +111,10 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
         </div>
       </div>
 
-      <div className="atlas-hero">
-        <Globe key={filter} markers={markers} selected={sel} onSelect={pick} size={size} callout={callout}
-          label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
-        <p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p>
-      </div>
-
+      </div></div>
+      <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> falling <span className="lg up">↑</span> rising <span className="lg flat">?</span> not proven · Base map: MODIS Terra surface reflectance, 2024 (NASA)</p></div></div>
+    </div>
+    <div className="wrap wide">
       <div className="atlas-details" id="atlas-details">
           <article className="atlas-card" aria-live="polite">
             <p className="eyebrow">{a.countries.join(", ")} · {Math.round(a.area_km2).toLocaleString("en-US")} km² · {fmt(a.grace_footprints, 2)} GRACE footprints</p>

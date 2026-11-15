@@ -74,12 +74,12 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
     if (!ready) return;
     const cv = canvas.current!;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const N = Math.min(900, Math.round(size * dpr));          // cap the pixel work on large screens
+    const N = Math.min(1300, Math.round(size * dpr));         // cap the pixel work on large screens
     cv.width = N; cv.height = N;
     const g = cv.getContext("2d")!;
     const out = g.createImageData(N, N);
     const r = N / 2 - 2, cx = N / 2, cy = N / 2;
-    let raf = 0, last = { lon: NaN, lat: NaN };
+    let raf = 0, last = { lon: NaN, lat: NaN }, lastStep = 1;
     const draw = () => {
       const a = anim.current;
       if (a) {
@@ -89,15 +89,24 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
         if (k >= 1) anim.current = null;
       }
       const { lon: lon0, lat: lat0 } = view.current;
-      if (lon0 !== last.lon || lat0 !== last.lat) {
-        last = { lon: lon0, lat: lat0 };
+      // While the globe moves, draw every second pixel (2x2 blocks); once it stops, redraw at full resolution.
+      const step = anim.current || drag.current ? 2 : 1;
+      if (lon0 !== last.lon || lat0 !== last.lat || (step === 1 && lastStep === 2)) {
+        last = { lon: lon0, lat: lat0 }; lastStep = step;
         const t = tex.current!, d = out.data;
         const sp = Math.sin(lat0 * rad), cp = Math.cos(lat0 * rad);
-        for (let py = 0; py < N; py++) {
+        const put = (i0: number, px: number, py: number, R: number, G: number, B: number, A: number) => {
+          for (let dy = 0; dy < step && py + dy < N; dy++)
+            for (let dx = 0; dx < step && px + dx < N; dx++) {
+              const k = i0 + (dy * N + dx) * 4;
+              d[k] = R; d[k + 1] = G; d[k + 2] = B; d[k + 3] = A;
+            }
+        };
+        for (let py = 0; py < N; py += step) {
           const y = (cy - py) / r;
-          for (let px = 0; px < N; px++) {
+          for (let px = 0; px < N; px += step) {
             const x = (px - cx) / r, rho2 = x * x + y * y, i = (py * N + px) * 4;
-            if (rho2 > 1) { d[i + 3] = 0; continue; }
+            if (rho2 > 1) { put(i, px, py, 0, 0, 0, 0); continue; }
             const z = Math.sqrt(1 - rho2);
             const lat = Math.asin(z * sp + y * cp) / rad;
             let lon = lon0 + Math.atan2(x, z * cp - y * sp) / rad;
@@ -111,7 +120,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout 
               R = t.data[j]; G = t.data[j + 1]; B = t.data[j + 2];
             }
             const light = 0.45 + 0.55 * Math.pow(z, 0.6);       // soft day-side shading
-            d[i] = R * light; d[i + 1] = G * light; d[i + 2] = B * light; d[i + 3] = 255;
+            put(i, px, py, R * light, G * light, B * light, 255);
           }
         }
         g.putImageData(out, 0, 0);
