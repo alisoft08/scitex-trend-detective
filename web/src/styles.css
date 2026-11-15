@@ -1090,3 +1090,7 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
   .atlas .atlas-bottom-search .atlas-list { top: calc(100% + 6px); bottom: auto; }
   .atlas-overlay .atlas-head p.atlas-purpose { max-width: none; }
 }
+
+/* AI-assisted: Claude (Anthropic). A visible way back to the globe from every tool page. */
+.research-nav .nav-globe { display: inline-flex; align-items: center; gap: .35rem; }
+.research-nav .nav-globe svg { fill: none; stroke: currentColor; stroke-width: 1.4; flex: none; }

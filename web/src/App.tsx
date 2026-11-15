@@ -104,8 +104,12 @@ export default function App() {
     <>
       <header className={`topnav research-nav ${showNav ? "" : "nav-hidden"}`} aria-hidden={!showNav || undefined}>
         <div className="wrap wide">
-          <a href="#case" className="brand" aria-label="Oasis Paradox home">Oasis <span>Paradox</span></a>
+          <a href="#atlas" className="brand" aria-label="Oasis Paradox home: back to the globe">Oasis <span>Paradox</span></a>
           <nav className="nav" aria-label="Investigation tools">
+            <a href="#atlas" className="nav-globe">
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.5" /><ellipse cx="8" cy="8" rx="2.8" ry="6.5" /><path d="M1.5 8h13" /></svg>
+              {t("Globe", "Globo")}
+            </a>
             {visible.map((v) => (
               <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : v.id === "compare" ? pairLink(lastPair) : `#${v.id}`}
                 className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{v.label}</a>
