@@ -58,7 +58,7 @@ One build, three reading levels (switch in the top bar):
 
 Direct links (hash): `#evidence`, `#investigate`, `#map`, `#why`, `#method`, `#sources`; `#mission` opens the Explorer mission and `#mission-3` its chapter 3 (handy for recording the demo video).
 
-The app is static: Python precomputes every number into `web/public/data/*.json` and the browser only draws them. No test is computed in JavaScript and no language model runs at runtime.
+Python precomputes the evidence into `web/public/data/*.json`, and the browser draws it from those static files. In Detective desk, the optional Oasis assistant sends the conversation and a compact summary of the loaded case and active chart controls to `/api/chat`. The server adds the app manual.
 
 ## How to run
 
@@ -87,12 +87,14 @@ cd web && npm ci && npm run dev                   # React app (Vite), Node 20+
 
 Earth Engine project id is set in `pipeline/zones.py` (`PROJECT`). Credentials stay on the laptop (never committed).
 
+To enable the assistant locally, copy `web/.env.example` to the ignored `web/.env.local`, set `GEMINI_API_KEY` with a key from Google AI Studio, and restart `npm run dev`. Open `#investigate?case=Z2_lst` and select **Ask Oasis**. The server defaults to Gemini 3.5 Flash-Lite (`gemini-3.5-flash-lite`). Set `GEMINI_MODEL` in the server environment to override it.
+
 ## Deploy on Vercel (for Alison)
 
 1. Push this repository to GitHub (public, MIT license).
 2. In Vercel: **Add New… > Project > Import** the repository.
 3. **Root Directory: `web`**. Framework preset: Vite (detected). Build command `npm run build`, output `dist` (also set in `web/vercel.json`). Node.js 20.x.
-4. No environment variables and no secrets: the site only serves static files from `web/public/data/` and `web/public/brand/`.
+4. Set `GEMINI_API_KEY` in the Vercel Environment Variables for the deployments that should enable the assistant. It is read only by the server function. The science data and brand assets are served as static files.
 5. Deploy, then open the URL in a private window and check `#evidence`, `#investigate`, `#mission` and the language menu.
 6. Optional: request a FortiGuard Web Filter category for the new domain so judges' networks do not block it.
 
