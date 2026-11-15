@@ -17,7 +17,7 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
   const classic = atlas.filter((a) => a.gws?.per_decade !== null);
   const engine = classic.filter((a) => proven(a.gws?.verdict));
   const alarms = classic.filter((a) => a.gws?.classic_false_alarm).length;
-  const both: AtlasEntry[] = atlas.filter((a) => proven(a.tws.verdict) && (a.tws.per_decade ?? 0) < 0
+  const both: AtlasEntry[] = atlas.filter((a) => a.tws.verdict === "confirmed" && (a.tws.per_decade ?? 0) < 0
     && proven(a.ndvi?.verdict) && (a.ndvi?.per_decade ?? 0) > 0 && proven(a.et?.verdict) && (a.et?.per_decade ?? 0) > 0
     && !(proven(a.rain.verdict) && (a.rain.per_decade ?? 0) < 0));
   const pClassic = gws?.trend.p_mk_classic;
@@ -42,7 +42,7 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
       <article className="three-way">
         <span className="three-way-no">2 · Scale</span>
         <strong>A real trend, from the wrong place.</strong>
-        <p>GRACE confirms that stored water around Ica is rising{ica?.tws.per_decade != null && <>, {ica.tws.per_decade > 0 ? "+" : "−"}{fmt(Math.abs(ica.tws.per_decade / 10), 2)} mm per year</>}.
+        <p>GRACE {ica?.tws.verdict === "confirmed" ? "confirms" : "suggests"} that stored water around Ica is rising{ica?.tws.per_decade != null && <>, {ica.tws.per_decade > 0 ? "+" : "−"}{fmt(Math.abs(ica.tws.per_decade / 10), 2)} mm per year</>}.
           The test is right, but Ica covers {ica ? fmt(ica.grace_footprints * 100, 2) : "a few"}% of one GRACE footprint, so the
           number mostly describes the Andes around it. The chart below shows which aquifers a satellite can see.</p>
         <button className="text-button" onClick={() => onCase("ZW_tws_grace")}>Open the GRACE case for Ica</button>

@@ -63,11 +63,15 @@ function Welcome({ onDone }: { onDone: () => void }) {
 /** Short facts that rotate at the top right; every number comes from the manifest. */
 function facts(m: Manifest, atlas: AtlasEntry[]): string[] {
   const falling = atlas.filter((a) => proven(a.tws) && (a.tws.per_decade ?? 0) < 0);
-  const worst = [...falling].sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0];
+  // "Confirms" only for confirmed verdicts; likely ones are counted apart (both pass the engine, with different strength).
+  const confirmedLoss = falling.filter((a) => a.tws.verdict === "confirmed");
+  const likelyLoss = falling.length - confirmedLoss.length;
+  const worst = [...confirmedLoss].sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0];
   const alarms = atlas.reduce((n, a) => n + [a.tws, a.gws, a.rain, a.ndvi, a.et, a.t2m].filter((w) => w?.classic_false_alarm).length, 0);
-  const greening = atlas.filter((a) => proven(a.ndvi) && (a.ndvi?.per_decade ?? 0) > 0 && falling.includes(a)).length;
+  const greening = atlas.filter((a) => proven(a.ndvi) && (a.ndvi?.per_decade ?? 0) > 0 && proven(a.et) && (a.et?.per_decade ?? 0) > 0
+    && falling.includes(a)).length;   // the sentence claims both greener and more water use, so both are required
   return [
-    `One engine, the same NASA data, ${atlas.length} irrigated aquifers chosen from published GRACE hotspots. GRACE confirms a loss in ${falling.length}.`,
+    `One engine, the same NASA data, ${atlas.length} irrigated aquifers chosen from published GRACE hotspots. GRACE shows a loss in ${falling.length}: ${likelyLoss > 0 ? `confirmed in ${confirmedLoss.length}, likely in ${likelyLoss}` : "all confirmed"}.`,
     worst ? `${short(worst.name)} loses ${amount(worst.tws).replace("−", "")} of water: the largest confirmed loss in the atlas.` : "",
     "Where the farms are small, as in Ica, GRACE cannot see the loss. Only wells can.",
     greening ? `In ${greening} draining aquifers the cropland is getting greener and using more water.` : "",

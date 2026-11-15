@@ -2,6 +2,7 @@
 import { useLayoutEffect, useRef, useState, type MutableRefObject } from "react";
 import type { ChatContext, HoveredPoint } from "./chat-contract";
 import { summarizeCase } from "./chat-summary";
+import { caseCitation } from "./citation";
 import { TrendChart } from "./charts";
 import { useJSON } from "./data";
 import { Validation, hasExtractionCheck } from "./Validation";
@@ -148,6 +149,27 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
   </div>;
 }
 
+// AI-assisted: Claude (Anthropic). "Cite this case": data version, area, period, method and result in one copyable text.
+type Tour = Record<string, { bbox?: [number, number, number, number] }>;
+function CiteCase({ cf, href, built }: { cf: CaseFile; href: string; built: string }) {
+  const { t } = useLocale();
+  const { data: tour } = useJSON<Tour>("aquifer_tour.json");
+  const [copied, setCopied] = useState(false);
+  const box = tour?.[cf.zone.id]?.bbox ?? (cf.zone.id.endsWith("R") ? tour?.[cf.zone.id.slice(0, -1)]?.bbox : undefined);
+  const text = caseCitation(cf, { bbox: box, built, url: new URL(href, location.href).toString() });
+  const area = useRef<HTMLTextAreaElement>(null);
+  async function copy() {
+    try { await navigator.clipboard.writeText(text); setCopied(true); }
+    catch { area.current?.focus(); area.current?.select(); }
+  }
+  return <details className="research-details case-cite">
+    <summary>{t("Cite this case", "Citar este expediente")}</summary>
+    <textarea ref={area} readOnly rows={5} value={text} aria-label={t("Citation", "Cita")} onFocus={(e) => e.target.select()} />
+    <button className="btn research-secondary" onClick={() => void copy()}>{copied ? t("Citation copied", "Cita copiada") : t("Copy citation", "Copiar cita")}</button>
+    <span className="sr-only" role="status">{copied ? t("Citation copied to clipboard", "Cita copiada al portapapeles") : ""}</span>
+  </details>;
+}
+
 export function CaseFileView({ caseRef, level, manifest, href, comparison, chatContextRef }: {
   caseRef: CaseRef; level: Level; manifest: Manifest; href: string; comparison?: { field: CaseRef; desert: CaseRef };
   chatContextRef: MutableRefObject<(() => ChatContext) | null>;
@@ -245,6 +267,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         <strong>{dataKind(cf)}</strong> · {cf.source.agency} {cf.source.product} {cf.source.version}
         {" · "}<a href={`https://doi.org/${cf.source.doi}`} target="_blank" rel="noreferrer">{t("Product source", "Fuente del producto")}</a>
       </p>
+      <CiteCase cf={cf} href={href} built={manifest.generated_at} />
     </section>
     {comparison && <FieldComparison {...comparison} onInspect={(point) => {
       lastPoint.current = { point: { ...point, chart: "field-desert" }, mode: "Original values" };
