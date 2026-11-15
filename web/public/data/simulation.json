@@ -1,0 +1,82 @@
+{
+  "n": 252,
+  "alpha": 0.05,
+  "reps_false_positive": 600,
+  "reps_power": 300,
+  "design": "AR(1) noise, 252 monthly values; power uses a linear trend whose total change equals 2 marginal SD of the noise.",
+  "tests": [
+    {
+      "id": "mk_classic",
+      "label": "Classic Mann-Kendall"
+    },
+    {
+      "id": "mk_hamed_rao",
+      "label": "Mann-Kendall, Hamed-Rao correction"
+    },
+    {
+      "id": "mk_prewhitened",
+      "label": "Mann-Kendall after pre-whitening"
+    },
+    {
+      "id": "mk_block_bootstrap",
+      "label": "Mann-Kendall, block bootstrap (36 months)"
+    },
+    {
+      "id": "ar1_regression",
+      "label": "Regression with AR errors"
+    },
+    {
+      "id": "consensus",
+      "label": "Our rule: block bootstrap AND AR regression"
+    }
+  ],
+  "false_positive": [
+    {
+      "phi": 0.0,
+      "mk_classic": 0.04833333333333333,
+      "mk_hamed_rao": 0.07666666666666666,
+      "mk_prewhitened": 0.045,
+      "mk_block_bootstrap": 0.043333333333333335,
+      "ar1_regression": 0.05,
+      "consensus": 0.018333333333333333
+    },
+    {
+      "phi": 0.5,
+      "mk_classic": 0.20833333333333334,
+      "mk_hamed_rao": 0.12166666666666667,
+      "mk_prewhitened": 0.041666666666666664,
+      "mk_block_bootstrap": 0.04666666666666667,
+      "ar1_regression": 0.056666666666666664,
+      "consensus": 0.03333333333333333
+    },
+    {
+      "phi": 0.9,
+      "mk_classic": 0.6633333333333333,
+      "mk_hamed_rao": 0.30666666666666664,
+      "mk_prewhitened": 0.065,
+      "mk_block_bootstrap": 0.09666666666666666,
+      "ar1_regression": 0.11333333333333333,
+      "consensus": 0.07333333333333333
+    }
+  ],
+  "power": [
+    {
+      "phi": 0.5,
+      "mk_classic": 1.0,
+      "mk_hamed_rao": 1.0,
+      "mk_prewhitened": 1.0,
+      "mk_block_bootstrap": 0.99,
+      "ar1_regression": 1.0,
+      "consensus": 0.99
+    },
+    {
+      "phi": 0.9,
+      "mk_classic": 0.9433333333333334,
+      "mk_hamed_rao": 0.7833333333333333,
+      "mk_prewhitened": 0.39666666666666667,
+      "mk_block_bootstrap": 0.57,
+      "ar1_regression": 0.6433333333333333,
+      "consensus": 0.5533333333333333
+    }
+  ]
+}
