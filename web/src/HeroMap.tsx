@@ -187,11 +187,10 @@ export function HeroMap({ m, primary, onMap, onMission }: {
           </div>
         </div>
         <span className="hm-credit">Landsat 5 (2004) · Landsat 8/9 (2024) · NASA/USGS via Google Earth Engine</span>
-        <div className={`hm-datron ${datronSays ? "says" : ""}`} tabIndex={0} aria-label="Datron, the SciTeX guide: Take the lens. Every trend here was cross-examined."
+        <div className={`hm-datron ${datronSays ? "says" : ""}`} tabIndex={0} aria-label="Datron, the SciTeX guide (AI-generated illustration): Take the lens. Every trend here was cross-examined."
           onMouseEnter={() => setDatronSays(true)} onMouseLeave={() => setDatronSays(false)} onFocus={() => setDatronSays(true)} onBlur={() => setDatronSays(false)}>
           <span className="hm-bubble" aria-hidden="true">Take the lens. Every trend here was cross-examined.<small>Datron, your SciTeX guide</small></span>
-          <img src={brandAsset("datron-detective.png")} alt="" />
-          <span className="hm-ai">AI-generated</span>
+          <img src={brandAsset("datron-detective.png")} alt="" title="Datron (AI-generated illustration)" />
         </div>
       </div>
     </header>

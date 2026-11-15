@@ -423,7 +423,7 @@ export default function App() {
                       <h3>Use of AI</h3>
                       <p className="small">
                         Claude (Anthropic) helped write code for data extraction, the statistics engine and this app, and drafted English text.
-                        Codex (OpenAI) drew the Datron illustrations, which carry an “AI-generated” label. Every AI-assisted source file is marked
+                        Codex (OpenAI) drew the Datron mascot illustrations from the official SciTeX poses; they are marked as AI-generated in their alt text. Every AI-assisted source file is marked
                         at the top. The written verdicts on this page come from fixed templates filled with the engine's numbers; no language model
                         writes text at runtime. Results generated {m.generated_at}.
                       </p>
