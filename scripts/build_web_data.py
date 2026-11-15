@@ -58,7 +58,8 @@ VARS = {
         "data_type": "observed", "digits": 1},
     "precip": {
         "label": "Rainfall", "short": "Rain", "units": "mm/month", "witness": "climate",
-        "definition": "Monthly precipitation estimated by NASA's GPM IMERG multisatellite product for the Andean headwaters.",
+        "definition": "Monthly precipitation estimated by NASA's GPM IMERG multisatellite product, averaged over the study area "
+                      "(for Ica, the Andean headwaters where the aquifer's recharge falls).",
         "source": {"product": "GPM IMERG Final Monthly", "version": "V07", "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
                    "resolution": "0.1° (~11 km), monthly", "agency": "NASA"},
         "data_type": "estimated", "digits": 1},
@@ -95,6 +96,9 @@ CASES = [  # (zone, variable, covariates)
     # Comparison case: same water products and engine, a basin where pumping is far larger (ENSO control only).
     ("ZC", "tws_grace", ["oni"]),
     ("ZC", "gws", ["oni"]),
+    # World aquifer atlas: GRACE, GLDAS and IMERG rain over each aquifer box, ENSO control only.
+    *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip")
+      if (z, v) not in {("ZC", "tws_grace"), ("ZC", "gws")}],
 ]
 CONTRASTS = [("Z2", "ndvi"), ("Z1", "ndvi"), ("Z2", "lst"), ("Z1", "lst")]
 CONTRAST_META = {
@@ -118,6 +122,11 @@ NOTES = {
     "ZC_gws": ["GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region."],
     "Z4_t2m": ["MERRA-2 is an atmospheric reanalysis with 0.5 by 0.625 degree grid spacing."],
 }
+
+NOTES.update({f"{z}_{v}": ["Atlas case: the box around this aquifer system is approximate, not its official boundary. "
+                             "Only El Niño (ONI) is used as a control."]
+              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip")})
+NOTES["ZC_precip"] = ["Rain over the same box as the Central Valley water cases."]
 
 VERDICT_LABEL = {"confirmed": "Confirmed trend", "likely": "Likely trend",
                  "inconclusive": "Inconclusive", "insufficient_data": "Insufficient data"}
@@ -151,7 +160,9 @@ def fmt_p(p):
 
 ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacuri plains", "Z4": "the upper Ica basin",
                "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region",
-               "ZC": "California's Central Valley"}
+               "ZC": "California's Central Valley",
+               "ZHP": "the High Plains aquifer", "ZIN": "northwest India", "ZNC": "the North China Plain",
+               "ZAR": "the Arabian aquifer system", "ZTE": "the Tigris-Euphrates basin", "ZGU": "the Guarani aquifer system"}
 
 
 def summary_text(case, meta, zone_id):
@@ -386,6 +397,77 @@ def reproduce_case(case_id):
     raise SystemExit(f"Unknown case: {case_id}")
 
 
+# ---------- world aquifer atlas ----------
+# (zone, centre lon/lat, GRACE case, GLDAS case, rain case, published reference)
+ATLAS = [
+    ("ZW", (-75.85, -14.10), "ZW_tws_grace", "ZW_gws", "Z4_precip", "This project: wells from JUASVI (2025)"),
+    ("ZC", (-120.60, 37.65), "ZC_tws_grace", "ZC_gws", "ZC_precip", "Famiglietti et al. (2011)"),
+    ("ZHP", (-100.50, 37.75), "ZHP_tws_grace", "ZHP_gws", "ZHP_precip", "Richey et al. (2015); Rodell et al. (2018)"),
+    ("ZIN", (74.50, 28.25), "ZIN_tws_grace", "ZIN_gws", "ZIN_precip", "Rodell et al. (2018)"),
+    ("ZNC", (116.25, 37.50), "ZNC_tws_grace", "ZNC_gws", "ZNC_precip", "Rodell et al. (2018)"),
+    ("ZAR", (42.50, 27.00), "ZAR_tws_grace", "ZAR_gws", "ZAR_precip", "Richey et al. (2015); Rodell et al. (2018)"),
+    ("ZTE", (43.50, 34.25), "ZTE_tws_grace", "ZTE_gws", "ZTE_precip", "Rodell et al. (2018)"),
+    ("ZGU", (-52.75, -23.50), "ZGU_tws_grace", "ZGU_gws", "ZGU_precip", "Richey et al. (2015)"),
+]
+EARTH_R_KM = 6371.0
+
+
+def box_area_km2(coords):
+    lons = [c[0] for c in coords]
+    lats = [c[1] for c in coords]
+    w, e, s, n = min(lons), max(lons), min(lats), max(lats)
+    return EARTH_R_KM ** 2 * np.radians(e - w) * abs(np.sin(np.radians(n)) - np.sin(np.radians(s)))
+
+
+def mascon_area_km2(lat):
+    return EARTH_R_KM ** 2 * np.radians(3.0) * abs(np.sin(np.radians(lat + 1.5)) - np.sin(np.radians(lat - 1.5)))
+
+
+def witness_summary(case):
+    tr = case["trend"]
+    return {"id": case["id"], "verdict": case["verdict"], "per_decade": tr["sen_per_decade"],
+            "ci95": tr["sen_ci95_block_bootstrap"], "units": case["units"],
+            "classic_false_alarm": bool(case["classic_test_says_significant"] and case["verdict"] == "inconclusive"),
+            "years_to_detect": tr.get("years_to_detect")}
+
+
+def atlas_reading(zone, tws, rain, wells_share):
+    """Template text: what the three witnesses say together. 'Points to', never 'proves'."""
+    proven = tws["verdict"] in ("confirmed", "likely")
+    rain_down = rain["verdict"] in ("confirmed", "likely") and (rain["per_decade"] or 0) < 0
+    if proven and tws["per_decade"] < 0:
+        cause = ("Rain is also falling, so a drier climate contributes to the loss." if rain_down else
+                 "Rain shows no proven decline, so the loss points to groundwater pumping.")
+        return f"GRACE sees stored water falling. {cause}"
+    if proven and tws["per_decade"] > 0:
+        extra = (f" Yet {round(wells_share * 100)}% of monitored wells are falling: the farms are too small for one "
+                 "GRACE footprint, so the satellites cannot localise the loss." if zone == "ZW" else "")
+        return f"GRACE sees stored water rising.{extra}"
+    ytd = tws.get("years_to_detect")
+    more = f" A change this size would need about {round(ytd)} years of data to show up." if ytd and ytd < 200 else ""
+    return f"No proven change in stored water from space.{more}"
+
+
+def build_atlas(cases_by_id, wells_share):
+    out = []
+    for zone, (lon, lat), tws_id, gws_id, rain_id, ref in ATLAS:
+        if tws_id not in cases_by_id:
+            continue
+        geom = (json.loads((ROOT / "config" / ("zones.geojson" if zone == "ZW" else "comparison_zones.geojson"))
+                           .read_text(encoding="utf-8")))
+        feat = next(f for f in geom["features"] if f["properties"]["id"] == zone)
+        area = box_area_km2(feat["geometry"]["coordinates"][0])
+        tws, gws, rain = (witness_summary(cases_by_id[i]) for i in (tws_id, gws_id, rain_id))
+        out.append({
+            "id": zone, "name": "Ica-Villacurí, Peru" if zone == "ZW" else ZONES[zone]["name"],
+            "description": ZONES[zone]["description"], "lonlat": [lon, lat], "focus": zone == "ZW",
+            "area_km2": round(float(area), -2), "grace_footprints": round(float(area / mascon_area_km2(lat)), 2),
+            "tws": tws, "gws": gws, "rain": rain, "rain_area": "Andean headwaters" if zone == "ZW" else "aquifer box",
+            "reading": atlas_reading(zone, tws, rain, wells_share), "reference": ref,
+        })
+    return out
+
+
 def main():
     cfg = load_config()
     s, ci = load_inputs()
@@ -443,6 +525,10 @@ def main():
         "files": {"zones": "zones.geojson", "wells": "wells.geojson", "map": "map.json",
                   "simulation": "simulation.json", "witnesses": "witnesses.json"},
         "verdict_labels": VERDICT_LABEL,
+        "atlas": build_atlas(cases_by_id, wells_summary["share_falling"]),
+        "atlas_note": "Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA "
+                      "products, period (2004-2024) and engine everywhere; only El Niño (ONI) is used as a control "
+                      "outside Ica.",
         "demo_cases": [
             {"id": "greening", "title": "The greening desert", "case": "Z2_ndvi", "contrast": "Z2_vs_Z5_ndvi",
              "text": "Villacurí's desert plains turned green as irrigated fields spread. Is the trend real, and is it "

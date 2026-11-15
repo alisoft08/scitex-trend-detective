@@ -1,7 +1,7 @@
 {
   "project": "Oasis Paradox",
   "tagline": "What satellites can and cannot see",
-  "generated_at": "2026-11-15T12:22Z",
+  "generated_at": "2026-11-15T14:39Z",
   "period": "2004-01/2024-12",
   "zones": [
     {
@@ -45,6 +45,48 @@
       "role": "comparison",
       "description": "Comparison case: California's Sacramento and San Joaquin valleys, where irrigation pumps far more groundwater than in Ica and GRACE first measured aquifer depletion from space.",
       "mask": "none (whole box, 122.4-118.8 W, 35.0-40.3 N)"
+    },
+    {
+      "id": "ZHP",
+      "name": "High Plains (Ogallala), United States",
+      "role": "aquifer",
+      "description": "Irrigated grain belt over the Ogallala aquifer, from South Dakota to Texas.",
+      "mask": "none (box 104.5\u00b0W-96.5\u00b0W, 32.0\u00b0N-43.5\u00b0N; approximate, not the official aquifer boundary)"
+    },
+    {
+      "id": "ZIN",
+      "name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "role": "aquifer",
+      "description": "Rice and wheat irrigated from wells; the region where GRACE first showed large groundwater loss in India.",
+      "mask": "none (box 70.0\u00b0E-79.0\u00b0E, 24.0\u00b0N-32.5\u00b0N; approximate, not the official aquifer boundary)"
+    },
+    {
+      "id": "ZNC",
+      "name": "North China Plain",
+      "role": "aquifer",
+      "description": "Wheat and maize fields and large cities drawing on deep and shallow aquifers.",
+      "mask": "none (box 113.0\u00b0E-119.5\u00b0E, 34.5\u00b0N-40.5\u00b0N; approximate, not the official aquifer boundary)"
+    },
+    {
+      "id": "ZAR",
+      "name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "role": "aquifer",
+      "description": "Desert farms pumping fossil groundwater that is barely recharged today.",
+      "mask": "none (box 37.0\u00b0E-48.0\u00b0E, 23.0\u00b0N-31.0\u00b0N; approximate, not the official aquifer boundary)"
+    },
+    {
+      "id": "ZTE",
+      "name": "Tigris-Euphrates basin",
+      "role": "aquifer",
+      "description": "Irrigated plains of Iraq, Iran, Syria and Turkey, hit by drought and pumping.",
+      "mask": "none (box 38.0\u00b0E-49.0\u00b0E, 30.0\u00b0N-38.5\u00b0N; approximate, not the official aquifer boundary)"
+    },
+    {
+      "id": "ZGU",
+      "name": "Guarani aquifer system, South America",
+      "role": "aquifer",
+      "description": "One of the world's largest aquifers, under Brazil, Paraguay, Argentina and Uruguay, in a humid region.",
+      "mask": "none (box 58.5\u00b0W-47.0\u00b0W, 31.0\u00b0S-16.0\u00b0S; approximate, not the official aquifer boundary)"
     }
   ],
   "cases": [
@@ -334,6 +376,367 @@
       "units": "mm"
     },
     {
+      "id": "ZC_precip",
+      "path": "cases/ZC_precip.json",
+      "kind": "case",
+      "zone": "ZC",
+      "zone_name": "Central Valley, California",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.838974,
+      "ci95": [
+        -2.560803,
+        4.348938
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZHP_tws_grace",
+      "path": "cases/ZHP_tws_grace.json",
+      "kind": "case",
+      "zone": "ZHP",
+      "zone_name": "High Plains (Ogallala), United States",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "likely",
+      "sen_per_decade": -55.047343,
+      "ci95": [
+        -95.423457,
+        -15.268745
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZHP_gws",
+      "path": "cases/ZHP_gws.json",
+      "kind": "case",
+      "zone": "ZHP",
+      "zone_name": "High Plains (Ogallala), United States",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "inconclusive",
+      "sen_per_decade": -21.284622,
+      "ci95": [
+        -54.619389,
+        10.838943
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZHP_precip",
+      "path": "cases/ZHP_precip.json",
+      "kind": "case",
+      "zone": "ZHP",
+      "zone_name": "High Plains (Ogallala), United States",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": -3.194585,
+      "ci95": [
+        -9.524597,
+        2.500332
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZIN_tws_grace",
+      "path": "cases/ZIN_tws_grace.json",
+      "kind": "case",
+      "zone": "ZIN",
+      "zone_name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -222.549196,
+      "ci95": [
+        -263.355322,
+        -181.400538
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZIN_gws",
+      "path": "cases/ZIN_gws.json",
+      "kind": "case",
+      "zone": "ZIN",
+      "zone_name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "confirmed",
+      "sen_per_decade": -44.084081,
+      "ci95": [
+        -53.117231,
+        -35.241698
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZIN_precip",
+      "path": "cases/ZIN_precip.json",
+      "kind": "case",
+      "zone": "ZIN",
+      "zone_name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": 3.609292,
+      "ci95": [
+        0.589985,
+        6.502072
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZNC_tws_grace",
+      "path": "cases/ZNC_tws_grace.json",
+      "kind": "case",
+      "zone": "ZNC",
+      "zone_name": "North China Plain",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -159.402431,
+      "ci95": [
+        -205.596736,
+        -113.306902
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZNC_gws",
+      "path": "cases/ZNC_gws.json",
+      "kind": "case",
+      "zone": "ZNC",
+      "zone_name": "North China Plain",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "confirmed",
+      "sen_per_decade": -72.274387,
+      "ci95": [
+        -97.703823,
+        -45.19059
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZNC_precip",
+      "path": "cases/ZNC_precip.json",
+      "kind": "case",
+      "zone": "ZNC",
+      "zone_name": "North China Plain",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "likely",
+      "sen_per_decade": 5.536932,
+      "ci95": [
+        1.067189,
+        9.859074
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZAR_tws_grace",
+      "path": "cases/ZAR_tws_grace.json",
+      "kind": "case",
+      "zone": "ZAR",
+      "zone_name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -91.195439,
+      "ci95": [
+        -99.465927,
+        -83.231993
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZAR_gws",
+      "path": "cases/ZAR_gws.json",
+      "kind": "case",
+      "zone": "ZAR",
+      "zone_name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "confirmed",
+      "sen_per_decade": -11.34082,
+      "ci95": [
+        -17.81794,
+        -5.173059
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZAR_precip",
+      "path": "cases/ZAR_precip.json",
+      "kind": "case",
+      "zone": "ZAR",
+      "zone_name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": 0.610259,
+      "ci95": [
+        0.091224,
+        1.180487
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZTE_tws_grace",
+      "path": "cases/ZTE_tws_grace.json",
+      "kind": "case",
+      "zone": "ZTE",
+      "zone_name": "Tigris-Euphrates basin",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "confirmed",
+      "sen_per_decade": -86.875118,
+      "ci95": [
+        -128.528446,
+        -51.53681
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZTE_gws",
+      "path": "cases/ZTE_gws.json",
+      "kind": "case",
+      "zone": "ZTE",
+      "zone_name": "Tigris-Euphrates basin",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "confirmed",
+      "sen_per_decade": -34.424409,
+      "ci95": [
+        -55.026147,
+        -15.925284
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZTE_precip",
+      "path": "cases/ZTE_precip.json",
+      "kind": "case",
+      "zone": "ZTE",
+      "zone_name": "Tigris-Euphrates basin",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": -0.126031,
+      "ci95": [
+        -2.779777,
+        2.370737
+      ],
+      "units": "mm/month"
+    },
+    {
+      "id": "ZGU_tws_grace",
+      "path": "cases/ZGU_tws_grace.json",
+      "kind": "case",
+      "zone": "ZGU",
+      "zone_name": "Guarani aquifer system, South America",
+      "variable": "tws_grace",
+      "label": "Total water storage (GRACE satellites)",
+      "short": "Total water (GRACE)",
+      "witness": "water",
+      "data_type": "observed",
+      "verdict": "inconclusive",
+      "sen_per_decade": -21.82354,
+      "ci95": [
+        -70.850808,
+        25.510502
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZGU_gws",
+      "path": "cases/ZGU_gws.json",
+      "kind": "case",
+      "zone": "ZGU",
+      "zone_name": "Guarani aquifer system, South America",
+      "variable": "gws",
+      "label": "Groundwater storage (model)",
+      "short": "Groundwater (GLDAS)",
+      "witness": "water",
+      "data_type": "modeled",
+      "verdict": "inconclusive",
+      "sen_per_decade": -32.478974,
+      "ci95": [
+        -72.368924,
+        7.803338
+      ],
+      "units": "mm"
+    },
+    {
+      "id": "ZGU_precip",
+      "path": "cases/ZGU_precip.json",
+      "kind": "case",
+      "zone": "ZGU",
+      "zone_name": "Guarani aquifer system, South America",
+      "variable": "precip",
+      "label": "Rainfall",
+      "short": "Rain",
+      "witness": "climate",
+      "data_type": "estimated",
+      "verdict": "inconclusive",
+      "sen_per_decade": -3.615609,
+      "ci95": [
+        -15.77359,
+        8.72344
+      ],
+      "units": "mm/month"
+    },
+    {
       "id": "Z2_vs_Z5_ndvi",
       "path": "contrasts/Z2_vs_Z5_ndvi.json",
       "kind": "contrast",
@@ -518,6 +921,417 @@
     "inconclusive": "Inconclusive",
     "insufficient_data": "Insufficient data"
   },
+  "atlas": [
+    {
+      "id": "ZW",
+      "name": "Ica-Villacur\u00ed, Peru",
+      "description": "Both irrigated zones together; the smallest area coarse water products can speak to.",
+      "lonlat": [
+        -75.85,
+        -14.1
+      ],
+      "focus": true,
+      "area_km2": 3600.0,
+      "grace_footprints": 0.03,
+      "tws": {
+        "id": "ZW_tws_grace",
+        "verdict": "confirmed",
+        "per_decade": 14.205198,
+        "ci95": [
+          8.719854,
+          19.553387
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZW_gws",
+        "verdict": "inconclusive",
+        "per_decade": 1.664652,
+        "ci95": [
+          -0.047732,
+          3.544095
+        ],
+        "units": "mm",
+        "classic_false_alarm": true,
+        "years_to_detect": 38.367041
+      },
+      "rain": {
+        "id": "Z4_precip",
+        "verdict": "inconclusive",
+        "per_decade": -0.650206,
+        "ci95": [
+          -2.034699,
+          0.66902
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 68.765135
+      },
+      "rain_area": "Andean headwaters",
+      "reading": "GRACE sees stored water rising. Yet 69% of monitored wells are falling: the farms are too small for one GRACE footprint, so the satellites cannot localise the loss.",
+      "reference": "This project: wells from JUASVI (2025)"
+    },
+    {
+      "id": "ZC",
+      "name": "Central Valley, California",
+      "description": "Comparison case: California's Sacramento and San Joaquin valleys, where irrigation pumps far more groundwater than in Ica and GRACE first measured aquifer depletion from space.",
+      "lonlat": [
+        -120.6,
+        37.65
+      ],
+      "focus": false,
+      "area_km2": 186700.0,
+      "grace_footprints": 2.12,
+      "tws": {
+        "id": "ZC_tws_grace",
+        "verdict": "confirmed",
+        "per_decade": -133.535923,
+        "ci95": [
+          -189.89247,
+          -83.108875
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZC_gws",
+        "verdict": "inconclusive",
+        "per_decade": -26.589887,
+        "ci95": [
+          -55.430611,
+          0.516974
+        ],
+        "units": "mm",
+        "classic_false_alarm": true,
+        "years_to_detect": 53.182811
+      },
+      "rain": {
+        "id": "ZC_precip",
+        "verdict": "inconclusive",
+        "per_decade": 0.838974,
+        "ci95": [
+          -2.560803,
+          4.348938
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 245.301603
+      },
+      "rain_area": "aquifer box",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reference": "Famiglietti et al. (2011)"
+    },
+    {
+      "id": "ZHP",
+      "name": "High Plains (Ogallala), United States",
+      "description": "Irrigated grain belt over the Ogallala aquifer, from South Dakota to Texas.",
+      "lonlat": [
+        -100.5,
+        37.75
+      ],
+      "focus": false,
+      "area_km2": 897900.0,
+      "grace_footprints": 10.21,
+      "tws": {
+        "id": "ZHP_tws_grace",
+        "verdict": "likely",
+        "per_decade": -55.047343,
+        "ci95": [
+          -95.423457,
+          -15.268745
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZHP_gws",
+        "verdict": "inconclusive",
+        "per_decade": -21.284622,
+        "ci95": [
+          -54.619389,
+          10.838943
+        ],
+        "units": "mm",
+        "classic_false_alarm": true,
+        "years_to_detect": 49.469361
+      },
+      "rain": {
+        "id": "ZHP_precip",
+        "verdict": "inconclusive",
+        "per_decade": -3.194585,
+        "ci95": [
+          -9.524597,
+          2.500332
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 94.871135
+      },
+      "rain_area": "aquifer box",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reference": "Richey et al. (2015); Rodell et al. (2018)"
+    },
+    {
+      "id": "ZIN",
+      "name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "description": "Rice and wheat irrigated from wells; the region where GRACE first showed large groundwater loss in India.",
+      "lonlat": [
+        74.5,
+        28.25
+      ],
+      "focus": false,
+      "area_km2": 832400.0,
+      "grace_footprints": 8.49,
+      "tws": {
+        "id": "ZIN_tws_grace",
+        "verdict": "confirmed",
+        "per_decade": -222.549196,
+        "ci95": [
+          -263.355322,
+          -181.400538
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZIN_gws",
+        "verdict": "confirmed",
+        "per_decade": -44.084081,
+        "ci95": [
+          -53.117231,
+          -35.241698
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "rain": {
+        "id": "ZIN_precip",
+        "verdict": "inconclusive",
+        "per_decade": 3.609292,
+        "ci95": [
+          0.589985,
+          6.502072
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 41.896768
+      },
+      "rain_area": "aquifer box",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reference": "Rodell et al. (2018)"
+    },
+    {
+      "id": "ZNC",
+      "name": "North China Plain",
+      "description": "Wheat and maize fields and large cities drawing on deep and shallow aquifers.",
+      "lonlat": [
+        116.25,
+        37.5
+      ],
+      "focus": false,
+      "area_km2": 382400.0,
+      "grace_footprints": 4.33,
+      "tws": {
+        "id": "ZNC_tws_grace",
+        "verdict": "confirmed",
+        "per_decade": -159.402431,
+        "ci95": [
+          -205.596736,
+          -113.306902
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZNC_gws",
+        "verdict": "confirmed",
+        "per_decade": -72.274387,
+        "ci95": [
+          -97.703823,
+          -45.19059
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "rain": {
+        "id": "ZNC_precip",
+        "verdict": "likely",
+        "per_decade": 5.536932,
+        "ci95": [
+          1.067189,
+          9.859074
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "rain_area": "aquifer box",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reference": "Rodell et al. (2018)"
+    },
+    {
+      "id": "ZAR",
+      "name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "description": "Desert farms pumping fossil groundwater that is barely recharged today.",
+      "lonlat": [
+        42.5,
+        27.0
+      ],
+      "focus": false,
+      "area_km2": 968700.0,
+      "grace_footprints": 9.77,
+      "tws": {
+        "id": "ZAR_tws_grace",
+        "verdict": "confirmed",
+        "per_decade": -91.195439,
+        "ci95": [
+          -99.465927,
+          -83.231993
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZAR_gws",
+        "verdict": "confirmed",
+        "per_decade": -11.34082,
+        "ci95": [
+          -17.81794,
+          -5.173059
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "rain": {
+        "id": "ZAR_precip",
+        "verdict": "inconclusive",
+        "per_decade": 0.610259,
+        "ci95": [
+          0.091224,
+          1.180487
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 105.326573
+      },
+      "rain_area": "aquifer box",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reference": "Richey et al. (2015); Rodell et al. (2018)"
+    },
+    {
+      "id": "ZTE",
+      "name": "Tigris-Euphrates basin",
+      "description": "Irrigated plains of Iraq, Iran, Syria and Turkey, hit by drought and pumping.",
+      "lonlat": [
+        43.5,
+        34.25
+      ],
+      "focus": false,
+      "area_km2": 954700.0,
+      "grace_footprints": 10.38,
+      "tws": {
+        "id": "ZTE_tws_grace",
+        "verdict": "confirmed",
+        "per_decade": -86.875118,
+        "ci95": [
+          -128.528446,
+          -51.53681
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "gws": {
+        "id": "ZTE_gws",
+        "verdict": "confirmed",
+        "per_decade": -34.424409,
+        "ci95": [
+          -55.026147,
+          -15.925284
+        ],
+        "units": "mm",
+        "classic_false_alarm": false,
+        "years_to_detect": null
+      },
+      "rain": {
+        "id": "ZTE_precip",
+        "verdict": "inconclusive",
+        "per_decade": -0.126031,
+        "ci95": [
+          -2.779777,
+          2.370737
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 505.242412
+      },
+      "rain_area": "aquifer box",
+      "reading": "GRACE sees stored water falling. Rain shows no proven decline, so the loss points to groundwater pumping.",
+      "reference": "Rodell et al. (2018)"
+    },
+    {
+      "id": "ZGU",
+      "name": "Guarani aquifer system, South America",
+      "description": "One of the world's largest aquifers, under Brazil, Paraguay, Argentina and Uruguay, in a humid region.",
+      "lonlat": [
+        -52.75,
+        -23.5
+      ],
+      "focus": false,
+      "area_km2": 1950400.0,
+      "grace_footprints": 19.11,
+      "tws": {
+        "id": "ZGU_tws_grace",
+        "verdict": "inconclusive",
+        "per_decade": -21.82354,
+        "ci95": [
+          -70.850808,
+          25.510502
+        ],
+        "units": "mm",
+        "classic_false_alarm": true,
+        "years_to_detect": 50.592971
+      },
+      "gws": {
+        "id": "ZGU_gws",
+        "verdict": "inconclusive",
+        "per_decade": -32.478974,
+        "ci95": [
+          -72.368924,
+          7.803338
+        ],
+        "units": "mm",
+        "classic_false_alarm": true,
+        "years_to_detect": 35.586881
+      },
+      "rain": {
+        "id": "ZGU_precip",
+        "verdict": "inconclusive",
+        "per_decade": -3.615609,
+        "ci95": [
+          -15.77359,
+          8.72344
+        ],
+        "units": "mm/month",
+        "classic_false_alarm": false,
+        "years_to_detect": 53.729047
+      },
+      "rain_area": "aquifer box",
+      "reading": "No proven change in stored water from space. A change this size would need about 51 years of data to show up.",
+      "reference": "Richey et al. (2015)"
+    }
+  ],
+  "atlas_note": "Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA products, period (2004-2024) and engine everywhere; only El Ni\u00f1o (ONI) is used as a control outside Ica.",
   "demo_cases": [
     {
       "id": "greening",

@@ -7,8 +7,8 @@ import { Lab } from "./Lab";
 import { MapView } from "./MapView";
 import { Sources } from "./Sources";
 import { ImpactBand } from "./ImpactBand";
-import { TwoValleys } from "./TwoValleys";
 import { Audiences } from "./Audiences";
+import { Atlas } from "./Atlas";
 import { FieldLab } from "./FieldLab";
 import { useLang } from "./i18n";
 import { useJSON } from "./data";
@@ -117,7 +117,7 @@ export default function App() {
             ? { label: "Start the field lab →", go: () => navigate("#field-lab") }
             : { label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {isHome && <ImpactBand m={manifest} onOpen={navigate} />}
-          {isHome && <TwoValleys m={manifest} level={level} onCase={selectCase} onCompare={() => selectPair(["ZW_tws_grace", "ZC_tws_grace"])} />}
+          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => selectCase("ZW_tws_grace")} />}
           {isHome && <Audiences onStart={(next) => { setLevel(next); if (next === "explorer") navigate("#field-lab"); else selectCase(lastCase); }} />}
           {view === "field-lab" && <FieldLab m={manifest} lang={lang} onLang={setLang}
             startAt={Number(/-(\d)$/.exec(location.hash.split("?")[0])?.[1] ?? 0)}

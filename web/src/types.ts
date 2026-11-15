@@ -98,6 +98,18 @@ export interface Manifest {
   verdict_labels: Record<Verdict, string>;
   demo_cases: DemoCase[];
   provisional: string;
+  atlas?: AtlasEntry[];
+  atlas_note?: string;
+}
+
+export interface AtlasWitness {
+  id: string; verdict: Verdict; per_decade: number | null; ci95: [number | null, number | null]; units: string;
+  classic_false_alarm: boolean; years_to_detect: number | null;
+}
+export interface AtlasEntry {
+  id: string; name: string; description: string; lonlat: [number, number]; focus: boolean;
+  area_km2: number; grace_footprints: number; tws: AtlasWitness; gws: AtlasWitness; rain: AtlasWitness;
+  rain_area: string; reading: string; reference: string;
 }
 
 export interface SeriesPoint {

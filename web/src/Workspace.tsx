@@ -6,7 +6,8 @@ import type { CaseRef, Manifest } from "./types";
 
 export const PLACES: Record<string, string> = {
   Z2: "Villacurí fields", Z1: "Ica Valley fields", Z5: "Desert reference", Z4: "Andean headwaters", ZW: "Ica–Villacurí region",
-  ZC: "Central Valley, CA (comparison)",
+  ZC: "Central Valley, CA (atlas)", ZHP: "High Plains, US (atlas)", ZIN: "Northwest India (atlas)",
+  ZNC: "North China Plain (atlas)", ZAR: "Arabian aquifers (atlas)", ZTE: "Tigris–Euphrates (atlas)", ZGU: "Guarani aquifer (atlas)",
 };
 
 export const WITNESSES = [
@@ -68,7 +69,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
   return (
     <section className="wrap wide research-page">
       <div className="research-heading">
-        <p className="eyebrow">{selected.zone === "ZC" ? "Central Valley, California · comparison case" : "Ica, Peru"} · NASA Earth observations</p>
+        <p className="eyebrow">{["ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"].includes(selected.zone) ? `${selected.zone_name} · world aquifer atlas` : "Ica, Peru"} · NASA Earth observations</p>
         <h1>Detective desk</h1>
       </div>
 

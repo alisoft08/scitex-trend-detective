@@ -22,6 +22,16 @@ WATER_BLOCK = [-76.08, -14.45, -75.62, -13.80]
 # Comparison case outside Peru: California's Central Valley (Sacramento + San Joaquin valleys), where GRACE
 # famously sees groundwater depletion (Famiglietti et al., 2011). Same coarse products, same engine.
 CENTRAL_VALLEY = [-122.40, 35.00, -118.80, 40.30]
+# World aquifer atlas: approximate boxes around major irrigated aquifer systems named in GRACE studies
+# (Richey et al., 2015; Rodell et al., 2018). Boxes, not official aquifer boundaries.
+AQUIFERS = {
+    "ZHP": [-104.50, 32.00, -96.50, 43.50],   # High Plains (Ogallala), United States
+    "ZIN": [70.00, 24.00, 79.00, 32.50],      # Northwest India (Punjab, Haryana, Rajasthan)
+    "ZNC": [113.00, 34.50, 119.50, 40.50],    # North China Plain
+    "ZAR": [37.00, 23.00, 48.00, 31.00],      # Arabian aquifer system (Saq), Saudi Arabia
+    "ZTE": [38.00, 30.00, 49.00, 38.50],      # Tigris-Euphrates
+    "ZGU": [-58.50, -31.00, -47.00, -16.00],  # Guarani aquifer system, South America
+}
 
 ZONE_META = {
     "Z1": {"name": "Ica Valley", "role": "irrigated",
@@ -89,4 +99,5 @@ def zone_masks():
         "Z4": (basin, elev.gt(2500)),
         "ZW": (rect(WATER_BLOCK), None),
         "ZC": (rect(CENTRAL_VALLEY), None),
+        **{k: (rect(b), None) for k, b in AQUIFERS.items()},
     }
