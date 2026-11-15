@@ -24,7 +24,9 @@ const DWELL_MS = 3600;
 const RESUME_MS = 4000;
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
-export function HeroMap({ m, onStart, onMap, onMission }: { m: Manifest; onStart: () => void; onMap: () => void; onMission?: () => void }) {
+export function HeroMap({ m, primary, onMap, onMission }: {
+  m: Manifest; primary: { label: string; go: () => void }; onMap: () => void; onMission?: () => void;
+}) {
   const { data: meta } = useJSON<HeroMeta>("map.json");
   const stage = useRef<HTMLDivElement>(null);
   const size = useRef({ w: 1, h: 1 });
@@ -177,7 +179,7 @@ export function HeroMap({ m, onStart, onMap, onMission }: { m: Manifest; onStart
               would have fooled us twice. Take the lens. Become the detective.
             </p>
             <div className="hm-cta">
-              <button className="hm-btn primary" onClick={onStart}>See the evidence →</button>
+              <button className="hm-btn primary" id="hero-primary" onClick={primary.go}>{primary.label}</button>
               <button className="hm-btn ghost" onClick={onMap}>Explore the map</button>
               {onMission && <button className="hm-btn to-mission" id="hero-mission" onClick={onMission}>Student? Play the Explorer mission →</button>}
             </div>
