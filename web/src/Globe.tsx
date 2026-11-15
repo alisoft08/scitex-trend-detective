@@ -36,6 +36,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   const lastSelected = useRef(selected);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const idleUntil = useRef(0);
+  const hovering = useRef(false);   // mouse over the globe or keyboard focus inside it
   const canvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
   const view = useRef({ lon: 0, lat: 0 });
@@ -100,10 +101,11 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
     let lastT = performance.now(), lastSpin = 0;
     const draw = () => {
       const now = performance.now(), dtS = Math.min(0.1, (now - lastT) / 1000); lastT = now;
-      // Slow spin, west to east as seen from space (about 6 degrees a second): every frame on the GPU, ~20 a second on the CPU.
-      const spinning = autoRotate && !reduced && !anim.current && !drag.current && now > idleUntil.current;
+      // Slow spin, west to east as seen from space (about 4 degrees a second): every frame on the GPU, ~20 a second on the CPU.
+      // Never spin under the pointer: a moving target cannot be clicked.
+      const spinning = autoRotate && !reduced && !anim.current && !drag.current && !hovering.current && now > idleUntil.current;
       if (spinning && (glr || now - lastSpin > 50)) {
-        view.current = { lon: view.current.lon - 6 * Math.max(dtS, Math.min(0.2, (now - lastSpin) / 1000)), lat: view.current.lat };
+        view.current = { lon: view.current.lon - 4 * Math.max(dtS, Math.min(0.2, (now - lastSpin) / 1000)), lat: view.current.lat };
         lastSpin = now;
       } else if (!spinning) lastSpin = now;
       const a = anim.current;
@@ -193,6 +195,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "mouse") hovering.current = true;   // also when the pointer was already here (after the welcome)
     const s = drag.current; if (!s) return;
     const k = 180 / size;
     view.current = { lon: s.lon - (e.clientX - s.x) * k, lat: Math.max(-55, Math.min(55, s.lat + (e.clientY - s.y) * k)) };
@@ -207,7 +210,10 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   return (
     <div className="globe-stage" ref={stage}>
     <div className="globe" ref={box} style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; idleUntil.current = performance.now() + 4000; }} onKeyDown={onKey}>
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; idleUntil.current = performance.now() + 4000; }} onKeyDown={onKey}
+      onPointerEnter={(e) => { if (e.pointerType === "mouse") hovering.current = true; }}
+      onPointerLeave={() => { hovering.current = false; idleUntil.current = Math.max(idleUntil.current, performance.now() + 2000); }}
+      onFocus={() => { hovering.current = true; }} onBlur={() => { hovering.current = false; }}>
       <div className="globe-halo" aria-hidden="true" />
       <canvas ref={canvas} className="globe-canvas" aria-hidden="true" />
       {!ready && <p className="globe-loading">Loading MODIS mosaic…</p>}
