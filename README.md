@@ -72,6 +72,8 @@ field lab remain in the code, hidden behind `EXPERT_ONLY` in `web/src/levels.ts`
 - **Home: the world aquifer globe.** A large 3D globe on a MODIS mosaic over a black background, search by aquifer or
   country, a quick filter by GRACE verdict, and a pop-out card with a satellite close-up of the chosen aquifer. Below:
   six NASA witnesses per aquifer, the comparison table and "Who it is for".
+- **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): a 2004 / 2024 lens
+  (MODIS, same season; Landsat for Ica), the reading, and six NASA witnesses with annual sparklines.
 - **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
   only aquifer with field wells.
 - **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.
@@ -125,7 +127,7 @@ Earth Engine and Earthdata credentials are never needed by the site and never go
 
 ```text
 config/        zones.geojson, comparison_zones.geojson (atlas), verdict.yaml (pre-registered thresholds)
-pipeline/      Earth Engine extraction, climate indices, zones, map images, yearly Landsat, world mosaic, aquifer close-ups, JUASVI parser
+pipeline/      Earth Engine extraction, climate indices, zones, map images, yearly Landsat, world mosaic, aquifer close-ups and 2004/2024 pairs, JUASVI parser
 engine/        trend tests and the verdict rule (Python only)
 tests/         synthetic series with known slope
 scripts/       Monte Carlo simulation, build of the web data contract

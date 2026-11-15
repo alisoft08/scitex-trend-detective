@@ -9,6 +9,7 @@ import { Sources } from "./Sources";
 import { ImpactBand } from "./ImpactBand";
 import { Audiences } from "./Audiences";
 import { Atlas } from "./Atlas";
+import { AquiferPage } from "./AquiferPage";
 import { FieldLab } from "./FieldLab";
 import { useLang } from "./i18n";
 import { useJSON } from "./data";
@@ -91,7 +92,8 @@ export default function App() {
   const pair: readonly [string, string] = a && b && a !== b && manifest?.cases.some((c) => c.id === a) && manifest.cases.some((c) => c.id === b)
     ? [a, b] : lastPair;
   const visible = VIEWS.filter((v) => (v.id !== "compare" || level !== "explorer") && (v.id !== "field-lab" || level === "explorer"));
-  const isHome = !VIEWS.some((v) => v.id === view);
+  const isAquifer = view === "aquifer";
+  const isHome = !VIEWS.some((v) => v.id === view) && !isAquifer;
   // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
   const [picked, setPicked] = useState(false);
   const showNav = !isHome || picked;
@@ -118,7 +120,8 @@ export default function App() {
       {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${level} ${showNav ? "" : "no-nav"}`}>
-          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} />}
+          {isHome && <Atlas m={manifest} level={level} onCase={selectCase} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
+          {isAquifer && <AquiferPage m={manifest} id={route.params.get("id") ?? ""} onCase={selectCase} onIca={() => navigate("#ica")} onBack={() => navigate("#atlas")} />}
           {view === "ica" && <HeroMap m={manifest} primary={{ label: "Open the detective desk →", go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Audiences onOpen={(target) => {
