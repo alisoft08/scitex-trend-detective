@@ -704,3 +704,17 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .atlas-overlay .atlas-search { max-width: none; flex: none; }
 @media (max-width: 960px) { .atlas-overlay { width: auto; } .atlas-stage .globe-stage { padding-top: 0; } }
 .atlas-overlay { padding-left: clamp(0px, 2.8vw, 40px); }
+
+/* AI-assisted: Claude (Anthropic). Less text, more globe: a short title and compact tools float over the globe. */
+.atlas-overlay { width: auto; right: auto; bottom: auto; background: none; padding-block: 1.1rem 0; }
+.atlas-overlay .atlas-head { margin: 0; }
+.atlas-overlay .atlas-head h1 { font-size: clamp(1.3rem, .9rem + 1.3vw, 1.9rem); text-shadow: 0 2px 18px rgba(0,0,0,.9); }
+.atlas-overlay .atlas-tools { flex-direction: row; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .7rem; }
+.atlas-overlay .atlas-search { width: 260px; }
+.atlas-overlay .atlas-search input { padding: .5rem .8rem; font-size: .85rem; background: rgba(13,18,32,.75); backdrop-filter: blur(6px); }
+.atlas-overlay .atlas-filters button { font-size: .76rem; padding: .35rem .65rem; background: rgba(13,18,32,.6); backdrop-filter: blur(6px); }
+.atlas-overlay .atlas-filters button[aria-pressed="true"] { background: #e8eef9; }
+.atlas-stage-foot { background: none; padding-block: 0 .7rem; }
+.atlas-stage-foot .atlas-legend { font-size: .72rem; opacity: .8; }
+.atlas-stage .globe-stage { padding-top: 2.5vh; }
+.atlas-stage-foot .atlas-legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .15rem; padding: .3rem .75rem; border-radius: 999px; background: rgba(2,4,9,.7); backdrop-filter: blur(6px); opacity: 1; color: #c9d1e3; }

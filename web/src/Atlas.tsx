@@ -54,7 +54,7 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
   const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")}`).includes(q));
   const falling = atlas.filter((x) => tone(x) === "down").length;
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
-  const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.94))) : 1200;
+  const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
   const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); };
   const toDetails = () => document.getElementById("atlas-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
   const callout = <div className="callout-card" key={a.id}>
@@ -79,16 +79,14 @@ export function Atlas({ m, onCase, onIca }: { m: Manifest; level?: Level; onCase
           label="Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it; search or filter above." />
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
-        <p className="eyebrow">Oasis Paradox · NASA GRACE, GLDAS, GPM IMERG, MODIS, MERRA-2 · 2004–2024</p>
-        <h1 id="atlas-title">Where are the world's aquifers draining?</h1>
-        <p>One engine, the same NASA data, {atlas.length} irrigated aquifers. GRACE confirms a loss in {falling}; where the farms are
-          small, as in Ica, the satellites cannot see it, and only wells can.</p>
+        <h1 id="atlas-title">Where are aquifers draining?</h1>
+        <p className="sr-only">One engine, the same NASA data, {atlas.length} irrigated aquifers; GRACE confirms a loss in {falling}.</p>
       </header>
 
       <div className="atlas-tools">
         <div className="atlas-search">
           <label htmlFor="aquifer-search" className="sr-only">Find an aquifer or a country</label>
-          <input id="aquifer-search" type="search" value={query} placeholder="Search an aquifer or a country…" autoComplete="off"
+          <input id="aquifer-search" type="search" value={query} placeholder="Search aquifer or country" autoComplete="off"
             role="combobox" aria-expanded={open} aria-controls="aquifer-list"
             onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
             onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
