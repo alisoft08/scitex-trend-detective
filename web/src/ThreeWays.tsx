@@ -51,7 +51,8 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
         <span className="three-way-no">3 · Method</span>
         <strong>The model says Ica's aquifer is rising. The wells say it is falling.</strong>
         <p>NASA's groundwater model (GLDAS) over Ica trends upward, and the classic Mann-Kendall test calls it significant
-          {pText && <> (p = {pText})</>}. Yet {wells}% of the monitored wells are falling. Monthly data carry memory, and the classic
+          {pText && <> (p = {pText})</>}. Yet {wells}% of {m.wells.n} monitored wells fell between their first and last readings
+          ({m.wells.period.replace(/ \(.*\)/, "").replace("-", "–")}; two readings per well, so no trend test). Monthly data carry memory, and the classic
           test mistakes it for a trend. Our engine says: inconclusive. Across the atlas the classic test raised {alarms} such alarms
           in GLDAS groundwater; the engine finds a confirmed or likely trend in {engine.length} of {classic.length} aquifers.</p>
         <button className="text-button" onClick={() => onCase("ZW_gws")}>Open that false alarm</button>

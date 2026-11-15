@@ -1094,3 +1094,8 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 /* AI-assisted: Claude (Anthropic). A visible way back to the globe from every tool page. */
 .research-nav .nav-globe { display: inline-flex; align-items: center; gap: .35rem; }
 .research-nav .nav-globe svg { fill: none; stroke: currentColor; stroke-width: 1.4; flex: none; }
+
+/* AI-assisted: Claude (Anthropic). Names what the trends are about, above the home title. */
+.atlas-overlay .atlas-head .atlas-kicker { margin: 0 0 .35rem; font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #f1c56b; text-shadow: 0 0 12px rgba(2,4,12,.95), 0 1px 2px rgba(0,0,0,.9); }
+.atlas-overlay .atlas-head .atlas-kicker span { display: block; }
