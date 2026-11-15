@@ -1,5 +1,5 @@
-// AI-assisted: Claude (Anthropic). The problem the tool solves, in three real examples from this atlas: a satellite trend can
-// fool you through memory, scale or a single witness. Every number is read from the engine's output; nothing is computed here
+// AI-assisted: Claude (Anthropic). The problem the tool solves, in three real examples from this atlas: a conclusion from NASA
+// data holds up only if it survives three checks, on the source, the scale and the method. Every number is read from the engine's output; nothing is computed here
 // beyond counting and unit conversion.
 import { useJSON } from "./data";
 import { fmt } from "./format";
@@ -24,18 +24,20 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
   const pText = pClassic == null ? null : pClassic < 0.0001 ? fmt(pClassic, 1) : fmt(pClassic, 2);
 
   return <section className="three-ways" aria-labelledby="three-ways-title">
-    <h3 id="three-ways-title">Three ways a satellite trend can fool you</h3>
-    <p className="three-ways-lede">NASA data make it easy to claim a trend in minutes, and easy to get it wrong. Oasis Paradox checks all
-      three before it calls a trend real. These examples come from the atlas below.</p>
+    <h3 id="three-ways-title">Source, scale and method: three checks before you trust a trend</h3>
+    <p className="three-ways-lede">NASA data make it easy to claim a trend in minutes, and easy to get it wrong. Oasis Paradox checks the
+      source, the scale and the method before it calls a trend real. These examples come from the atlas below.</p>
     <div className="three-ways-grid">
       <article className="three-way">
-        <span className="three-way-no">1 · Memory</span>
-        <strong>The model says Ica's aquifer is rising. The wells say it is falling.</strong>
-        <p>NASA's groundwater model (GLDAS) over Ica trends upward, and the classic Mann-Kendall test calls it significant
-          {pText && <> (p = {pText})</>}. Yet {wells}% of the monitored wells are falling. Monthly data carry memory, and the classic
-          test mistakes it for a trend. Our engine says: inconclusive. Across the atlas the classic test raised {alarms} such alarms
-          in GLDAS groundwater; the engine finds a confirmed or likely trend in {engine.length} of {classic.length} aquifers.</p>
-        <button className="text-button" onClick={() => onCase("ZW_gws")}>Open that false alarm</button>
+        <span className="three-way-no">1 · Source</span>
+        <strong>Which source, and is it independent?</strong>
+        <p>{both.length > 0
+          ? <>In {both.map((a) => shortName(a.name)).join(", ").replace(/, ([^,]*)$/, " and $1")}, GRACE confirms a water loss while
+            MODIS shows cropland getting greener and using more water, with no proven fall in rain. Independent witnesses that agree
+            point to irrigation. GLDAS does not count as one more: it is a model nudged by GRACE, so when both fall that is one line
+            of evidence, not two.</>
+          : <>Each aquifer page puts six NASA witnesses side by side, and says which ones are models fed by the others.</>}</p>
+        {both[0] && <button className="text-button" onClick={() => onOpen(both[0].id)}>See the witnesses for {shortName(both[0].name)}</button>}
       </article>
       <article className="three-way">
         <span className="three-way-no">2 · Scale</span>
@@ -46,14 +48,13 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
         <button className="text-button" onClick={() => onCase("ZW_tws_grace")}>Open the GRACE case for Ica</button>
       </article>
       <article className="three-way">
-        <span className="three-way-no">3 · A single witness</span>
-        <strong>One variable tells half the story.</strong>
-        <p>{both.length > 0
-          ? <>In {both.map((a) => shortName(a.name)).join(", ").replace(/, ([^,]*)$/, " and $1")}, GRACE confirms a water loss while
-            the cropland gets greener and uses more water (MODIS). Read alone, greening looks like good news. Read together, and with
-            no proven fall in rain, the witnesses point to irrigation.</>
-          : <>Each aquifer page puts six NASA witnesses side by side, so a change in one can be checked against the others.</>}</p>
-        {both[0] && <button className="text-button" onClick={() => onOpen(both[0].id)}>See the witnesses for {shortName(both[0].name)}</button>}
+        <span className="three-way-no">3 · Method</span>
+        <strong>The model says Ica's aquifer is rising. The wells say it is falling.</strong>
+        <p>NASA's groundwater model (GLDAS) over Ica trends upward, and the classic Mann-Kendall test calls it significant
+          {pText && <> (p = {pText})</>}. Yet {wells}% of the monitored wells are falling. Monthly data carry memory, and the classic
+          test mistakes it for a trend. Our engine says: inconclusive. Across the atlas the classic test raised {alarms} such alarms
+          in GLDAS groundwater; the engine finds a confirmed or likely trend in {engine.length} of {classic.length} aquifers.</p>
+        <button className="text-button" onClick={() => onCase("ZW_gws")}>Open that false alarm</button>
       </article>
     </div>
   </section>;

@@ -166,8 +166,9 @@ export function Atlas({ m, onCase, onIca, onPick, onOpen }: {
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
         <h1 id="atlas-title">Is that trend real?</h1>
-        <p className="atlas-purpose">Satellite trends can fool you in three ways: <strong>memory, scale and a single witness</strong>.
-          Oasis Paradox checks all three, on NASA data for {atlas.length} irrigated aquifers, before it calls a trend real.</p>
+        <p className="atlas-purpose">Oasis Paradox checks whether a trend in NASA data is real before anyone claims it. Across {atlas.length} irrigated
+          aquifers it cross-examines satellites and models and shows which conclusions hold up by <strong>source, scale and method</strong>.
+          Every result is reproducible.</p>
       </header>
       </div></div>
       <div className="atlas-tools atlas-bottom-search">

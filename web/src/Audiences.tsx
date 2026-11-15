@@ -16,8 +16,8 @@ export function Audiences({ onOpen }: { onOpen: (target: string) => void }) {
     <div className="wrap wide">
       <p className="eyebrow">Who it is for</p>
       <h2 id="audiences-title">For anyone about to say “NASA data show…”</h2>
-      <p className="audiences-lede">Before a trend goes into a report, a story or a class, it should pass three checks: is it real, is it
-        from this place, and do the other witnesses agree? Three people who face that moment:</p>
+      <p className="audiences-lede">Before a trend goes into a report, a story or a class, it should pass three checks: on its source, its
+        scale and its method. Three people who face that moment:</p>
       <div className="audience-grid">
         {TILES.map((t) => <article key={t.who} className="audience-tile">
           <span className="eyebrow">{t.who}</span>
