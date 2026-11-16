@@ -1,4 +1,5 @@
 // AI-assisted: Claude (Anthropic). Every dataset with its version and DOI, the team, and the use of AI.
+import { useLocale } from "./i18n";
 import type { Manifest } from "./types";
 
 export const DATASETS: [string, string, string, string, string, string][] = [
@@ -20,20 +21,33 @@ export const DATASETS: [string, string, string, string, string, string][] = [
 ];
 
 export function Sources({ m }: { m: Manifest }) {
+  const { t } = useLocale();
   return (
     <section className="wrap wide research-page">
-      <header className="research-heading"><p className="eyebrow">Data and team</p><h1>Every number has a source</h1>
-        <p>NASA data are at the core of every result. Non-NASA sources are marked.</p></header>
+      <header className="research-heading"><h1>{t("Data sources", "Fuentes de datos")}</h1>
+        <p>{t("See the product, version and organization behind each dataset.", "Consulta el producto, la versión y el organismo responsable de cada conjunto de datos.")}</p></header>
       <div className="panel analysis-panel sources-table">
+        <p className="control-help">{t("Select a DOI or link to open the original source in a new tab.", "Selecciona un DOI o enlace para abrir la fuente original en una pestaña nueva.")}</p>
         <div className="scroll-x">
           <table className="data">
-            <thead><tr><th>Dataset</th><th>Agency</th><th>Type</th><th>Use</th><th>DOI or link</th></tr></thead>
+            <thead><tr><th>{t("Dataset", "Conjunto de datos")}</th><th>{t("Agency", "Organismo")}</th><th>{t("Type", "Tipo")}</th><th>{t("Use", "Uso")}</th><th>{t("DOI or link", "DOI o enlace")}</th></tr></thead>
             <tbody>{DATASETS.map(([name, agency, type, use, href, label]) => (
               <tr key={name}><td>{name}</td><td>{agency}</td><td>{type}</td><td>{use}</td><td><a href={href} target="_blank" rel="noreferrer">{label}</a></td></tr>
             ))}</tbody>
           </table>
         </div>
       </div>
+      <section className="panel analysis-panel">
+        <h2>{t("Scope of the evidence", "Alcance de la evidencia")}</h2>
+        <p>{t(
+          "GRACE measures regional total water storage. GLDAS estimates groundwater and assimilates GRACE observations. In Ica, the JUASVI well rates use the first and last measured levels of each well.",
+          "GRACE mide el almacenamiento total de agua a escala regional. GLDAS estima el agua subterránea y asimila observaciones de GRACE. En Ica, las tasas de los pozos JUASVI se calculan con la primera y la última medición de cada pozo.",
+        )}</p>
+        <p>{t(
+          "The team cross-checked the extraction of three series: Villacurí greenness, upper Ica rainfall and Ica–Villacurí GLDAS groundwater. These checks compare the extracted inputs with alternate NASA access tools. For the published analysis inputs, geometry and method, open any case file and select ‘Cite and reproduce this result’.",
+          "El equipo cotejó la extracción de tres series: verdor de Villacurí, precipitación en la cuenca alta de Ica y agua subterránea de GLDAS para Ica–Villacurí. El cotejo compara los datos de entrada con los obtenidos mediante otras herramientas de acceso de NASA. Para consultar los datos de entrada, la geometría y el método del análisis, abre un expediente y selecciona «Citar y reproducir este resultado».",
+        )}</p>
+      </section>
       <div className="sources-cols">
         <div className="panel analysis-panel">
           <h2>Team SciTeX, Lima</h2>

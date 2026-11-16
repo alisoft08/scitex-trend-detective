@@ -33,7 +33,7 @@ function RegionalRecord({ id, label, source, onCase }: { id: string; label: Tran
       <CasePlot cf={cf} />
     </>}
     <div className="link-row small"><a href={source} target="_blank" rel="noreferrer">{t("Product source", "Fuente del producto")}</a>
-      <button className="text-button" onClick={() => onCase(id)}>{t("Open case →", "Abrir caso →")}</button></div>
+      <button className="text-button" onClick={() => onCase(id)}>{t("View the monthly series and statistical tests →", "Ver la serie mensual y las pruebas estadísticas →")}</button></div>
   </article>;
 }
 
@@ -134,7 +134,11 @@ export function MapView({ m, level, onCase }: { m: Manifest; level: Level; onCas
       <p className="eyebrow">{t("One place · three kinds of evidence", "Un lugar · tres tipos de evidencia")}</p><h1>{t("What can each witness see?", "¿Qué puede observar cada fuente?")}</h1>
       <p>{t("Follow a well in Ica from ground level to the regional view from orbit.", "Sigue un pozo de Ica desde su medición local hasta la vista regional desde órbita. Las capas muestran qué puede medir cada fuente y a qué escala.")}</p>
     </header>
-    <div className="map-witness-switch" role="group" aria-label={t("Evidence layer", "Capa de evidencia")}>
+    <p className="control-help" id="map-layer-help">{t(
+      "Select a source to change the map and see what that source measures. In the wells view, select a marker or a well from the list to see its measured water levels.",
+      "Selecciona una fuente para cambiar el mapa y ver qué mide. En la vista de pozos, elige un marcador o un pozo de la lista para consultar sus niveles de agua medidos.",
+    )}</p>
+    <div className="map-witness-switch" role="group" aria-describedby="map-layer-help" aria-label={t("Evidence layer", "Capa de evidencia")}>
       {LAYERS.map((l) => <button key={l.id} type="button" aria-pressed={l.id === layer} onClick={() => setLayer(l.id)}>
         <strong>{t(...l.label)}</strong><span>{t(...l.detail)}</span>
       </button>)}
@@ -159,20 +163,20 @@ export function MapView({ m, level, onCase }: { m: Manifest; level: Level; onCas
             </div>
             <p className="small muted">{t("The rate compares the first and last readings in Annex II. These records use different periods and describe this sample of wells.", "La tasa compara la primera y la última medición del Anexo II. Los periodos varían según el pozo y el resultado describe esta muestra.")}</p>
             <div className="link-row small"><a href={WELL_SOURCE} target="_blank" rel="noreferrer">{t("JUASVI · Annex II", "JUASVI · Anexo II")}</a>
-              <button className="text-button" onClick={() => setLayer("grace")}>{t("View from orbit →", "Ver desde órbita →")}</button></div>
+              <button className="text-button" onClick={() => setLayer("grace")}>{t("Switch the map to regional GRACE storage →", "Mostrar en el mapa el almacenamiento regional de GRACE →")}</button></div>
           </>}
           {layer === "gldas" && <>
             <div className="panel-heading"><h2>{t("Groundwater storage in a model", "Almacenamiento de agua subterránea en un modelo")}</h2><p>{t("GLDAS estimates storage across grid cells. The Ica case is inconclusive.", "GLDAS estima el almacenamiento en celdas de una cuadrícula. El caso de Ica es no concluyente.")}</p></div>
             <p>{t("The highlighted square illustrates a 0.25° cell, about 27 × 28 km near Ica. The point marks the well you selected.", "El recuadro ilustra una celda de 0,25°, de unos 27 × 28 km cerca de Ica. El punto marca el pozo seleccionado.")}</p>
             <div className="link-row small"><a href={GLDAS_SOURCE} target="_blank" rel="noreferrer">NASA · GLDAS 2.2</a>
-              <button className="text-button" onClick={() => onCase("ZW_gws")}>{t("Open GLDAS case →", "Abrir caso GLDAS →")}</button></div>
+              <button className="text-button" onClick={() => onCase("ZW_gws")}>{t("View the GLDAS groundwater trend and tests →", "Ver la tendencia y las pruebas de agua subterránea de GLDAS →")}</button></div>
           </>}
           {layer === "grace" && <>
             <div className="panel-heading"><h2>{t("Regional total water storage increased", "El almacenamiento total de agua aumentó en la región")}</h2></div>
             <div className="well-reading"><strong className="num">{signed(grace?.sen_per_decade)} {perDecade("mm")}</strong><span>{t("Equivalent water height · Oasis Paradox estimate", "Altura de agua equivalente · Estimación de Oasis Paradox")}</span></div>
             <p>{t("GRACE averages water storage across a broad region. Soil water, rivers, groundwater and other stores can change in different directions.", "GRACE promedia el almacenamiento de agua en una región amplia. El agua del suelo, los ríos, el agua subterránea y otras reservas pueden cambiar en direcciones distintas.")}</p>
             <div className="link-row small"><a href={GRACE_SOURCE} target="_blank" rel="noreferrer">NASA/JPL · GRACE</a>
-              <button className="text-button" onClick={() => onCase("ZW_tws_grace")}>{t("Open GRACE case →", "Abrir caso GRACE →")}</button></div>
+              <button className="text-button" onClick={() => onCase("ZW_tws_grace")}>{t("View the GRACE total water trend and tests →", "Ver la tendencia y las pruebas de agua total de GRACE →")}</button></div>
           </>}
         </article>
         <p className="research-callout"><strong>{t("Both readings can be true.", "Ambas observaciones pueden coexistir.")}</strong>{" "}{t("A change at one well describes a local water level. GRACE describes the combined change across a much larger area.", "Un pozo describe un cambio local del nivel del agua. GRACE describe el cambio combinado en un área mucho mayor.")}</p>

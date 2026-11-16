@@ -10,6 +10,33 @@ export const PLACES: Record<string, Translation> = {
   ZW: ["Ica–Villacurí region", "Región Ica–Villacurí"],
 };
 
+const atlasPlaces: Record<string, Translation> = {
+  ZC: ["Central Valley, California", "Valle Central, California"],
+  ZHP: ["High Plains (Ogallala), United States", "Altas Llanuras (Ogallala), Estados Unidos"],
+  ZIN: ["Northwest India (Punjab, Haryana, Rajasthan)", "Noroeste de India (Punjab, Haryana, Rajastán)"],
+  ZNC: ["North China Plain", "Llanura del Norte de China"],
+  ZAR: ["Arabian aquifer system (Saq), Saudi Arabia", "Sistema acuífero de Arabia (Saq), Arabia Saudita"],
+  ZTE: ["Tigris–Euphrates basin", "Cuenca del Tigris y el Éufrates"],
+  ZGU: ["Guarani aquifer system, South America", "Sistema acuífero Guaraní, Sudamérica"],
+};
+const naturalReferences: Record<string, string> = {
+  ZCR: "ZC", ZHPR: "ZHP", ZINR: "ZIN", ZNCR: "ZNC", ZARR: "ZAR", ZTER: "ZTE", ZGUR: "ZGU",
+};
+const atlasNotesEs: Record<string, string> = {
+  "Air temperature over the same box as the Central Valley water cases.": "La temperatura del aire se analiza en el mismo recuadro que las variables de agua del Valle Central.",
+  "Atlas case: cropland pixels from MODIS MCD12Q1 land cover 2020 (IGBP classes 12 and 14) inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control.":
+    "Se analizan píxeles agrícolas del producto de cobertura terrestre MODIS MCD12Q1 de 2020 (clases IGBP 12 y 14) dentro de un recuadro aproximado alrededor del acuífero. El único control estadístico es el índice de El Niño (ONI).",
+  "Atlas case: the box around this aquifer system is approximate, not its official boundary. Only El Niño (ONI) is used as a control.":
+    "El análisis usa un recuadro aproximado alrededor del sistema acuífero. El único control estadístico es el índice de El Niño (ONI).",
+  "Comparison case outside Peru. The Central Valley spans several GRACE mascons, so the satellite can resolve a loss here that it cannot localise in Ica.":
+    "El Valle Central abarca varias celdas de concentración de masa de GRACE. En esta región GRACE puede distinguir la pérdida a escala regional con mayor resolución espacial relativa que en Ica.",
+  "Published reference: Famiglietti et al. (2011), Geophysical Research Letters 38, L03403, doi:10.1029/2010GL046442.":
+    "Referencia publicada: Famiglietti et al. (2011), Geophysical Research Letters 38, L03403, DOI 10.1029/2010GL046442.",
+  "GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region.":
+    "GLDAS 2.2 asimila observaciones de GRACE. Ambas series comparten información en esta región.",
+  "Rain over the same box as the Central Valley water cases.": "La precipitación se analiza en el mismo recuadro que las variables de agua del Valle Central.",
+};
+
 const verdicts: Record<Verdict, Translation> = {
   confirmed: ["Confirmed trend", "Tendencia confirmada"],
   likely: ["Likely trend", "Tendencia probable"],
@@ -57,7 +84,7 @@ export const VARIABLES: Record<string, { name: Translation; short: Translation; 
   precip: {
     name: ["Rainfall", "Precipitación"], short: ["Rainfall", "Precipitación"],
     resolution: ["0.1° (~11 km), monthly", "0,1° (~11 km), mensual"],
-    description: ["Estimated precipitation from GPM IMERG for the Andean headwaters.", "Precipitación estimada por GPM IMERG para la cabecera andina."],
+    description: ["Monthly precipitation estimated from GPM IMERG over the selected study area.", "Precipitación mensual estimada con GPM IMERG en el área de estudio seleccionada."],
     limit: ["This result describes the upper basin, where the series was extracted.", "Este resultado describe la cuenca alta, donde se extrajo la serie."],
   },
   t2m: {
@@ -93,7 +120,12 @@ export const GLDAS_SOURCE = "https://disc.gsfc.nasa.gov/datasets/GLDAS_CLSM025_D
 
 export function useEvidence() {
   const { t, fmt, signed } = useLocale();
-  const zoneName = (id: string, fallback = id) => PLACES[id] ? t(...PLACES[id]) : fallback;
+  const zoneName = (id: string, fallback = id) => {
+    const entry = PLACES[id] ?? atlasPlaces[id];
+    if (entry) return t(...entry);
+    const region = atlasPlaces[naturalReferences[id]];
+    return region ? t(fallback, `${region[1]} · terreno natural de referencia`) : fallback;
+  };
   const baseVariable = (id: string) => id.replace(/_contrast$/, "");
   const variableName = (id: string, fallback = id, compact = false) => {
     const type = baseVariable(id);
@@ -101,9 +133,13 @@ export function useEvidence() {
     const entry = VARIABLES[type];
     return entry ? t(...(compact ? entry.short : entry.name)) : fallback;
   };
-  const caseTitle = (variable: string, zone: string, fallback: string) => variable.endsWith("_contrast")
-    ? (!PLACES[zone] ? fallback : t(`${variableName(variable)}: ${zoneName(zone)} minus desert`, `${variableName(variable)}: ${zoneName(zone)} menos el desierto`))
-    : variableName(variable, fallback);
+  const caseTitle = (variable: string, zone: string, fallback: string) => {
+    const label = variableName(variable, fallback);
+    if (!variable.endsWith("_contrast")) return label;
+    return PLACES[zone]
+      ? t(`${label} between fields and desert`, `${label} entre campos y desierto`)
+      : t(`${label} between cropland and natural land`, `${label} entre cultivos y terreno natural`);
+  };
   const caseUnits = (units: string) => units
     .replace("NDVI units", "NDVI").replace("standard deviations", t("SD", "DE"))
     .replace("degC", "°C").replace("mm/month", t("mm/month", "mm/mes"));
@@ -115,7 +151,17 @@ export function useEvidence() {
   const dataKind = (cf: CaseFile) => cf.kind === "contrast" ? t("Derived from observations", "Derivado de observaciones")
     : cf.variable === "t2m" ? t("Reanalysis", "Reanálisis") : t(...types[cf.data_type]);
   const describes = (cf: CaseFile) => {
-    if (!PLACES[cf.zone.id]) return [cf.definition, cf.notes.join(" ")];
+    const definition = VARIABLES[cf.variable]?.description;
+    if (!PLACES[cf.zone.id]) {
+      const contrastDefinition = t(
+        "Difference between cropland and natural land in the same region after standardizing both series by calendar month.",
+        "Diferencia entre cultivos y terreno natural de la misma región tras estandarizar ambas series por mes calendario.",
+      );
+      return [
+        cf.kind === "contrast" ? contrastDefinition : definition ? t(...definition) : cf.definition,
+        cf.notes.map((note) => t(note, atlasNotesEs[note] ?? note)).join(" "),
+      ];
+    }
     if (cf.kind === "contrast") return [
       t("Field minus desert reference, after standardizing each series by calendar month.", "Diferencia entre el campo y el desierto de referencia tras estandarizar cada serie por mes calendario."),
       t("Vegetation data define the masks. The trend describes how the gap changed in the selected areas.", "Los datos de vegetación definen las máscaras. La tendencia describe cómo cambió la brecha en las áreas seleccionadas."),
@@ -124,11 +170,15 @@ export function useEvidence() {
     return entry ? [t(...entry.description), t(...entry.limit)] : [cf.definition, ""];
   };
   const resolution = (cf: CaseFile) => {
-    if (!PLACES[cf.zone.id]) return cf.source.resolution;
     const entry = VARIABLES[baseVariable(cf.variable)];
-    return entry ? t(...entry.resolution) : cf.source.resolution;
+    return entry ? t(cf.source.resolution, entry.resolution[1]) : cf.source.resolution;
   };
-  const mask = (zone: string) => t(...(masks[zone === "Z2" ? "Z1" : zone] ?? masks.ZW));
+  const mask = (zone: string, original: string) => {
+    const entry = masks[zone === "Z2" ? "Z1" : zone];
+    if (entry) return t(original, entry[1]);
+    if (naturalReferences[zone]) return t(original, "Clases IGBP 6, 7, 9, 10 y 16 del producto MODIS MCD12Q1 de 2020, dentro del recuadro del acuífero.");
+    return t(original, "Recuadro completo del área de estudio. Sus límites pueden consultarse en el GeoJSON.");
+  };
   const covariate = (name: string) => {
     const coastal = /^Coastal El Niño index \(lag (\d+) months\)$/.exec(name);
     if (coastal) return t(name, `Índice de El Niño costero (rezago de ${coastal[1]} meses)`);

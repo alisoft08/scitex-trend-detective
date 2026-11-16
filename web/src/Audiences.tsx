@@ -1,28 +1,18 @@
-// AI-assisted: Claude (Anthropic). Who uses the tool and which decision it supports.
-const TILES: { who: string; decision: string; does: string; cta: string; target: string }[] = [
-  { who: "Water agencies and users' boards", decision: "Can satellites monitor our aquifer, or only wells?",
-    does: "The atlas shows where GRACE confirms a loss and where an aquifer is too small for it, before money goes into monitoring.",
-    cta: "Open the aquifer atlas", target: "#atlas" },
-  { who: "Journalists and NGOs", decision: "Can we trust a claimed trend?",
-    does: "Each verdict shows its range, the false-alarm risk of the classic test and its NASA source. Example: a classic test says Ica's groundwater is rising; the engine says inconclusive, and the wells say it is falling.",
-    cta: "See that false alarm", target: "case:ZW_gws" },
-  { who: "Researchers and teachers", decision: "Does the verdict hold up?",
-    does: "Pre-registered rule, robustness windows, leave-one-year-out fits, a simulation of the tests and a download with data, code and settings to reproduce any case.",
-    cta: "Put the tests on trial", target: "#method" },
-];
+// AI-assisted: Codex (OpenAI). A starting point for a reproducible comparison.
+import { useLocale } from "./i18n";
 
-export function Audiences({ onOpen }: { onOpen: (target: string) => void }) {
+export function Audiences({ onCompare, onLab }: { onCompare: () => void; onLab: () => void }) {
+  const { t } = useLocale();
   return <section className="audiences" aria-labelledby="audiences-title">
     <div className="wrap wide">
-      <p className="eyebrow">Who it is for</p>
-      <h2 id="audiences-title">One evidence base, three kinds of decision</h2>
-      <div className="audience-grid">
-        {TILES.map((t) => <article key={t.who} className="audience-tile">
-          <span className="eyebrow">{t.who}</span>
-          <strong>{t.decision}</strong>
-          <p>{t.does}</p>
-          <button className="text-button" onClick={() => onOpen(t.target)}>{t.cta}</button>
-        </article>)}
+      <h2 id="audiences-title">{t("Investigate water storage trends", "Investiga tendencias del almacenamiento de agua")}</h2>
+      <p>{t(
+        "For students and researchers in hydrology and remote sensing. Compare NASA water storage records across regions, inspect the uncertainty and download a case to reproduce the analysis.",
+        "Para estudiantes e investigadores de hidrología y teledetección. Compara series de almacenamiento de agua de NASA entre regiones, revisa la incertidumbre y descarga un caso para reproducir el análisis.",
+      )}</p>
+      <div className="audience-actions">
+        <button type="button" className="btn primary" onClick={onCompare}>{t("Compare GRACE trends in Ica and Northwest India", "Comparar tendencias de GRACE en Ica y el noroeste de India")}</button>
+        <button type="button" className="btn research-secondary" onClick={onLab}>{t("See when statistical tests raise a false alarm", "Ver cuándo las pruebas estadísticas dan una falsa alarma")}</button>
       </div>
     </div>
   </section>;

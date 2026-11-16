@@ -40,11 +40,12 @@ export function TrendChart(props: {
   height?: number;
   simple?: boolean;
   reference?: SeriesPoint[];
+  referenceLabel?: string;
   window?: Window;
   onInspect?: (point: Omit<HoveredPoint, "chart">) => void;
 }) {
   const { t, fmt } = useLocale();
-  const { series, trend, mode, tone, units, simple, reference, window, onInspect } = props;
+  const { series, trend, mode, tone, units, simple, reference, referenceLabel, window, onInspect } = props;
   const H = props.height ?? 300;
   const m = { l: 58, r: 14, t: 14, b: 30 };
   const iw = W - m.l - m.r;
@@ -100,7 +101,7 @@ export function TrendChart(props: {
 
   return (
     <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img"
-      aria-label={comparison ? t("Monthly field and desert values from 2004 to 2024", "Valores mensuales del campo y del desierto de 2004 a 2024") : mode === "anomaly" ? t("Monthly anomalies and full-period Sen trend from 2004 to 2024", "Anomalías mensuales y tendencia de Sen de 2004 a 2024") : t("Monthly original values from 2004 to 2024", "Valores originales mensuales de 2004 a 2024")}
+      aria-label={comparison ? t("Monthly values for the study and reference areas from 2004 to 2024", "Valores mensuales del área de estudio y de referencia de 2004 a 2024") : mode === "anomaly" ? t("Monthly anomalies and full-period Sen trend from 2004 to 2024", "Anomalías mensuales y tendencia de Sen de 2004 a 2024") : t("Monthly original values from 2004 to 2024", "Valores originales mensuales de 2004 a 2024")}
       onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
       {window && <rect className="window-highlight" x={x(window.start - 2004)} y={m.t} width={x(Math.min(window.end - 2004 + 11 / 12, T)) - x(window.start - 2004)} height={ih} />}
       {gaps.map(([a, b]) => (
@@ -129,7 +130,7 @@ export function TrendChart(props: {
           <line className="axis" x1={x(hover! / 12)} x2={x(hover! / 12)} y1={m.t} y2={m.t + ih} />
           <circle cx={x(hover! / 12)} cy={y(hv)} r={3.5} fill="var(--ink)" />
           <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">
-            {hp.date}: {fmt(hv)} {units}{rv !== undefined && rv !== null && ` · ${t("desert", "desierto")} ${fmt(rv)}`}
+            {hp.date}: {fmt(hv)} {units}{rv != null && ` · ${referenceLabel ?? t("reference", "referencia")} ${fmt(rv)}`}
           </text>
         </g>
       )}

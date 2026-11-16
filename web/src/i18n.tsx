@@ -27,8 +27,8 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
     document.querySelector('meta[name="description"]')?.setAttribute("content", locale.t(
-      "Investigate environmental trends in Ica, Peru, with NASA records, field wells and a simulation lab.",
-      "Investiga tendencias ambientales en Ica, Perú, con datos de NASA, mediciones de pozos y un laboratorio de simulación.",
+      "Explore and reproduce water storage trends across eight aquifer regions with NASA data, study areas and statistical tests.",
+      "Explora y reproduce tendencias del almacenamiento de agua en ocho regiones acuíferas con datos de NASA, áreas de estudio y pruebas estadísticas.",
     ));
     try { localStorage.setItem(storageKey, language); } catch { /* Storage is optional. */ }
   }, [language, locale]);

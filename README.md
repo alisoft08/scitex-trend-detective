@@ -1,15 +1,30 @@
 # Oasis Paradox
 
-**What satellites can and cannot see.** A trend detective for Ica, Peru (NASA Space Apps Challenge 2026, challenge
-*Be An Earth System Trend Detective!*, team SciTeX, Lima).
+Oasis Paradox is a reproducible atlas of water storage trends across eight irrigated aquifer regions.
+It helps hydrology and remote sensing students and researchers compare monthly NASA records, inspect
+the strength of the evidence and rerun the analysis. Ica, Peru links the regional signals to local wells.
+Team SciTeX, Lima · NASA Space Apps Challenge 2026, *Be An Earth System Trend Detective!*.
 
-From space, Ica's desert keeps getting greener. Its wells keep dropping. NASA's water satellites cannot see that drop
-at this scale, and a classic trend test would have fooled us twice. Oasis Paradox cross-examines three witnesses
-(greenness from space, water from space, wells in the field) with statistics that stay honest when each month
-resembles the last. A world aquifer atlas runs the same engine on eight irrigated aquifers to show where NASA's GRACE
-satellites can see an aquifer drain, and why they cannot in Ica.
+The two main variables are regional total water storage (GRACE/GRACE-FO) and modeled groundwater
+storage (GLDAS, which assimilates GRACE observations). Precipitation, evapotranspiration, vegetation
+greenness and surface and air temperatures provide context. GRACE detected a confirmed decline in
+total water storage in five study regions and a likely decline in one under the project's verdict rule.
 
-> Status: MVP. Zones are provisional boxes with satellite masks; numbers will be recomputed with the team's final polygons.
+> Status: MVP. The study polygons and masks define provisional analysis areas. Official aquifer
+> boundaries and alternative masks require a new extraction and analysis.
+
+## Reproduce a result
+
+1. Open the comparison of Ica and Northwest India from the home page and inspect the GRACE series.
+2. Open either case and expand **Cite and reproduce this result**. The panel identifies the case ID,
+   data snapshot, full analysis period, dataset and version, study polygon, and statistical method.
+3. Download the evidence ZIP and follow its README. Compare the reproduced slope, 95% interval, and
+   verdict with the published values. The ZIP includes the analysis polygon, any reference polygon,
+   and the citation. It reruns the full-period analysis using the archived processed inputs.
+
+The extraction cross-checks cover three series documented in `DECISIONS.md`. The 87 Ica well rates
+describe changes between the first and last measurements at each well. The project applies trend
+significance tests to the monthly NASA series.
 
 ## The five steps of the challenge, in the app
 
@@ -80,7 +95,7 @@ The app shows the **Expert** level (team decision, 15 Nov 2026). The Explorer an
 field lab remain in the code for reference. The app does not display a reading-level selector.
 
 - **Home: the world aquifer globe.** A large 3D globe on a MODIS mosaic over a black background, search by aquifer or
-  country, and satellite mini cards. Below: the aquifer comparison table and "Who it is for".
+  country, and satellite mini cards. Below: the aquifer comparison table and a guided entry point for research.
 - **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): Ica's landing view for
   every aquifer (2004 outside the lens, 2024 inside; the lens tours the places where the surface changed most), the
   reading, up to seven NASA witnesses with annual sparklines, and "Analyze" links that open each witness's case file, a

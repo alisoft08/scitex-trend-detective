@@ -15,6 +15,7 @@ import sources from "../../REFERENCES.md?raw";
 import license from "../../LICENSE?raw";
 import { translate, type Language } from "./i18n";
 import type { CaseFile } from "./types";
+import type { caseGeometry } from "./case-research";
 
 const inputFiles = {
   "data/processed/series_long.csv": series,
@@ -32,8 +33,10 @@ const inputFiles = {
   "requirements.txt": "numpy==2.5.4\npandas==3.1.1\nscipy==1.18.1\nstatsmodels==0.15.0\npymannkendall==1.4.3\npyyaml==6.0.3\n",
 };
 
-export async function downloadCase(cf: CaseFile, options: { generatedAt: string; language: Language; title: string }) {
-  const { generatedAt, language, title } = options;
+export async function downloadCase(cf: CaseFile, options: {
+  generatedAt: string; language: Language; title: string; citation: string; geometry: ReturnType<typeof caseGeometry>;
+}) {
+  const { generatedAt, language, title, citation, geometry } = options;
   const t = (english: string, spanish: string) => translate(language, english, spanish);
   const { id, source } = cf;
   const record = [
@@ -53,6 +56,8 @@ export async function downloadCase(cf: CaseFile, options: { generatedAt: string;
       "published/case.json contiene la estimación, el intervalo, el veredicto, la sensibilidad y la procedencia publicados."),
     t("published/chart.csv contains the values used in the browser. Blank values mark missing months.",
       "published/chart.csv contiene los valores utilizados en el navegador. Las celdas vacías indican meses sin datos."),
+    t("published/citation.txt contains the case citation; published/study-area.geojson contains the analysis polygon and any reference polygon.",
+      "published/citation.txt contiene la cita del caso; published/study-area.geojson contiene el polígono de análisis y, cuando corresponde, el de referencia."),
     t("data/processed/series_long.csv and climate_indices.csv contain the analysis inputs used by the runner.",
       "data/processed/series_long.csv y climate_indices.csv contienen los datos de entrada del análisis."),
     t("config/zones.geojson contains study geometry and mask descriptions. pipeline/zones.py records the pixel mask rules.",
@@ -72,7 +77,14 @@ export async function downloadCase(cf: CaseFile, options: { generatedAt: string;
       "Volver a extraer las observaciones de NASA es un paso aparte. Las versiones y fuentes primarias están en REFERENCES.md."),
     "",
   ].join("\n");
-  const inputs = { ...inputFiles, "README.md": readme, "published/chart.csv": record, "published/case.json": JSON.stringify(cf, null, 2) };
+  const inputs = {
+    ...inputFiles,
+    "README.md": readme,
+    "published/chart.csv": record,
+    "published/case.json": JSON.stringify(cf, null, 2),
+    "published/citation.txt": citation + "\n",
+    "published/study-area.geojson": JSON.stringify(geometry, null, 2),
+  };
   const files = Object.fromEntries(Object.entries(inputs).map(([path, contents]) => [path, strToU8(contents)]));
   const bytes = zipSync(files);
   const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/zip" }));

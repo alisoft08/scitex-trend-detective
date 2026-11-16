@@ -71,7 +71,7 @@ export function Validation({ caseId, detailsRef }: { caseId: string; detailsRef:
   const { data, error } = useJSON<{ pairs: Pair[] }>(check ? "validation.json" : null);
   if (!check) return null;
   const pair = data?.pairs.find((p) => p.id === check.id);
-  return <details className="research-details extraction-check" ref={detailsRef}>
+  return <details open className="research-details extraction-check action-scroll-target" ref={detailsRef}>
     <summary>{t("Check the extraction against NASA", "Cotejar la extracción con NASA")}</summary>
     {error && <p className="error" role="alert">{t("Could not load the extraction check.", "No se pudo cargar el cotejo de extracciones.")}</p>}
     {!error && !pair && <p className="small muted" role="status">{t("Loading the extraction check…", "Cargando el cotejo de extracciones…")}</p>}

@@ -161,7 +161,8 @@ export function CaseChat({ selected, page, getContext }: {
         </div>)}
       </div>
       <div className="case-chat-actions">
-        <div className="case-chat-suggestions" role="group" aria-label={t("Suggested questions", "Preguntas sugeridas")}>
+        {questions.length > 0 && <p className="control-help" id={`${id}-suggestions-help`}>{t("Select a suggested question to send it to Datron.", "Selecciona una pregunta sugerida para enviársela a Datron.")}</p>}
+        <div className="case-chat-suggestions" role="group" aria-describedby={questions.length > 0 ? `${id}-suggestions-help` : undefined} aria-label={t("Suggested questions", "Preguntas sugeridas")}>
           {questions.map((question) => <button key={question} type="button" disabled={pending !== null}
             onClick={() => void send(question)}>{question}</button>)}
         </div>

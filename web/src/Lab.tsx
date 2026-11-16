@@ -73,11 +73,15 @@ function MethodComparison() {
     <div className="analysis-toolbar">
       <div className="panel-heading"><h2>{t("Compare six methods", "Comparar seis métodos")}</h2><p>{t(`Separate Monte Carlo run · ${sim.n} months per series`, `Simulación de Monte Carlo independiente · ${sim.n} meses por serie`)}</p></div>
       <label className="research-field">{t("Autocorrelation", "Autocorrelación")}
-        <select value={phi} onChange={(e) => setPhi(Number(e.target.value))}>
+        <select value={phi} aria-describedby="method-scenario-help" onChange={(e) => setPhi(Number(e.target.value))}>
           {sim.false_positive.map((row) => <option key={row.phi} value={row.phi}>φ = {fmt(row.phi)}</option>)}
         </select>
       </label>
     </div>
+    <p id="method-scenario-help" className="control-help">{t(
+      "Change autocorrelation to update the false alarm and detection rates for all six methods below.",
+      "Cambia la autocorrelación para actualizar las tasas de falsas alarmas y de detección de los seis métodos de abajo.",
+    )}</p>
     <p className="small muted">{t("Compare both outcomes for each method. False alarms occur when a method detects a trend in noise. Detection shows how often it finds a trend that was added to the simulation.", "Compara ambos resultados de cada método. Hay una falsa alarma cuando el método detecta una tendencia en el ruido. La detección indica con qué frecuencia reconoce una tendencia introducida en la simulación.")}</p>
     <div className="method-table">
       <div className="method-row method-table-head" aria-hidden="true"><span>{t("Method", "Método")}</span><span>{t("False alarms", "Falsas alarmas")}</span><span>{t("Trend detected", "Tendencia detectada")}</span></div>
@@ -156,13 +160,17 @@ export function Lab({ level, onCase }: { level: Level; onCase: () => void }) {
           : t(`Both approaches use the same synthetic series of ${data.n} months. The trend is zero and the AR(1) autocorrelation is set by the slider.`,
             `Ambos métodos usan las mismas series simuladas de ${data.n} meses. La tendencia es cero y el control deslizante fija la autocorrelación AR(1).`)}</p>
       </div>
+      <p className="control-help" id="lab-run-help">{t(
+        "Set how similar consecutive months are, then play the trials to watch both methods evaluate the same simulated series.",
+        "Ajusta la similitud entre meses consecutivos y reproduce los ensayos para ver cómo ambos métodos evalúan las mismas series simuladas.",
+      )}</p>
       <div className="lab-controls">
         <label htmlFor="lab-phi" className="lab-phi-label">{explorer ? t("Similarity between months", "Similitud entre meses") : t("Autocorrelation in simulated noise", "Autocorrelación del ruido simulado")} · φ = {fmt(c.phi)}</label>
         <input id="lab-phi" type="range" min={0} max={data.grid.length - 1} step={1} value={idx} aria-valuetext={t(`Autocorrelation ${fmt(c.phi)}`, `Autocorrelación ${fmt(c.phi)}`)} onChange={(e) => {
           stopTimer(); setRunning(false); setShown(0); setIdx(Number(e.target.value));
         }} />
         <div className="lab-phi-scale"><span>{t("Independent noise", "Ruido independiente")}</span><span>{t("Strong memory", "Alta dependencia")}</span></div>
-        <button className="btn primary" id="lab-run" onClick={run} disabled={running}>{running ? t("Replaying…", "Reproduciendo…") : shown ? t(`Replay ${total} trials`, `Repetir ${total} ensayos`) : t(`Play ${total} trials`, `Reproducir ${total} ensayos`)}</button>
+        <button className="btn primary" id="lab-run" aria-describedby="lab-run-help" onClick={run} disabled={running}>{running ? t("Replaying…", "Reproduciendo…") : shown ? t(`Replay ${total} trials`, `Repetir ${total} ensayos`) : t(`Play ${total} trials`, `Reproducir ${total} ensayos`)}</button>
       </div>
       <div className="lab-boards">
         {([0, 1] as const).map((k) => {
@@ -195,7 +203,7 @@ export function Lab({ level, onCase }: { level: Level; onCase: () => void }) {
         </div>}
       </div>
       <div className="lab-design link-row">
-        <button className="text-button" onClick={onCase}>{t("See the real GLDAS case →", "Ver el caso real de GLDAS →")}</button>
+        <button className="text-button" onClick={onCase}>{t("View the GLDAS groundwater series and its tests →", "Ver la serie de agua subterránea de GLDAS y sus pruebas →")}</button>
         <a className="small" href={SOURCE_ROOT + "scripts/lab_grid.py"} target="_blank" rel="noreferrer">{t("Simulation source", "Código de la simulación")}</a>
       </div>
       {level === "expert" && <p className="small muted lab-design">{t(

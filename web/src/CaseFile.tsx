@@ -1,8 +1,9 @@
 // AI-assisted: Codex (OpenAI). One scientific record, progressively disclosed.
-import { useLayoutEffect, useRef, useState, type MutableRefObject } from "react";
+import { useLayoutEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import type { ChatContext, HoveredPoint } from "./chat-contract";
 import { summarizeCase } from "./chat-summary";
 import { TrendChart } from "./charts";
+import { CaseReproduction } from "./CaseReproduction";
 import { useJSON } from "./data";
 import { Validation, hasExtractionCheck } from "./Validation";
 import { ShareLink } from "./ShareLink";
@@ -53,6 +54,7 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
   const missing = cf.n - cf.n_valid;
   return <figure className="case-plot">
     <TrendChart series={cf.series} trend={cf.trend} mode={mode} units={units} simple={simple} reference={reference?.series} onInspect={onInspect}
+      referenceLabel={reference?.zone.id === "Z5" ? t("Desert", "Desierto") : t("Reference", "Referencia")}
       tone={cf.witness === "greenness" ? "green" : cf.witness === "heat" ? "heat" : cf.witness === "water" ? "water" : "climate"} window={window} />
     <figcaption className="plot-legend small">
       <span><i className="plot-key" />{label}</span>
@@ -72,7 +74,7 @@ function FieldComparison({ field, desert, onInspect }: { field: CaseRef; desert:
       <p>{t("The same variable in two areas on one scale. Compare when the records move together and when they diverge.",
         "La misma variable en dos áreas y en la misma escala. Compara cuándo ambas series se mueven juntas y cuándo se separan.")}</p>
     </div>
-    {a.error || b.error ? <p className="error" role="alert">{t("Could not load the field and desert records.", "No se pudieron cargar las series del campo y el desierto.")}</p>
+    {a.error || b.error ? <p className="error" role="alert">{t("Could not load the study and reference records.", "No se pudieron cargar las series del área de estudio y de referencia.")}</p>
       : a.data && b.data ? <CasePlot cf={a.data} reference={b.data} mode="value" onInspect={onInspect} />
       : <p className="loading">{t("Loading the two records…", "Cargando las dos series…")}</p>}
   </div>;
@@ -90,12 +92,13 @@ function TestResults({ cf }: { cf: CaseFile }) {
   const disagree = cf.classic_test_says_significant && cf.verdict === "inconclusive";
   return <section className="panel analysis-panel">
     <div className="panel-heading">
-      <h3>{t("Same series, three tests", "La misma serie, tres pruebas")}</h3>
+      <h3 id="case-tests-title" className="action-scroll-target" tabIndex={-1}>{t("Do the tests support the trend?", "¿Las pruebas respaldan la tendencia?")}</h3>
       <p>{t("Check whether the conclusion changes when the test accounts for dependence between months. All three use the same analysis series and a nominal threshold of p < 0.05.",
         "Comprueba si la conclusión cambia al tener en cuenta la dependencia entre meses. Las tres pruebas usan la misma serie de análisis y un umbral nominal de p < 0,05.")}</p>
     </div>
     <div className="test-grid">{calls.map(([name, p, assumption]) => <div className="research-note" key={name}>
-      <strong>{name}</strong><span className="num">{pfull(p)}</span><span className="small">{assumption}</span>
+      <strong>{name}</strong><span className="num">{pfull(p)}</span>
+      <span className="small"><b>{p === null ? t("Not evaluated", "Sin evaluar") : p < 0.05 ? t("Significant", "Significativa") : t("Not significant", "No significativa")}</b> · {assumption}</span>
     </div>)}</div>
     {disagree && <p className="research-callout">{t("The classic test calls this series significant. The combined analysis leaves the trend inconclusive.",
       "La prueba clásica considera significativa la tendencia. El análisis combinado deja el resultado como no concluyente.")}</p>}
@@ -109,7 +112,7 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
   const tr = cf.trend;
   const fit = tr.jackknife?.find((row) => String(row.year) === excludedYear);
   return <div className="research-stack">
-    <details className="research-details">
+    <details open className="research-details">
       <summary>{t("Review the verdict criteria", "Revisar los criterios del veredicto")}</summary>
       <p className="small muted">{t("See which checks support the result and which limit the strength of the evidence.", "Consulta qué comprobaciones respaldan el resultado y cuáles limitan la fuerza de la evidencia.")}</p>
       <ul className="audit-list">
@@ -119,7 +122,7 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
       <p className="small muted">{t("The bootstrap groups valid observations after dropping missing months. A block can span a calendar gap.",
         "El bootstrap agrupa las observaciones válidas tras excluir los meses sin datos. Un bloque puede abarcar un vacío en el calendario.")}</p>
     </details>
-    <details className="research-details">
+    <details open className="research-details">
       <summary>{t("Covariates and leave-one-year-out results", "Covariables y resultados al retirar un año")}</summary>
       <p className="small muted">{t("Check how the estimate changes after statistical adjustment or when one year is omitted.", "Comprueba cuánto cambia la estimación al hacer un ajuste estadístico o al omitir un año.")}</p>
       <dl className="research-facts">
@@ -132,7 +135,9 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
           `${tr.jackknife_significant} de ${tr.jackknife_n} significativos en la dirección del periodo completo.`,
         )} {tr.jackknife_flips_sign ? t("At least one direction flip.", "La dirección se invirtió al menos una vez.") : t("Direction held in every fit.", "La dirección se mantuvo en todos los ajustes.")}</dd></div>
       </dl>
-      {tr.jackknife && <div className="window-controls">
+      {tr.jackknife && <>
+      <p className="control-help">{t("Exclude a year to see how much it influences the slope estimate.", "Excluye un año para ver cuánto influye en la pendiente estimada.")}</p>
+      <div className="window-controls">
         <label className="research-field">{t("Year excluded", "Año excluido")}
           <select value={excludedYear} onChange={(e) => setExcludedYear(e.target.value)}>
             <option value="">{t("Choose a year", "Elige un año")}</option>
@@ -140,17 +145,17 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
           </select>
         </label>
         {fit && <p className="small" role="status">{t(`Without ${fit.year}, the estimate is`, `Sin ${fit.year}, la estimación es`)} <strong>{signed(fit.sen_per_decade)} {perDecade(cf.units)}</strong> ({pfull(fit.p_block_bootstrap)}, {t("block bootstrap", "bootstrap por bloques")}).</p>}
-      </div>}
+      </div></>}
     </details>
   </div>;
 }
 
-export function CaseFileView({ caseRef, level, manifest, href, comparison, chatContextRef }: {
+export function CaseFileView({ caseRef, level, manifest, href, comparison, chatContextRef, practice }: {
   caseRef: CaseRef; level: Level; manifest: Manifest; href: string; comparison?: { field: CaseRef; desert: CaseRef };
-  chatContextRef: MutableRefObject<(() => ChatContext) | null>;
+  chatContextRef: MutableRefObject<(() => ChatContext) | null>; practice?: ReactNode;
 }) {
   const { t, signed, pfull, language } = useLocale();
-  const { casePeriod, caseTitle, caseUnits, perDecade, zoneName, interval, verdictText, verdictSummary, dataKind, describes, resolution, mask } = useEvidence();
+  const { casePeriod, caseTitle, caseUnits, perDecade, zoneName, interval, verdictText, verdictSummary, dataKind, describes, resolution } = useEvidence();
   const { data: cf, error } = useJSON<CaseFile>(caseRef.path);
   const [mode, setMode] = useState<"anomaly" | "value">("anomaly");
   const { data: grid } = useJSON<PeriodGrid>(`periods/${caseRef.id}.json`);
@@ -158,8 +163,8 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
   const [end, setEnd] = useState<number>();
   const from = start ?? grid?.starts[0];
   const to = end ?? grid?.ends[grid.ends.length - 1];
-  const [exportState, setExportState] = useState<"preparing" | "ready" | "error" | null>(null);
   const extractionDetails = useRef<HTMLDetailsElement>(null);
+  const reproductionDetails = useRef<HTMLDetailsElement>(null);
   const lastPoint = useRef<{ point: HoveredPoint; mode: ChatContext["chartMode"] }>();
   const explorer = level === "explorer", expert = level === "expert";
   const selectedPeriod = grid?.periods.find((period) => period.start === from && period.end === to);
@@ -198,13 +203,17 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
   if (!cf || cf.id !== caseRef.id) return <p className="loading" role="status">{t("Opening the case file…", "Abriendo el expediente…")}</p>;
 
   const tr = cf.trend;
+  const [lower, upper] = tr.sen_ci95_block_bootstrap;
+  const slope = tr.sen_per_decade;
+  const direction = slope === null ? t("Unavailable", "No disponible")
+    : slope === 0 ? t("Zero slope", "Pendiente cero")
+      : slope > 0 ? t("Estimated increase", "Aumento estimado") : t("Estimated decrease", "Descenso estimado");
   const [definition, limit] = describes(cf);
   const title = caseTitle(cf.variable, cf.zone.id, cf.label);
   const disagreement = cf.classic_test_says_significant && cf.verdict === "inconclusive";
   const checkAvailable = !explorer && hasExtractionCheck(cf.id);
 
-  function showExtraction() {
-    const details = extractionDetails.current;
+  function showDetails(details: HTMLDetailsElement | null) {
     if (!details) return;
     details.open = true;
     details.scrollIntoView({ block: "start" });
@@ -219,25 +228,48 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
           <h2>{title}</h2>
           <p>{definition}</p>
         </div>
-        <ShareLink href={href} />
       </div>
       <div className="case-result">
-        <div><span className={`pill ${cf.verdict}`}>{verdictText(cf.verdict)}</span><p>{verdictSummary(cf.verdict)}</p></div>
-        <div className="case-estimate"><strong className="num">{signed(tr.sen_per_decade)}</strong><span>{caseUnits(cf.units)} {t("per decade", "por década")}</span></div>
+        <div>
+          <h3>{t("Full-period result", "Resultado del periodo completo")}</h3>
+          <span className={`pill ${cf.verdict}`}>{verdictText(cf.verdict)}</span>
+          <p>{verdictSummary(cf.verdict)}</p>
+        </div>
+        <div className="case-estimate">
+          <span>{direction}</span>
+          <strong className="num">{signed(slope)}</strong>
+          {slope !== null && <span>{caseUnits(cf.units)} {t("per decade", "por década")}</span>}
+        </div>
       </div>
       {explorer && disagreement && <p className="research-callout">{t("The classic test flags a change here. Accounting for similarities between months leaves the evidence inconclusive.",
         "La prueba clásica señala un cambio. Al considerar que los meses se parecen entre sí, la evidencia queda como no concluyente.")}</p>}
-      {!explorer && <div className="slope-interval">
-        <span>{t("95% interval for the slope", "Intervalo del 95 % para la pendiente")} <strong className="num">{interval(tr.sen_ci95_block_bootstrap)}</strong></span>
-        <EffectBar est={tr.sen_per_decade} limits={tr.sen_ci95_block_bootstrap} />
-      </div>}
+      {!explorer && lower !== null && upper !== null && <>
+        <div className="slope-interval">
+          <span>{t("95% interval for the slope", "Intervalo del 95 % para la pendiente")} <strong className="num">{interval(tr.sen_ci95_block_bootstrap)} {perDecade(cf.units)}</strong></span>
+          <EffectBar est={slope} limits={tr.sen_ci95_block_bootstrap} />
+        </div>
+        <p className="control-help">{lower <= 0 && upper >= 0
+          ? t("The interval includes zero. A constant long-term level remains compatible with these data under this method.", "El intervalo incluye el cero. Según este método, los datos también son compatibles con una pendiente de cero.")
+          : t("The interval is entirely on one side of zero. The verdict also considers the statistical tests and robustness checks.", "El intervalo queda enteramente a un lado del cero. El veredicto también tiene en cuenta las pruebas estadísticas y las comprobaciones de robustez.")}</p>
+      </>}
       {cf.verdict !== "confirmed" && tr.years_to_detect != null && tr.years_to_detect < 200 &&
         <p className="case-years">{t("Years to detect (Weatherhead et al., 1998)", "Años para detectar la tendencia (Weatherhead et al., 1998)")}: <strong>{Math.round(tr.years_to_detect)}</strong> · {t("Years in the record", "Años en la serie")}: {Math.round(cf.n / 12)}.</p>}
       <p className="case-limit">{limit}</p>
       <p className="case-source">
         <strong>{dataKind(cf)}</strong> · {cf.source.agency} {cf.source.product} {cf.source.version}
-        {" · "}<a href={`https://doi.org/${cf.source.doi}`} target="_blank" rel="noreferrer">{t("Product source", "Fuente del producto")}</a>
+        {" · "}<a href={`https://doi.org/${cf.source.doi}`} target="_blank" rel="noreferrer">{t("View dataset DOI (new tab)", "Consultar DOI del conjunto de datos (nueva pestaña)")}</a>
       </p>
+      <div className="case-mast-actions">
+        {caseChartVisible && <button type="button" className="btn primary" onClick={() => {
+          const chart = document.getElementById("case-chart-title");
+          chart?.focus({ preventScroll: true });
+          chart?.scrollIntoView({ block: "start" });
+        }}>{t("Explore the monthly chart ↓", "Explorar el gráfico mensual ↓")}</button>}
+        <ShareLink href={href} label={t("Copy analysis link", "Copiar enlace del análisis")} />
+        {expert && <button type="button" className="btn research-secondary" onClick={() => showDetails(reproductionDetails.current)}>
+          {t("Cite or download analysis data ↓", "Citar o descargar datos del análisis ↓")}
+        </button>}
+      </div>
     </section>
     {comparison && <FieldComparison {...comparison} onInspect={(point) => {
       lastPoint.current = { point: { ...point, chart: "field-desert" }, mode: "Original values" };
@@ -245,29 +277,34 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
     {caseChartVisible && <section className="panel analysis-panel">
       <div className="analysis-toolbar">
         <div className="panel-heading">
-          <h3>{comparison ? (comparison.desert.zone === "Z5" ? t("Standardized field–desert gap", "Brecha estandarizada entre campo y desierto") : t("Standardized cropland–natural land gap", "Brecha estandarizada entre cultivo y terreno natural")) : t("Monthly record", "Serie mensual")}</h3>
+          <h3 id="case-chart-title" className="action-scroll-target" tabIndex={-1}>{comparison ? (comparison.desert.zone === "Z5" ? t("Standardized field–desert gap", "Brecha estandarizada entre campo y desierto") : t("Standardized cropland–natural land gap", "Brecha estandarizada entre cultivo y terreno natural")) : t("Monthly chart", "Gráfico mensual")}</h3>
           {!explorer && <p>{t(`${cf.n_valid} of ${cf.n} valid months`, `${cf.n_valid} de ${cf.n} meses válidos`)} · {resolution(cf)}</p>}
         </div>
-        {!explorer && !comparison && <div className="toggle" role="group" aria-label={t("Chart values", "Valores del gráfico")}>
+        {!explorer && !comparison && <div className="toggle" role="group" aria-label={t("Chart values", "Valores del gráfico")} aria-describedby="chart-mode-help">
           <button aria-pressed={!showRaw} onClick={() => setMode("anomaly")}>{t("Anomalies", "Anomalías")}</button>
           <button aria-pressed={showRaw} onClick={() => setMode("value")}>{t("Original values", "Valores originales")}</button>
         </div>}
       </div>
+      {!explorer && !comparison && <p className="control-help" id="chart-mode-help">{showRaw ? t(
+        "The chart shows the original monthly values. Switch to Anomalies to see the long-term trend with the typical seasonal cycle removed.",
+        "El gráfico muestra los valores mensuales originales. Cambia a Anomalías para ver la tendencia de largo plazo tras descontar el ciclo estacional típico.",
+      ) : t(
+        "Each point is the difference from the usual value for that calendar month. The dark line is the trend for the full period. Switch to Original values to see the original monthly series.",
+        "Cada punto es la diferencia respecto al valor habitual de ese mes del calendario. La línea oscura muestra la tendencia del periodo completo. Cambia a Valores originales para ver la serie mensual original.",
+      )}</p>}
       {comparison ? <p className="small muted">{t("Use this graph to track how the gap between cropland and its reference area changes after expressing both in standard deviations.",
         "Usa este gráfico para seguir cómo cambia la brecha entre el cultivo y su zona de referencia al expresar ambas series en desviaciones estándar.")}</p>
-        : <div className="research-note chart-reading">
-          <strong>{t("How to read this chart", "Cómo leer este gráfico")}</strong>
-          <p className="small">{explorer ? t("Each point shows how far that month was from the average for the same calendar month. This helps you see longer-term changes through the seasons.",
-            "Cada punto muestra cuánto se apartó ese mes del promedio del mismo mes calendario. Así puedes ver los cambios de largo plazo entre las estaciones.")
-            : t("These are two views of the same NASA series extracted by Oasis Paradox. Original values retain the measured or estimated levels. Anomalies subtract the average for each calendar month to reduce the seasonal cycle and estimate the long-term trend.",
-              "Son dos vistas de la misma serie de NASA extraída por Oasis Paradox. Los valores originales conservan los niveles observados o estimados. Las anomalías restan el promedio de cada mes calendario para reducir el ciclo estacional y estimar la tendencia de largo plazo.")}</p>
-          {checkAvailable && <button className="text-button small" onClick={showExtraction}>{t("See how our extraction compares with NASA →", "Ver el cotejo de nuestra extracción con NASA →")}</button>}
-        </div>}
+        : explorer && <p className="control-help">{t("Each point shows the difference from the average for that calendar month.", "Cada punto muestra la diferencia respecto al promedio de ese mes del calendario.")}</p>}
       <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} onInspect={(point) => {
         lastPoint.current = { point: { ...point, chart: "case" }, mode: chartMode };
       }} />
+      {checkAvailable && <button className="text-button small" onClick={() => showDetails(extractionDetails.current)}>{t("Compare extracted values with NASA’s reference series ↓", "Comparar los valores extraídos con la serie de referencia de NASA ↓")}</button>}
       {grid && from !== undefined && to !== undefined && <div className="period-controls" aria-label={t("Choose the time period", "Elige el periodo")}>
         <p className="period-title">{t("Choose the time period", "Elige el periodo")}</p>
+        <p className="control-help toggle-help">{t(
+          `Change the start and end years to review the estimated trend and tests for a window of at least ${grid.min_years} years. The main verdict uses the full series.`,
+          `Cambia los años de inicio y fin para revisar la tendencia estimada y las pruebas en un periodo de al menos ${grid.min_years} años. El veredicto principal usa la serie completa.`,
+        )}</p>
         <label className="research-field">{t("From", "Desde")}
           <select value={from} onChange={(event) => {
             const next = Number(event.target.value);
@@ -282,7 +319,10 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
             {grid.ends.filter((year) => year - from + 1 >= grid.min_years).map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
         </label>
-        {selectedPeriod && <p className="period-result" role="status">
+        {!fullRecord && <button type="button" className="btn research-secondary" onClick={() => { setStart(undefined); setEnd(undefined); }}>
+          {t("Reset to full period", "Volver al periodo completo")}
+        </button>}
+        {selectedPeriod && !fullRecord && <p className="period-result" role="status">
           <strong>{from}–{to}</strong>: <strong className="num">{signed(selectedPeriod.sen_per_decade)} {perDecade(cf.units)}</strong>
           {" · "}{t("Block-bootstrap Mann–Kendall", "Mann–Kendall con bootstrap por bloques")} {pfull(selectedPeriod.p_block_bootstrap)} · {t("AR(1) regression", "Regresión AR(1)")} {pfull(selectedPeriod.p_arma)}
           {" · "}<b>{({
@@ -290,30 +330,14 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
             one: t("only one test significant", "solo una prueba significativa"),
             none: t("not significant", "no significativo"),
             insufficient: t("too few valid months", "meses válidos insuficientes"),
-          })[selectedPeriod.result]}</b>. {t("The verdict above uses the full record.", "El veredicto de arriba usa la serie completa.")}
+          })[selectedPeriod.result]}</b>.
         </p>}
       </div>}
     </section>}
+    {practice}
     {checkAvailable && <Validation caseId={cf.id} detailsRef={extractionDetails} />}
     {!explorer && <TestResults cf={cf} />}
-    {expert && <>
-      <ExpertAudit cf={cf} />
-      <details className="research-details">
-        <summary>{t("Study area and mask", "Área de estudio y máscara")}</summary>
-        <p>{manifest.zones.find((zone) => zone.id === cf.zone.id)?.mask ?? mask(cf.zone.id)}</p>
-        {comparison && <p>{manifest.zones.find((zone) => zone.id === comparison.desert.zone)?.mask ?? mask(comparison.desert.zone)} {t("Alternate masks require a new analysis.", "Las máscaras alternativas requieren un nuevo análisis.")}</p>}
-      </details>
-    </>}
-    {expert && <details className="research-details">
-      <summary>{t("Reproduce this result", "Reproducir este resultado")}</summary>
-      <p>{t("Download the published case, original analysis inputs, geographic mask rules, engine settings and Python runner.",
-        "Descarga el caso publicado, los datos de entrada, las reglas de las máscaras geográficas, la configuración del motor y el programa en Python.")}</p>
-      <button className="btn primary" disabled={exportState === "preparing"} onClick={() => {
-        setExportState("preparing");
-        void import("./reproduction").then(({ downloadCase }) => downloadCase(cf, { generatedAt: manifest.generated_at, language, title })).then(() => setExportState("ready"), () => setExportState("error"));
-      }}>{t("Download evidence ZIP", "Descargar ZIP de evidencias")}</button>
-      {exportState && <p className="small" role="status">{exportState === "preparing" ? t("Preparing…", "Preparando…") : exportState === "ready"
-        ? t("Download ready.", "Descarga lista.") : t("Export failed. Try again.", "No se pudo exportar. Inténtalo de nuevo.")}</p>}
-    </details>}
+    {expert && <ExpertAudit cf={cf} />}
+    {expert && <CaseReproduction key={cf.id} detailsRef={reproductionDetails} cf={cf} referenceId={caseRef.ref_zone} generatedAt={manifest.generated_at} title={title} />}
   </div>;
 }
