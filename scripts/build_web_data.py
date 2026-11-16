@@ -23,7 +23,9 @@ from engine.verdict import load_config, run_case  # noqa: E402
 OUT = ROOT / "web" / "public" / "data"
 IDX = pd.date_range("2004-01-01", periods=252, freq="MS")
 
-ZONES = {f["properties"]["id"]: f["properties"] for f in json.load(open(ROOT / "config" / "zones.geojson"))["features"]}
+ZONES = {f["properties"]["id"]: f["properties"] for f in json.loads((ROOT / "config" / "zones.geojson").read_text(encoding="utf-8"))["features"]}
+# Comparison zones live outside the Ica map (config/comparison_zones.geojson), so the map keeps its extent.
+ZONES.update({f["properties"]["id"]: f["properties"] for f in json.loads((ROOT / "config" / "comparison_zones.geojson").read_text(encoding="utf-8"))["features"]})
 
 VARS = {
     "ndvi": {
@@ -35,8 +37,7 @@ VARS = {
     "et": {
         "label": "Water use by crops and soil (evapotranspiration)", "short": "Water use (ET)", "units": "mm/month",
         "witness": "greenness",
-        "definition": "Water that leaves the land as vapor, from the soil and through plant leaves. "
-                      "In a desert where it almost never rains, it is mostly irrigation water.",
+        "definition": "Estimated water transferred from soil and vegetation to the atmosphere.",
         "source": {"product": "MODIS MOD16A2GF", "version": "6.1", "doi": "10.5067/MODIS/MOD16A2GF.061",
                    "resolution": "500 m, 8-day (gap-filled)", "agency": "NASA"},
         "data_type": "estimated", "digits": 1},
@@ -57,15 +58,14 @@ VARS = {
         "data_type": "observed", "digits": 1},
     "precip": {
         "label": "Rainfall", "short": "Rain", "units": "mm/month", "witness": "climate",
-        "definition": "Monthly rain measured by NASA's GPM satellite constellation. In the Andean headwaters "
-                      "this is the rain that ends up recharging the aquifer.",
+        "definition": "Monthly precipitation estimated by NASA's GPM IMERG multisatellite product, averaged over the study area "
+                      "(for Ica, the Andean headwaters where the aquifer's recharge falls).",
         "source": {"product": "GPM IMERG Final Monthly", "version": "V07", "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
                    "resolution": "0.1° (~11 km), monthly", "agency": "NASA"},
-        "data_type": "observed", "digits": 1},
+        "data_type": "estimated", "digits": 1},
     "lst": {
         "label": "Land surface temperature (daytime)", "short": "Surface heat", "units": "°C", "witness": "heat",
-        "definition": "How hot the ground itself is around 10:30 in the morning, measured from space. Watered fields "
-                      "cool themselves by evaporating water; bare desert cannot.",
+        "definition": "Daytime land surface temperature derived from MODIS thermal observations.",
         "source": {"product": "MODIS Terra MOD11A2 (LST_Day_1km)", "version": "6.1", "doi": "10.5067/MODIS/MOD11A2.061",
                    "resolution": "1 km, 8-day (monthly mean)", "agency": "NASA"},
         "data_type": "observed", "digits": 2},
@@ -93,46 +93,66 @@ CASES = [  # (zone, variable, covariates)
     ("Z5", "lst", ["icen_like", "oni"]),
     ("ZW", "t2m", ["icen_like", "oni"]),
     ("Z4", "t2m", ["icen_like", "oni"]),
+    # Comparison case: same water products and engine, a basin where pumping is far larger (ENSO control only).
+    ("ZC", "tws_grace", ["oni"]),
+    ("ZC", "gws", ["oni"]),
+    # World aquifer atlas: GRACE, GLDAS and IMERG rain over each aquifer box, ENSO control only.
+    *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")
+      for v in ("tws_grace", "gws", "precip", "ndvi", "et", "t2m", "lst")
+      if (z, v) not in {("ZC", "tws_grace"), ("ZC", "gws")}],
 ]
-CONTRASTS = [("Z2", "ndvi"), ("Z1", "ndvi"), ("Z2", "lst"), ("Z1", "lst")]
+CASES += [(f"{z}R", v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]   # atlas reference land
+
+# (field zone, variable, reference zone, covariates): cropland minus land that is not irrigated
+CONTRASTS = [("Z2", "ndvi", "Z5", ["icen_like", "oni"]), ("Z1", "ndvi", "Z5", ["icen_like", "oni"]),
+             ("Z2", "lst", "Z5", ["icen_like", "oni"]), ("Z1", "lst", "Z5", ["icen_like", "oni"]),
+             *[(z, v, f"{z}R", ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]]
 CONTRAST_META = {
     "ndvi": ("Greenness gap", "greenness",
-             "Irrigated greenness minus desert greenness, both in standardized units. "
-             "Weather that hits both places cancels out, so what is left is the irrigation signal."),
+             "Field NDVI minus reference NDVI after standardizing each series by calendar month."),
     "lst": ("Heat gap", "heat",
-            "Surface temperature of the fields minus that of the untouched desert, both in standardized units. "
-            "Shared weather cancels out; a falling gap means the fields are cooling relative to the desert."),
+            "Field surface temperature minus reference surface temperature after standardizing by calendar month."),
 }
 
 NOTES = {
-    "Z5_ndvi": ["The change is about 0.001 NDVI per decade, roughly 100 times smaller than in Villacurí: "
-                "statistically detectable but practically zero. A slow drift of the aging Terra satellite "
-                "is a plausible cause, which is why irrigated zones are compared against this desert."],
-    "ZW_gws": ["GLDAS cells are about 28 km wide and the model does not simulate pumping; the human signal "
-               "enters only through GRACE data, which see an area of about 300 km."],
-    "ZW_tws_grace": ["GRACE sees a region of about 330 km that includes Andean slopes; its rise follows wetter "
-                     "Andean years after 2012, not the irrigated valley. Field wells tell a different story."],
-    "Z1_et": ["MODIS evapotranspiration is known to underestimate water use on irrigated fields."],
-    "Z4_precip": ["No robust change in headwater rain: a drier Andes cannot explain the greening or the wells."],
-    "Z2_lst": ["Watered fields cool themselves by evaporating water, while the air of the region warms (MERRA-2). "
-               "Part of the absolute cooling may come from the Terra satellite passing slightly earlier in the morning "
-               "since about 2020; the heat gap against the desert cancels that shared effect."],
-    "Z1_lst": ["The classic test calls this cooling highly significant (p < 0.0001); the honest tests do not. "
-               "Most of the valley was already farmed in 2004, so there is little new evaporation to cool it."],
-    "Z5_lst": ["The untouched desert shows no proven change in surface temperature. Any Terra orbit drift would appear "
-               "here too, which is why the fields are compared against this desert."],
-    "Z4_t2m": ["MERRA-2 is a reanalysis: a weather model constrained by observations. Each cell is about 55 km wide."],
+    "Z5_ndvi": ["The reference uses an NDVI threshold applied throughout the study period."],
+    "ZW_gws": ["GLDAS 2.2 estimates groundwater storage at a regional scale and assimilates GRACE observations."],
+    "ZW_tws_grace": ["GRACE captures regional total water storage. This analysis does not identify individual contributions within the nominal footprint."],
+    "Z1_et": ["The MODIS product estimates evapotranspiration. Pumping and the water source cannot be inferred from it alone."],
+    "Z4_precip": ["The trend in precipitation over the upper basin is inconclusive under the configured rule."],
+    "Z2_lst": ["Terra's changing overpass time may affect the absolute surface temperature result. The field-reference comparison uses selected masks."],
+    "Z1_lst": ["Classic Mann-Kendall and the combined verdict differ. The combined evidence for this series is inconclusive."],
+    "Z5_lst": ["The reference is a low-NDVI mask. Its daytime surface temperature trend is inconclusive."],
+    "ZC_tws_grace": ["Comparison case outside Peru. The Central Valley spans several GRACE mascons, so the satellite can resolve a loss here that it cannot localise in Ica.",
+                     "Published reference: Famiglietti et al. (2011), Geophysical Research Letters 38, L03403, doi:10.1029/2010GL046442."],
+    "ZC_gws": ["GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region."],
+    "Z4_t2m": ["MERRA-2 is an atmospheric reanalysis with 0.5 by 0.625 degree grid spacing."],
 }
+
+NOTES.update({f"{z}_{v}": ["Atlas case: the box around this aquifer system is approximate, not its official boundary. "
+                             "Only El Niño (ONI) is used as a control."]
+              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip", "t2m")})
+NOTES.update({f"{z}_{v}": ["Atlas case: cropland pixels from MODIS MCD12Q1 land cover 2020 (IGBP classes 12 and 14) "
+                           "inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control."]
+              for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "et")})
+NOTES["ZC_t2m"] = ["Air temperature over the same box as the Central Valley water cases."]
+NOTES.update({f"{z}_gws": ["GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region: "
+                           "when both fall, that is one line of evidence, not two."]
+              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})
+NOTES.update({f"{z}_lst": ["Terra's overpass has drifted earlier since about 2020, which can cool absolute daytime temperatures; "
+                           "the heat gap against natural land in the same box cancels that shared effect."]
+              for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})
+NOTES["ZC_precip"] = ["Rain over the same box as the Central Valley water cases."]
 
 VERDICT_LABEL = {"confirmed": "Confirmed trend", "likely": "Likely trend",
                  "inconclusive": "Inconclusive", "insufficient_data": "Insufficient data"}
 CRIT_LABEL = {
     "C0": "Enough data (80% of months, 15+ years)",
-    "C1": "Both honest tests agree (p < 0.05)",
+    "C1": "Both tests that account for dependence pass (p < 0.05)",
     "C2": "95% range of the slope excludes zero",
-    "C3": "Same direction in all 9 time windows",
-    "C4": "No single year drives the result",
-    "C5": "Survives El Niño and rainfall",
+    "C3": "Same direction in all nine windows and at least seven significant",
+    "C4": "No sign flip and at least 19 significant fits leaving out one year",
+    "C5": "Direction and significance hold after covariate adjustment",
     "C6": "Bayesian sign probability (not run)",
 }
 
@@ -154,52 +174,33 @@ def fmt_p(p):
     return f"p = {p:.3f}"
 
 
-FAIL_PHRASE = {
-    "C1": "the two honest tests disagree",
-    "C2": "the slope's 95% range touches zero",
-    "C3": "the direction is not the same in all 9 time windows",
-    "C4": "dropping a single year changes the result",
-    "C5": "it does not survive El Niño and rainfall",
-}
-ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacurí plains", "Z4": "the upper Ica basin",
-               "Z5": "the desert control zone", "ZW": "the Ica-Villacurí water block"}
-
-
-def controls_phrase(trend):
-    """Name only the controls that were actually used for this series."""
-    rain = any("rain" in c.lower() for c in trend.get("confounders", []))
-    return "El Niño and rainfall" if rain else "El Niño"
+ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacuri plains", "Z4": "the upper Ica basin",
+               "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region",
+               "ZC": "California's Central Valley",
+               "ZHP": "the High Plains aquifer", "ZIN": "northwest India", "ZNC": "the North China Plain",
+               "ZAR": "the Arabian aquifer system", "ZTE": "the Tigris-Euphrates basin", "ZGU": "the Guarani aquifer system",
+               **{f"{z}R": "natural land in the same box" for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")}}
 
 
 def summary_text(case, meta, zone_id):
-    tr, v = case["trend"], case["verdict"]
-    ctrl = controls_phrase(tr)
-    sen, (lo, hi) = tr["sen_per_decade"], tr["sen_ci95_block_bootstrap"]
-    direction = "rose" if (sen or 0) > 0 else "fell"
-    units = meta["units"]
-    first = (f"{meta['short']} in {ZONE_PHRASE[zone_id]} {direction} by {fmt(abs(sen))} {units} per decade "
-             f"(95% range {fmt(lo)} to {fmt(hi)}).")
-    failed = [FAIL_PHRASE[k].replace("El Niño and rainfall", ctrl)
-              for k, ok in case["criteria"].items() if ok is False and k in FAIL_PHRASE]
-    if v == "confirmed":
-        second = (f"Both honest tests agree, the trend survives {ctrl}, and it holds in every time "
-                  "window. Verdict: confirmed trend.")
-    elif v == "likely":
-        second = ("There are real signs of a trend, but it is fragile: " + "; ".join(failed[:3])
-                  + ". Verdict: likely trend.")
-    elif v == "inconclusive":
-        ytd = tr.get("years_to_detect")
-        extra = (f" At this rate, roughly {ytd:.0f} years of monthly data would be needed to tell it apart from noise."
-                 if ytd and ytd < 200 else "")
-        second = (f"The honest tests cannot rule out chance (block bootstrap {fmt_p(tr['p_block_bootstrap'])}, "
-                  f"AR regression {fmt_p(tr['p_arma'])}). That means \"not proven\", not \"no change\"." + extra)
-    else:
-        second = "There are not enough valid months to judge this series."
-    third = ""
-    if case["classic_test_says_significant"] and v != "confirmed":
-        third = (f" A classic Mann-Kendall test would have called this significant ({fmt_p(tr['p_mk_classic'])}), "
-                 "because it ignores that each month resembles the previous one.")
-    return first + " " + second + third
+    tr, verdict = case["trend"], case["verdict"]
+    sen = tr["sen_per_decade"]
+    lo, hi = tr["sen_ci95_block_bootstrap"]
+    estimate = (
+        f"The estimated {meta['short'].lower()} slope in {ZONE_PHRASE[zone_id]} is "
+        f"{fmt(sen)} {meta['units']} per decade (95% slope interval {fmt(lo)} to {fmt(hi)})."
+    )
+    conclusion = {
+        "confirmed": "It meets the Oasis Paradox evidence criteria under the configured analysis.",
+        "likely": "The configured analysis finds suggestive evidence.",
+        "inconclusive": "The available evidence leaves the trend inconclusive.",
+        "insufficient_data": "Too few valid observations were available for a verdict.",
+    }[verdict]
+    classic = (
+        f" Classic Mann-Kendall flags a significant trend ({fmt_p(tr['p_mk_classic'])})."
+        if case["classic_test_says_significant"] and verdict == "inconclusive" else ""
+    )
+    return f"{estimate} {conclusion}{classic}"
 
 
 def load_inputs():
@@ -228,7 +229,7 @@ def covariates(s, ci, names):
     return X, full_icen
 
 
-def case_payload(zone, var, raw, res, meta, kind="case", extra=None):
+def case_payload(zone, var, raw, res, meta, kind="case", extra=None, ref="Z5"):
     zm = ZONES[zone]
     series = []
     for d, v, a in zip(IDX, raw.values, res["anomaly"]):
@@ -236,7 +237,7 @@ def case_payload(zone, var, raw, res, meta, kind="case", extra=None):
                        "value": None if not np.isfinite(v) else round(float(v), 4),
                        "anomaly": a, "valid": bool(np.isfinite(v))})
     payload = {
-        "id": f"{zone}_{var}" if kind == "case" else f"{zone}_vs_Z5_{var}",
+        "id": f"{zone}_{var}" if kind == "case" else f"{zone}_vs_{ref}_{var}",
         "kind": kind,
         "zone": {"id": zone, "name": zm["name"], "role": zm["role"], "description": zm["description"]},
         "variable": var if kind == "case" else f"{var}_contrast",
@@ -244,7 +245,7 @@ def case_payload(zone, var, raw, res, meta, kind="case", extra=None):
         "definition": meta["definition"], "data_type": meta["data_type"], "source": meta["source"],
         "period": "2004-01/2024-12", "n": res["n"], "n_valid": res["n_valid"],
         "series": series, "trend": res["trend"], "criteria": res["criteria"],
-        "criteria_labels": {**CRIT_LABEL, "C5": f"Survives {controls_phrase(res['trend'])}"}, "verdict": res["verdict"], "verdict_label": VERDICT_LABEL[res["verdict"]],
+        "criteria_labels": CRIT_LABEL, "verdict": res["verdict"], "verdict_label": VERDICT_LABEL[res["verdict"]],
         "classic_test_says_significant": res["classic_test_says_significant"],
         "summary": summary_text(res, meta, zone),
         "summary_note": "Text generated automatically from the engine results (template, no AI writing at runtime).",
@@ -373,6 +374,165 @@ def witnesses(s):
     return out
 
 
+def build_case(zone, var, cov, s, ci, cfg):
+    raw = get_series(s, zone, var)
+    X, full_icen = covariates(s, ci, cov)
+    if full_icen is not None:
+        X["icen_like"] = full_icen  # keep earlier months so lags can reach back
+    res = run_case(raw, X if len(X.columns) else None, cfg, seed=zlib.crc32(f"{zone}_{var}".encode()))
+    payload = case_payload(zone, var, raw, res, VARS[var], extra={"notes": NOTES.get(f"{zone}_{var}", [])})
+    return payload
+
+
+def build_contrast(zone, var, s, ci, cfg, ref="Z5", cov=("icen_like", "oni")):
+    a = get_series(s, zone, var)
+    b = get_series(s, ref, var)
+    za = T.standardized_anomaly(a.values, IDX.month.values)
+    zb = T.standardized_anomaly(b.values, IDX.month.values)
+    d = pd.Series(za - zb, index=IDX)
+    X, full_icen = covariates(s, ci, list(cov))
+    if full_icen is not None:
+        X["icen_like"] = full_icen
+    res = run_case(d, X, cfg, already_anomaly=True, seed=7)
+    short, witness, definition = CONTRAST_META[var]
+    other = "desert" if ref == "Z5" else "natural land"
+    meta = {**VARS[var], "label": f"{short}: {ZONES[zone]['name'].split(',')[0]} {'' if ref == 'Z5' else 'cropland '}minus {other}",
+            "short": short, "units": "standard deviations", "witness": witness, "definition": definition}
+    if ref != "Z5":
+        meta["definition"] = definition.replace("reference", "natural land in the same box")
+    payload = case_payload(zone, var, d, res, meta, kind="contrast", ref=ref)
+    for p in payload["series"]:
+        p["value"] = p["anomaly"]
+    return payload
+
+
+def reproduce_case(case_id):
+    cfg = load_config()
+    s, ci = load_inputs()
+    for zone, var, cov in CASES:
+        if case_id == f"{zone}_{var}":
+            return build_case(zone, var, cov, s, ci, cfg)
+    for zone, var, ref, cov in CONTRASTS:
+        if case_id == f"{zone}_vs_{ref}_{var}":
+            return build_contrast(zone, var, s, ci, cfg, ref, cov)
+    raise SystemExit(f"Unknown case: {case_id}")
+
+
+# ---------- world aquifer atlas ----------
+# (zone, centre lon/lat, GRACE case, GLDAS case, rain case, published reference)
+COUNTRIES = {"ZW": ["Peru"], "ZC": ["United States"], "ZHP": ["United States"], "ZIN": ["India", "Pakistan"],
+             "ZNC": ["China"], "ZAR": ["Saudi Arabia", "Jordan"], "ZTE": ["Iraq", "Iran", "Syria", "Turkey"],
+             "ZGU": ["Brazil", "Paraguay", "Argentina", "Uruguay"]}
+# Field witnesses per atlas zone: (greenness, crop water use, air temperature); Ica uses its Villacurí fields.
+FIELD_CASES = {"ZW": ("Z2_ndvi", "Z2_et", "ZW_t2m", "Z2_lst", "Z2_vs_Z5_ndvi", "Z2_vs_Z5_lst")}
+FIELD_KEYS = ("ndvi", "et", "t2m", "lst", "ndvi_gap", "lst_gap")
+ATLAS = [
+    ("ZW", (-75.85, -14.10), "ZW_tws_grace", "ZW_gws", "Z4_precip", "This project: wells from JUASVI (2025)"),
+    ("ZC", (-120.60, 37.65), "ZC_tws_grace", "ZC_gws", "ZC_precip", "Famiglietti et al. (2011)"),
+    ("ZHP", (-100.50, 37.75), "ZHP_tws_grace", "ZHP_gws", "ZHP_precip", "Richey et al. (2015); Rodell et al. (2018)"),
+    ("ZIN", (74.50, 28.25), "ZIN_tws_grace", "ZIN_gws", "ZIN_precip", "Rodell et al. (2018)"),
+    ("ZNC", (116.25, 37.50), "ZNC_tws_grace", "ZNC_gws", "ZNC_precip", "Rodell et al. (2018)"),
+    ("ZAR", (42.50, 27.00), "ZAR_tws_grace", "ZAR_gws", "ZAR_precip", "Richey et al. (2015); Rodell et al. (2018)"),
+    ("ZTE", (43.50, 34.25), "ZTE_tws_grace", "ZTE_gws", "ZTE_precip", "Rodell et al. (2018)"),
+    ("ZGU", (-52.75, -23.50), "ZGU_tws_grace", "ZGU_gws", "ZGU_precip", "Richey et al. (2015)"),
+]
+EARTH_R_KM = 6371.0
+
+
+def box_area_km2(coords):
+    lons = [c[0] for c in coords]
+    lats = [c[1] for c in coords]
+    w, e, s, n = min(lons), max(lons), min(lats), max(lats)
+    return EARTH_R_KM ** 2 * np.radians(e - w) * abs(np.sin(np.radians(n)) - np.sin(np.radians(s)))
+
+
+def mascon_area_km2(lat):
+    return EARTH_R_KM ** 2 * np.radians(3.0) * abs(np.sin(np.radians(lat + 1.5)) - np.sin(np.radians(lat - 1.5)))
+
+
+def witness_summary(case):
+    tr = case["trend"]
+    return {"id": case["id"], "verdict": case["verdict"], "per_decade": tr["sen_per_decade"],
+            "ci95": tr["sen_ci95_block_bootstrap"], "units": case["units"],
+            "classic_false_alarm": bool(case["classic_test_says_significant"] and case["verdict"] == "inconclusive"),
+            "years_to_detect": tr.get("years_to_detect")}
+
+
+def fields_sentence(ndvi, et):
+    up = lambda w: w is not None and w["verdict"] in ("confirmed", "likely") and (w["per_decade"] or 0) > 0
+    if up(ndvi) and up(et):
+        return "Its cropland is getting greener and using more water (MODIS). "
+    if up(ndvi):
+        return "Its cropland is getting greener (MODIS). "
+    if up(et):
+        return "Its cropland is using more water (MODIS). "
+    return ""
+
+
+def atlas_reading(zone, tws, rain, wells_share, ndvi=None, et=None):
+    """Template text: what the witnesses say together. 'Points to', never 'proves'."""
+    return fields_sentence(ndvi, et) + water_sentence(zone, tws, rain, wells_share)
+
+
+def water_sentence(zone, tws, rain, wells_share):
+    proven = tws["verdict"] in ("confirmed", "likely")
+    rain_down = rain["verdict"] in ("confirmed", "likely") and (rain["per_decade"] or 0) < 0
+    if proven and tws["per_decade"] < 0:
+        cause = ("Rain is also falling, so a drier climate contributes to the loss." if rain_down else
+                 "Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).")
+        return f"GRACE sees stored water falling. {cause}"
+    if proven and tws["per_decade"] > 0:
+        extra = (f" Yet {round(wells_share * 100)}% of monitored wells are falling: the farms are too small for one "
+                 "GRACE footprint, so the satellites cannot localise the loss." if zone == "ZW" else "")
+        return f"GRACE sees stored water rising.{extra}"
+    ytd = tws.get("years_to_detect")
+    more = f" A change this size would need about {round(ytd)} years of data to show up." if ytd and ytd < 200 else ""
+    return f"No proven change in stored water from space.{more}"
+
+
+def atlas_impact(zone, area_km2, tws, cases_by_id, series_long):
+    """Volumes: GRACE trend (mm/yr) over the box area, and water used by crops (MODIS ET x cropland area, 2020-2024)."""
+    out = {"grace_km3_per_yr": None if tws["per_decade"] is None else round(tws["per_decade"] / 10 * area_km2 * 1e-6, 4)}
+    areas = ROOT / "data" / "processed" / "atlas_cropland_area.json"
+    et_id = "Z2_et" if zone == "ZW" else f"{zone}_et"
+    km2 = None
+    if zone == "ZW":
+        km2 = json.loads((ROOT / "data" / "processed" / "cropland_area.json").read_text())["Z2"]["km2_at_250m"]
+    elif areas.exists():
+        km2 = json.loads(areas.read_text())["km2"].get(zone)
+    if km2 and et_id in cases_by_id:
+        v = et_volume(series_long, "Z2" if zone == "ZW" else zone, cases_by_id[et_id], km2)
+        out.update({"cropland_km2": round(km2), "crop_water_mm3_2020_2024": v["mm3_2020_2024"],
+                    "crop_water_change_mm3": v["change_mm3_per_yr"], "crop_water_verdict": v["verdict"]})
+    return out
+
+
+def build_atlas(cases_by_id, wells_share, series_long=None):
+    out = []
+    for zone, (lon, lat), tws_id, gws_id, rain_id, ref in ATLAS:
+        if tws_id not in cases_by_id:
+            continue
+        geom = (json.loads((ROOT / "config" / ("zones.geojson" if zone == "ZW" else "comparison_zones.geojson"))
+                           .read_text(encoding="utf-8")))
+        feat = next(f for f in geom["features"] if f["properties"]["id"] == zone)
+        area = box_area_km2(feat["geometry"]["coordinates"][0])
+        tws, gws, rain = (witness_summary(cases_by_id[i]) for i in (tws_id, gws_id, rain_id))
+        out.append({
+            "id": zone, "name": "Ica-Villacurí, Peru" if zone == "ZW" else ZONES[zone]["name"],
+            "countries": COUNTRIES.get(zone, []),
+            "description": ZONES[zone]["description"], "lonlat": [lon, lat], "focus": zone == "ZW",
+            "area_km2": round(float(area), -2), "grace_footprints": round(float(area / mascon_area_km2(lat)), 2),
+            "tws": tws, "gws": gws, "rain": rain,
+            **{k: witness_summary(cases_by_id[i]) for k, i in zip(FIELD_KEYS, FIELD_CASES.get(
+                zone, (f"{zone}_ndvi", f"{zone}_et", f"{zone}_t2m", f"{zone}_lst",
+                       f"{zone}_vs_{zone}R_ndvi", f"{zone}_vs_{zone}R_lst"))) if i in cases_by_id}, "rain_area": "Andean headwaters" if zone == "ZW" else "aquifer box",
+            "reading": None, "reference": ref,
+        })
+        out[-1]["reading"] = atlas_reading(zone, tws, rain, wells_share, out[-1].get("ndvi"), out[-1].get("et"))
+        out[-1]["impact"] = atlas_impact(zone, area, tws, cases_by_id, series_long)
+    return out
+
+
 def main():
     cfg = load_config()
     s, ci = load_inputs()
@@ -381,12 +541,7 @@ def main():
     manifest_cases = []
 
     for zone, var, cov in CASES:
-        raw = get_series(s, zone, var)
-        X, full_icen = covariates(s, ci, cov)
-        if full_icen is not None:
-            X["icen_like"] = full_icen  # keep earlier months so lags can reach back
-        res = run_case(raw, X if len(X.columns) else None, cfg, seed=zlib.crc32(f"{zone}_{var}".encode()))
-        payload = case_payload(zone, var, raw, res, VARS[var], extra={"notes": NOTES.get(f"{zone}_{var}", [])})
+        payload = build_case(zone, var, cov, s, ci, cfg)
         (OUT / "cases" / f"{payload['id']}.json").write_text(json.dumps(payload))
         manifest_cases.append({"id": payload["id"], "path": f"cases/{payload['id']}.json", "kind": "case",
                                "zone": zone, "zone_name": ZONES[zone]["name"], "variable": var,
@@ -399,25 +554,13 @@ def main():
               f"p_boot={payload['trend']['p_block_bootstrap']} p_arma={payload['trend']['p_arma']} "
               f"p_classic={payload['trend']['p_mk_classic']} crit={payload['criteria']}", flush=True)
 
-    for zone, var in CONTRASTS:
-        a = get_series(s, zone, var)
-        b = get_series(s, "Z5", var)
-        za = T.standardized_anomaly(a.values, IDX.month.values)
-        zb = T.standardized_anomaly(b.values, IDX.month.values)
-        d = pd.Series(za - zb, index=IDX)
-        X, full_icen = covariates(s, ci, ["icen_like", "oni"])
-        X["icen_like"] = full_icen
-        res = run_case(d, X, cfg, already_anomaly=True, seed=7)
-        short, witness, definition = CONTRAST_META[var]
-        meta = {**VARS[var], "label": f"{short}: {ZONES[zone]['name']} minus desert",
-                "short": short, "units": "standard deviations", "witness": witness, "definition": definition}
-        payload = case_payload(zone, var, d, res, meta, kind="contrast")
-        for p in payload["series"]:
-            p["value"] = p["anomaly"]
+    for zone, var, ref, cov in CONTRASTS:
+        payload = build_contrast(zone, var, s, ci, cfg, ref, cov)
+        meta = {**VARS[var], "units": payload["units"]}
         (OUT / "contrasts" / f"{payload['id']}.json").write_text(json.dumps(payload))
-        manifest_cases.append({"id": payload["id"], "path": f"contrasts/{payload['id']}.json", "kind": "contrast",
+        manifest_cases.append({"id": payload["id"], "path": f"contrasts/{payload['id']}.json", "kind": "contrast", "ref_zone": ref,
                                "zone": zone, "zone_name": ZONES[zone]["name"], "variable": f"{var}_contrast",
-                               "label": meta["label"], "short": meta["short"], "witness": witness,
+                               "label": meta["label"], "short": meta["short"], "witness": payload["witness"],
                                "data_type": "observed", "verdict": payload["verdict"],
                                "sen_per_decade": payload["trend"]["sen_per_decade"],
                                "ci95": payload["trend"]["sen_ci95_block_bootstrap"], "units": meta["units"]})
@@ -447,6 +590,11 @@ def main():
         "files": {"zones": "zones.geojson", "wells": "wells.geojson", "map": "map.json",
                   "simulation": "simulation.json", "witnesses": "witnesses.json"},
         "verdict_labels": VERDICT_LABEL,
+        "atlas": build_atlas(cases_by_id, wells_summary["share_falling"], s),
+        "atlas_note": "Aquifers chosen from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018), not a random "
+                      "sample. Boxes around each aquifer system are approximate, not official aquifer boundaries. Same NASA "
+                      "products, period (2004-2024) and engine everywhere; only El Niño (ONI) is used as a control "
+                      "outside Ica.",
         "demo_cases": [
             {"id": "greening", "title": "The greening desert", "case": "Z2_ndvi", "contrast": "Z2_vs_Z5_ndvi",
              "text": "Villacurí's desert plains turned green as irrigated fields spread. Is the trend real, and is it "
@@ -467,4 +615,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 2:
+        print(json.dumps(reproduce_case(sys.argv[1]), indent=2))
+    elif len(sys.argv) == 1:
+        main()
+    else:
+        raise SystemExit("Usage: python scripts/build_web_data.py [case_id]")

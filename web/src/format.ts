@@ -1,5 +1,33 @@
-// AI-assisted: Claude (Anthropic). Number and label formatting shared by the views.
-import type { DataType, Verdict } from "./types";
+// AI-assisted: Codex (OpenAI). Format estimates without changing the archived measurements.
+export function numberFormat(language: "en" | "es") {
+  const locale = language === "es" ? "es-ES" : "en-US";
+  const unavailable = language === "es" ? "n/d" : "n/a";
+  const fixed = (value: number, places: number) => value.toLocaleString(locale, {
+    minimumFractionDigits: places, maximumFractionDigits: places, useGrouping: false,
+  });
+  const fmt = (value: number | null | undefined, digits = 3) => {
+    if (value == null || !Number.isFinite(value)) return unavailable;
+    const magnitude = Math.abs(value);
+    if (magnitude >= 100) return value.toLocaleString(locale, { maximumFractionDigits: 0 });
+    if (magnitude >= 1) return value.toLocaleString(locale, { maximumFractionDigits: 1 });
+    if (value === 0) return "0";
+    return value.toLocaleString(locale, { maximumSignificantDigits: digits, useGrouping: false });
+  };
+  const signed = (value: number | null | undefined, digits = 3) => {
+    if (value == null || !Number.isFinite(value)) return unavailable;
+    return (value > 0 ? "+" : value < 0 ? "−" : "") + fmt(Math.abs(value), digits);
+  };
+  const signedFixed = (value: number, places: number) =>
+    (value > 0 ? "+" : value < 0 ? "−" : "") + fixed(Math.abs(value), places);
+  const pfull = (p: number | null | undefined) => {
+    if (p == null || !Number.isFinite(p)) return `p ${unavailable}`;
+    if (p < 0.0001) return `p < ${fixed(0.0001, 4)}`;
+    if (p < 0.001) return `p < ${fixed(0.001, 3)}`;
+    return `p = ${fixed(p, 3)}`;
+  };
+  const pct = (fraction: number, places = 0) => `${fixed(fraction * 100, places)}${language === "es" ? " %" : "%"}`;
+  return { fmt, fixed, signed, signedFixed, pfull, pct };
+}
 
 export function fmt(x: number | null | undefined, digits = 3): string {
   if (x === null || x === undefined || !Number.isFinite(x)) return "n/a";
@@ -14,32 +42,3 @@ export function signed(x: number | null | undefined, digits = 3): string {
   if (x === null || x === undefined || !Number.isFinite(x)) return "n/a";
   return (x > 0 ? "+" : x < 0 ? "−" : "") + fmt(Math.abs(x), digits);
 }
-
-export function pval(p: number | null | undefined): string {
-  if (p === null || p === undefined || !Number.isFinite(p)) return "n/a";
-  if (p < 0.0001) return "< 0.0001";
-  if (p < 0.001) return "< 0.001";
-  return p.toFixed(3);
-}
-
-/** "p = 0.032" or "p < 0.001", ready to drop into a sentence. */
-export function pfull(p: number | null | undefined): string {
-  const v = pval(p);
-  return v.startsWith("<") ? `p ${v}` : v === "n/a" ? "p n/a" : `p = ${v}`;
-}
-
-export const pct = (x: number, d = 0) => `${(x * 100).toFixed(d)}%`;
-
-export const VERDICT_TEXT: Record<Verdict, string> = {
-  confirmed: "Confirmed trend",
-  likely: "Likely trend",
-  inconclusive: "Inconclusive",
-  insufficient_data: "Insufficient data",
-};
-
-export const DATA_TYPE_TEXT: Record<DataType, string> = {
-  observed: "Observed",
-  modeled: "Modeled",
-  estimated: "Estimated",
-  classified: "Classified",
-};

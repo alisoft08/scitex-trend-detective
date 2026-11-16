@@ -1,0 +1,12 @@
+{
+ "km2": {
+  "ZC": 34503,
+  "ZHP": 231735,
+  "ZIN": 523301,
+  "ZNC": 238674,
+  "ZAR": 1656,
+  "ZTE": 148218,
+  "ZGU": 337409
+ },
+ "source": "MODIS MCD12Q1 v6.1, 2020, IGBP classes 12 and 14, 1 km sum"
+}

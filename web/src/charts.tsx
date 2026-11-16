@@ -1,8 +1,9 @@
 // AI-assisted: Claude (Anthropic). Hand-rolled SVG charts; colors come from CSS theme tokens.
-import { useMemo, useState } from "react";
-import type { SeriesPoint, Simulation, Trend, Witnesses } from "./types";
-import { fmt, pct } from "./format";
-import { Tex } from "./Tex";
+import { useState } from "react";
+import type { SeriesPoint, Trend, Window } from "./types";
+import type { HoveredPoint } from "./chat-contract";
+import { useLocale } from "./i18n";
+import { missingValueConnections } from "./chart-gaps";
 
 function niceTicks(min: number, max: number, count = 5): number[] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [];
@@ -29,6 +30,10 @@ function pathFrom(points: [number, number | null][]): string {
 }
 
 const W = 760;
+const monthFormats = {
+  en: new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }),
+  es: new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric", timeZone: "UTC" }),
+};
 
 /* ---------------------------------------------------------------- case trend chart */
 export function TrendChart(props: {
@@ -38,8 +43,16 @@ export function TrendChart(props: {
   tone: "green" | "water" | "climate" | "heat";
   units: string;
   height?: number;
+  simple?: boolean;
+  reference?: SeriesPoint[];
+  referenceLabel?: string;
+  window?: Window;
+  showTrendLabel?: boolean;
+  connectGaps?: boolean;
+  onInspect?: (point: Omit<HoveredPoint, "chart">) => void;
 }) {
-  const { series, trend, mode, tone, units } = props;
+  const { t, fmt, language, signed } = useLocale();
+  const { series, trend, mode, tone, units, simple, reference, referenceLabel, window, onInspect, showTrendLabel, connectGaps = false } = props;
   const H = props.height ?? 300;
   const m = { l: 58, r: 14, t: 14, b: 30 };
   const iw = W - m.l - m.r;
@@ -49,35 +62,38 @@ export function TrendChart(props: {
   const [hover, setHover] = useState<number | null>(null);
 
   const ys = series.map((p) => (mode === "anomaly" ? p.anomaly : p.value));
-  const annual = useMemo(() => {
-    const out: { t: number; v: number | null }[] = [];
-    for (let i = 0; i < n; i += 12) {
-      const chunk = ys.slice(i, i + 12).filter((v): v is number => v !== null && Number.isFinite(v));
-      out.push({ t: i / 12 + 5.5 / 12, v: chunk.length >= 6 ? chunk.reduce((a, b) => a + b, 0) / chunk.length : null });
-    }
-    return out;
-  }, [series, mode]);
-
-  const slope = (trend.sen_per_decade ?? 0) / 10;
-  const icpt = trend.intercept ?? 0;
-  const [lo, hi] = trend.sen_ci95_block_bootstrap.map((v) => (v ?? 0) / 10);
-  const tc = T / 2;
-  const yc = icpt + slope * tc;
-  const bandPts = (s: number) => [yc + s * (0 - tc), yc + s * (T - tc)];
-
-  const finite = ys.filter((v): v is number => v !== null && Number.isFinite(v));
-  let ymin = Math.min(...finite);
-  let ymax = Math.max(...finite);
+  const aligned = reference && new Map(reference.map((p) => [p.date, mode === "anomaly" ? p.anomaly : p.value]));
+  const comparison = aligned && series.map((p) => aligned.get(p.date) ?? null);
+  const firstYear = Number(series[0]?.date.slice(0, 4) ?? 2004);
+  const lastYear = Number(series[n - 1]?.date.slice(0, 4) ?? firstYear);
+  const trendStart = window ? Math.max(0, window.start - firstYear) : 0;
+  const trendEnd = window ? Math.min(T, window.end - firstYear + 11 / 12) : T;
+  const selectedSlope = window ? window.sen_per_decade : trend.sen_per_decade;
+  const slope = (selectedSlope ?? 0) / 10;
+  // The period slope is precomputed in Python. Only locate that existing fit
+  // on the anomaly chart using the same median-residual intercept convention.
+  const offsets = window ? series.flatMap((point, index) => {
+    const time = index / 12;
+    return time >= trendStart && time <= trendEnd && point.valid && point.anomaly !== null && Number.isFinite(point.anomaly)
+      ? [point.anomaly - slope * time] : [];
+  }).sort((a, b) => a - b) : [];
+  const middle = Math.floor(offsets.length / 2);
+  const icpt = window ? offsets.length ? offsets.length % 2 ? offsets[middle] : (offsets[middle - 1] + offsets[middle]) / 2 : null : trend.intercept;
+  const hasTrend = selectedSlope !== null && Number.isFinite(selectedSlope) && icpt !== null && Number.isFinite(icpt) && trendEnd >= trendStart;
+  const fitStart = icpt === null ? 0 : icpt + slope * trendStart;
+  const fitEnd = icpt === null ? 0 : icpt + slope * trendEnd;
+  const finite = [...ys, ...(comparison ?? [])].filter((v): v is number => v !== null && Number.isFinite(v));
+  let ymin = finite.length ? Math.min(...finite) : -1;
+  let ymax = finite.length ? Math.max(...finite) : 1;
   if (mode === "anomaly") {
-    const b1 = bandPts(lo), b2 = bandPts(hi);
-    ymin = Math.min(ymin, ...b1, ...b2, 0);
-    ymax = Math.max(ymax, ...b1, ...b2, 0);
+    ymin = Math.min(ymin, ...(hasTrend ? [fitStart, fitEnd] : []), 0);
+    ymax = Math.max(ymax, ...(hasTrend ? [fitStart, fitEnd] : []), 0);
   }
   const pad = (ymax - ymin) * 0.06 || 1;
   ymin -= pad; ymax += pad;
   const x = (t: number) => m.l + (t / T) * iw;
   const y = (v: number) => m.t + (1 - (v - ymin) / (ymax - ymin)) * ih;
-  const yt = niceTicks(ymin, ymax, 5);
+  const yt = niceTicks(ymin, ymax, simple ? 3 : 5);
   const years = [2004, 2008, 2012, 2016, 2020, 2024];
 
   const gaps: [number, number][] = [];
@@ -89,23 +105,49 @@ export function TrendChart(props: {
   if (start !== null) gaps.push([start, n - 1]);
 
   const monthly = pathFrom(ys.map((v, i) => [x(i / 12), v === null ? null : y(v)]));
-  const ann = pathFrom(annual.map((a) => [x(a.t), a.v === null ? null : y(a.v)]));
-  const [bl0, bl1] = bandPts(lo);
-  const [bh0, bh1] = bandPts(hi);
+  const otherLine = comparison && pathFrom(comparison.map((v, i) => [x(i / 12), v === null ? null : y(v)]));
+  const connections = connectGaps ? missingValueConnections(ys) : [];
+  const referenceConnections = connectGaps && comparison ? missingValueConnections(comparison) : [];
+  // These are separate SVG strokes between existing observations. Missing
+  // months stay null in the series, hover readouts and statistical inputs.
+  const bridgePath = (values: (number | null)[], segments: [number, number][]) => segments.map(([from, to]) =>
+    `M${x(from / 12).toFixed(1)},${y(values[from]!).toFixed(1)}L${x(to / 12).toFixed(1)},${y(values[to]!).toFixed(1)}`).join("");
+  const trendPeriod = `${window?.start ?? firstYear}–${window?.end ?? lastYear}`;
+  const trendValue = hasTrend ? `${signed(selectedSlope)} ${units}/${t("decade", "década")}` : t("Insufficient data", "Datos insuficientes");
+  const labelWidth = Math.min(iw - 12, Math.max(180, trendValue.length * 7.4 + 22));
+  const labelHeight = 46;
+  const endX = x(trendEnd), endY = y(fitEnd);
+  const labelX = Math.max(m.l + 6, Math.min(W - m.r - labelWidth, endX - labelWidth + 10));
+  const above = endY - labelHeight - 12 >= m.t + 4;
+  const labelY = hasTrend ? Math.max(m.t + 4, Math.min(m.t + ih - labelHeight - 4, above ? endY - labelHeight - 12 : endY + 12)) : m.t + 18;
 
   function onMove(e: React.PointerEvent<SVGSVGElement>) {
     const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
     const px = ((e.clientX - r.left) / r.width) * W;
     const i = Math.round(((px - m.l) / iw) * T * 12);
-    setHover(i >= 0 && i < n ? i : null);
+    const point = series[i];
+    setHover(point ? i : null);
+    const value = ys[i];
+    if (point && value != null && onInspect) {
+      onInspect({ date: point.date, value, unit: units, referenceValue: comparison?.[i] ?? undefined });
+    }
   }
   const hp = hover !== null ? series[hover] : null;
+  const inspectedMonth = hp && monthFormats[language].format(new Date(`${hp.date}-01T00:00:00Z`));
   const hv = hover !== null ? ys[hover] : null;
+  const rv = hover !== null ? comparison?.[hover] : null;
 
   return (
     <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img"
-      aria-label={`Monthly ${mode === "anomaly" ? "anomalies" : "values"} from 2004 to 2024 with the Sen trend line`}
+      aria-label={comparison ? t("Monthly values for the study and reference areas from 2004 to 2024", "Valores mensuales del área de estudio y de referencia de 2004 a 2024") : mode === "anomaly"
+        ? t(`Monthly anomalies. Sen trend ${trendPeriod}: ${trendValue}.`, `Anomalías mensuales. Tendencia de Sen ${trendPeriod}: ${trendValue}.`)
+        : t("Monthly original values from 2004 to 2024", "Valores originales mensuales de 2004 a 2024")}
       onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+      {(connections.length > 0 || referenceConnections.length > 0) && <desc>{t(
+        "Connecting segments visually join observations across missing months. They are not observations and are not used in the statistical analysis.",
+        "Los segmentos de conexión unen visualmente observaciones separadas por meses sin datos. No son observaciones ni se usan en el análisis estadístico.",
+      )}</desc>}
+      {window && <rect className="window-highlight" x={x(trendStart)} y={m.t} width={x(trendEnd) - x(trendStart)} height={ih} />}
       {gaps.map(([a, b]) => (
         <rect key={a} className="gap" x={x(a / 12)} y={m.t} width={Math.max(2, x(b / 12) - x(a / 12))} height={ih} />
       ))}
@@ -121,114 +163,35 @@ export function TrendChart(props: {
       ))}
       <text x={m.l - 8} y={m.t - 2} textAnchor="end" className="label-strong">{units}</text>
       <path className={`series ${tone}`} d={monthly} />
-      {mode === "value" && <path className={`annual ${tone}`} d={ann} />}
-      {mode === "anomaly" && (
+      {otherLine && <path className="series reference-line" d={otherLine} />}
+      {connections.length > 0 && <path className={`series ${tone} gap-bridge`} d={bridgePath(ys, connections)} pointerEvents="none" />}
+      {comparison && referenceConnections.length > 0 && <path className="series reference-line gap-bridge" d={bridgePath(comparison, referenceConnections)} pointerEvents="none" />}
+      {mode === "anomaly" && hasTrend && (
         <>
-          <polygon className="band" points={`${x(0)},${y(bl0)} ${x(T)},${y(bl1)} ${x(T)},${y(bh1)} ${x(0)},${y(bh0)}`} />
-          <line className="senline" x1={x(0)} y1={y(icpt)} x2={x(T)} y2={y(icpt + slope * T)} />
+          <line className="senline" x1={x(trendStart)} y1={y(fitStart)} x2={endX} y2={endY} />
         </>
       )}
+      {mode === "anomaly" && showTrendLabel && <g className="trend-data-label" pointerEvents="none">
+        {hasTrend && <>
+          <line className="trend-label-leader" x1={endX} y1={endY} x2={Math.max(labelX + 12, Math.min(labelX + labelWidth - 12, endX))} y2={above ? labelY + labelHeight : labelY} />
+          <circle cx={endX} cy={endY} r={3.5} className="trend-label-point" />
+        </>}
+        <rect x={labelX} y={labelY} width={labelWidth} height={labelHeight} rx={7} />
+        <text className="trend-label-period" x={labelX + 10} y={labelY + 16}>{trendPeriod} · {t("Sen trend", "Tendencia de Sen")}</text>
+        <text className="trend-label-value" x={labelX + 10} y={labelY + 35}>{trendValue}</text>
+      </g>}
       {hp && hv !== null && (
         <g>
           <line className="axis" x1={x(hover! / 12)} x2={x(hover! / 12)} y1={m.t} y2={m.t + ih} />
           <circle cx={x(hover! / 12)} cy={y(hv)} r={3.5} fill="var(--ink)" />
           <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">
-            {hp.date}: {fmt(hv)} {units}
+            {inspectedMonth} · {fmt(hv)} {units}{rv != null && ` · ${referenceLabel ?? t("reference", "referencia")} ${fmt(rv)}`}
           </text>
         </g>
       )}
       {hp && hv === null && (
-        <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">{hp.date}: no data</text>
+        <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">{inspectedMonth} · {t("no data", "sin datos")}</text>
       )}
     </svg>
-  );
-}
-
-/* ---------------------------------------------------------------- witnesses */
-export function WitnessChart({ data }: { data: Witnesses }) {
-  const H = 300;
-  const m = { l: 40, r: 16, t: 16, b: 30 };
-  const iw = W - m.l - m.r, ih = H - m.t - m.b;
-  const ymin = -2.5, ymax = 2.5;
-  const x = (yr: number) => m.l + ((yr - 2004) / 20) * iw;
-  const y = (v: number) => m.t + (1 - (v - ymin) / (ymax - ymin)) * ih;
-  const tone = ["green", "water", "water"];
-  const dash = [undefined, undefined, "6 4"];
-  return (
-    <>
-      <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Annual standardized anomalies of the three witnesses">
-        {[-2, -1, 0, 1, 2].map((v) => (
-          <g key={v}>
-            <line className={v === 0 ? "zero" : "gridline"} x1={m.l} x2={W - m.r} y1={y(v)} y2={y(v)} />
-            <text x={m.l - 8} y={y(v) + 4} textAnchor="end">{v > 0 ? `+${v}` : v}</text>
-          </g>
-        ))}
-        {[2004, 2008, 2012, 2016, 2020, 2024].map((yr) => (
-          <text key={yr} x={x(yr)} y={H - 8} textAnchor="middle">{yr}</text>
-        ))}
-        <text x={m.l - 8} y={m.t - 4} textAnchor="end" className="label-strong">SD</text>
-        {data.series.map((s, k) => (
-          <path key={s.id} className={`annual ${tone[k]}`} strokeDasharray={dash[k]}
-            d={pathFrom(s.values.map((v, i) => [x(data.years[i]), v === null ? null : y(v)]))} />
-        ))}
-      </svg>
-      <div className="legend">
-        <span><i style={{ background: "var(--green)" }} />{data.series[0]?.label}</span>
-        <span><i style={{ background: "var(--water)" }} />{data.series[1]?.label}</span>
-        <span><i style={{ background: "repeating-linear-gradient(90deg, var(--water) 0 6px, transparent 6px 10px)" }} />{data.series[2]?.label}</span>
-      </div>
-    </>
-  );
-}
-
-/* ---------------------------------------------------------------- Monte Carlo dot plot */
-export function SimulationChart({ sim }: { sim: Simulation }) {
-  const rowH = 38;
-  const m = { l: 300, r: 24, t: 34, b: 34 };
-  const H = m.t + sim.tests.length * rowH + m.b;
-  const iw = W - m.l - m.r;
-  const xmax = 0.7;
-  const x = (v: number) => m.l + (Math.min(v, xmax) / xmax) * iw;
-  const phis = sim.false_positive.map((f) => f.phi);
-  const style = (k: number) =>
-    k === phis.length - 1
-      ? { r: 7, fill: "var(--drop)", stroke: "none" }
-      : k === 1 ? { r: 5.5, fill: "var(--surface)", stroke: "var(--drop)" } : { r: 4, fill: "var(--muted)", stroke: "none" };
-  return (
-    <div className="scroll-x">
-      <svg className="chart" viewBox={`0 0 ${W} ${H}`} style={{ minWidth: 560 }} role="img"
-        aria-label="How often each test reports a trend that does not exist">
-        {[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7].map((v) => (
-          <g key={v}>
-            <line className="gridline" x1={x(v)} x2={x(v)} y1={m.t - 6} y2={H - m.b + 4} />
-            <text x={x(v)} y={H - m.b + 20} textAnchor="middle">{pct(v)}</text>
-          </g>
-        ))}
-        <line className="zero" x1={x(0.05)} x2={x(0.05)} y1={m.t - 14} y2={H - m.b + 4} />
-        <text x={x(0.05) + 5} y={m.t - 16} className="label-strong">5% = what an honest test should give</text>
-        {sim.tests.map((t, i) => {
-          const cy = m.t + i * rowH + rowH / 2;
-          const vals = sim.false_positive.map((f) => f[t.id]);
-          const ours = t.id === "consensus";
-          return (
-            <g key={t.id}>
-              <text x={m.l - 14} y={cy + 4} textAnchor="end" className={ours ? "label-strong" : undefined}
-                style={{ fontFamily: "var(--font-body)", fontSize: 12.5 }}>{t.label}</text>
-              <line className="gridline" x1={x(Math.min(...vals))} x2={x(Math.max(...vals))} y1={cy} y2={cy} strokeWidth={2} />
-              {vals.map((v, k) => {
-                const s = style(k);
-                return <circle key={k} cx={x(v)} cy={cy} r={s.r} fill={s.fill} stroke={s.stroke} strokeWidth={1.5} />;
-              })}
-              <text x={x(vals[vals.length - 1]) + 11} y={cy + 4} className="label-strong">{pct(vals[vals.length - 1])}</text>
-            </g>
-          );
-        })}
-      </svg>
-      <div className="legend">
-        <span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="var(--muted)" /></svg> no memory <Tex>{"\\phi = 0"}</Tex></span>
-        <span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" fill="var(--surface)" stroke="var(--drop)" strokeWidth="1.5" /></svg> some memory <Tex>{"\\phi = 0.5"}</Tex></span>
-        <span><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="var(--drop)" /></svg> groundwater-like memory <Tex>{"\\phi = 0.9"}</Tex></span>
-      </div>
-    </div>
   );
 }

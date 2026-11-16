@@ -15,15 +15,15 @@ MIME = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".svg"
 
 
 def main():
-    js = "".join(p.read_text() for p in sorted((DIST / "assets").glob("*.js")))
-    css = "".join(p.read_text() for p in sorted((DIST / "assets").glob("*.css")))
+    js = "".join(p.read_text(encoding="utf-8") for p in sorted((DIST / "assets").glob("*.js")))
+    css = "".join(p.read_text(encoding="utf-8") for p in sorted((DIST / "assets").glob("*.css")))
     data, assets = {}, {}
     for p in sorted((DIST / "data").rglob("*")):
         if not p.is_file():
             continue
         rel = p.relative_to(DIST / "data").as_posix()
         if p.suffix in (".json", ".geojson"):
-            data[rel] = json.loads(p.read_text())
+            data[rel] = json.loads(p.read_text(encoding="utf-8"))
         elif p.suffix in MIME:
             assets[f"data/{rel}"] = f"data:{MIME[p.suffix]};base64," + base64.b64encode(p.read_bytes()).decode()
     for p in sorted((DIST / "brand").glob("*")):
@@ -49,7 +49,7 @@ def main():
 </html>
 """
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(html)
+    OUT.write_text(html, encoding="utf-8")
     print("wrote", OUT, round(OUT.stat().st_size / 1e6, 1), "MB,", len(data), "JSON files,", len(assets), "images")
 
 

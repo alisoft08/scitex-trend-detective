@@ -6,13 +6,16 @@
 | --- | --- | --- | --- |
 | MODIS Terra Vegetation Indices 16-Day L3 250 m (MOD13Q1) | 6.1 | https://doi.org/10.5067/MODIS/MOD13Q1.061 | NDVI series and per-pixel trend map |
 | MODIS Terra Net Evapotranspiration Gap-Filled 8-Day 500 m (MOD16A2GF) | 6.1 | https://doi.org/10.5067/MODIS/MOD16A2GF.061 | Evapotranspiration |
-| GLDAS Catchment Land Surface Model L4 daily 0.25° GRACE-DA1 (GLDAS_CLSM025_DA1_D) | 2.2 | https://doi.org/10.5067/TXBMLX370XX8 | Groundwater storage (GWS_tavg), total water (TWS_tavg) |
-| JPL GRACE and GRACE-FO Mascon, Coastal Resolution Improvement (CRI) | RL06.3Mv04 | https://doi.org/10.5067/TEMSC-3JC634 | Total water storage |
-| GPM IMERG Final Precipitation L3 Monthly | V07 | https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07 | Rain in the upper Ica basin |
-| Landsat 5 TM and Landsat 8/9 OLI, Collection 2 Level-2 (NASA/USGS) | C2 L2 | https://www.usgs.gov/landsat-missions/landsat-collection-2 | Before/after true-color images |
+| GLDAS Catchment Land Surface Model L4 daily 0.25° GRACE-DA1 (GLDAS_CLSM025_DA1_D) | 2.2 | https://doi.org/10.5067/TXBMLX370XX8 | Groundwater storage (GWS_tavg), total water (TWS_tavg); also the Central Valley and the atlas aquifers; its land grid masks the oceans on the globe |
+| JPL GRACE and GRACE-FO Mascon, Coastal Resolution Improvement (CRI) | RL06.3Mv04 | https://doi.org/10.5067/TEMSC-3JC634 | Total water storage (Ica, Central Valley and the six atlas aquifers) |
+| GPM IMERG Final Precipitation L3 Monthly | V07 | https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07 | Rain in the upper Ica basin and over each atlas aquifer |
+| MODIS Terra Surface Reflectance Daily L3 Global 0.05° CMG (MOD09CMG) | 6.1 | https://doi.org/10.5067/MODIS/MOD09CMG.061 | World mosaic (April-September 2024) on the atlas globe, pole to pole |
+| MODIS Terra+Aqua Land Cover Type Yearly 500 m (MCD12Q1) | 6.1 | https://doi.org/10.5067/MODIS/MCD12Q1.061 | Cropland mask (IGBP classes 12 and 14, year 2020) for greenness and crop water use over the atlas aquifers; land, water and polar ice on the globe |
+| MODIS Terra Surface Reflectance 8-Day L3 Global 500 m (MOD09A1) | 6.1 | https://doi.org/10.5067/MODIS/MOD09A1.061 | Satellite close-up of each atlas aquifer, and its 2004 and 2024 views (same growing season) on the aquifer page |
+| Landsat 5 TM, Landsat 7 ETM+ and Landsat 8/9 OLI, Collection 2 Level-2 (NASA/USGS) | C2 L2 | https://www.usgs.gov/landsat-missions/landsat-collection-2 | Before/after true-color images; one yearly picture 2004-2024 for the Explorer time machine (Landsat 7 only for 2012) |
 | MODIS Terra Land Surface Temperature 8-Day L3 1 km (MOD11A2) | 6.1 | https://doi.org/10.5067/MODIS/MOD11A2.061 | Daytime surface temperature of fields and desert |
 | MERRA-2 single-level diagnostics, hourly (M2T1NXSLV) | 5.12.4 | https://doi.org/10.5067/VJAFPLI1CSIV | Air temperature at 2 m (regional climate) |
-| SRTM Global 1 arc-second (NASA/NGA) | 3.0 | https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003 | Headwater mask above 2,500 m; shaded relief under the trend map |
+| SRTM Global 1 arc-second (NASA/NGA) | 3.0 | https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003 | Headwater mask above 2,500 m; shaded relief under the trend map and under the GRACE footprint map (Explorer) |
 
 All accessed through Google Earth Engine (noncommercial project `oasis-paradox`), November 2026.
 
@@ -47,6 +50,10 @@ All accessed through Google Earth Engine (noncommercial project `oasis-paradox`)
 ## Context
 
 - Salmoral, G., Viñarta Carbó, A., Zegarra, E., Knox, J. W., Rey, D. (2020). Reconciling irrigation demands for agricultural expansion with environmental sustainability: A preliminary assessment for the Ica Valley, Peru. *Journal of Cleaner Production* 276, 123544. https://doi.org/10.1016/j.jclepro.2020.123544 (open access, CC BY). Abstract: 286 Mm³ of groundwater consumed under unsustainable conditions (exceeding recharge), out of a 483 Mm³ blue water footprint; checked 2026-11-14.
+- Famiglietti, J. S., Lo, M., Ho, S. L., et al. (2011). Satellites measure recent rates of groundwater depletion in California's Central Valley. *Geophysical Research Letters* 38, L03403. https://doi.org/10.1029/2010GL046442 (published reference for the Central Valley comparison case; DOI checked 2026-11-15).
+- Richey, A. S., Thomas, B. F., Lo, M.-H., et al. (2015). Quantifying renewable groundwater stress with GRACE. *Water Resources Research* 51, 5217-5238. https://doi.org/10.1002/2015WR017349 (the 37 largest aquifer systems; source for choosing the atlas aquifers; DOI checked 2026-11-15).
+- Rodell, M., Velicogna, I., Famiglietti, J. S. (2009). Satellite-based estimates of groundwater depletion in India. *Nature* 460, 999-1002. https://doi.org/10.1038/nature08238 (17.7 km³/yr in 2002-2008; cross-check of the atlas volume for northwest India; DOI checked 2026-11-15).
+- Rodell, M., Famiglietti, J. S., Wiese, D. N., et al. (2018). Emerging trends in global freshwater availability. *Nature* 557, 651-659. https://doi.org/10.1038/s41586-018-0123-1 (GRACE hotspots used to choose the atlas aquifers; DOI checked 2026-11-15).
 - Mendoza et al. (2022). GRACE and TRMM over Lima-Callao. LACCEI 2022. https://laccei.org/LACCEI2022-BocaRaton/full_papers/FP275.pdf
 - OECD (2021). *Gobernanza del agua en Perú*.
 
@@ -65,5 +72,10 @@ All accessed through Google Earth Engine (noncommercial project `oasis-paradox`)
 | React, React DOM | MIT |
 | KaTeX 0.16.11 (math rendered as MathML) | MIT |
 | Vite, @vitejs/plugin-react | MIT |
+| Vitest 2.1.8 (tests of the Explorer field-lab helpers) | MIT |
+| fflate 0.8.2 (reproduction ZIP) | MIT |
+| Vercel AI SDK (`ai` 6.0, `@ai-sdk/google` 3.0), chat streaming | Apache-2.0 |
+| tinyld 1.3 (detects the language of a chat question) | MIT |
+| Google Gemini API (`gemini-3.5-flash-lite`), used at runtime by the chat; not a data source | Google Gemini API Terms of Service |
 | TypeScript | Apache-2.0 |
 | Font: Montserrat (Google Fonts), SciTeX brand typeface | SIL Open Font License 1.1 |

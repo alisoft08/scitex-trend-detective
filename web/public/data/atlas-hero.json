@@ -1,0 +1,133 @@
+{
+  "source_commit": "ad369ac0a6cde241343701dd7fe08f152a81b6d7",
+  "aquifers": [
+    {
+      "id": "ZW",
+      "name": "Ica-Villacurí, Peru",
+      "countries": [
+        "Peru"
+      ],
+      "lonlat": [
+        -75.85,
+        -14.1
+      ],
+      "tws": {
+        "verdict": "confirmed",
+        "per_decade": 14.205198
+      }
+    },
+    {
+      "id": "ZC",
+      "name": "Central Valley, California",
+      "countries": [
+        "United States"
+      ],
+      "lonlat": [
+        -120.6,
+        37.65
+      ],
+      "tws": {
+        "verdict": "confirmed",
+        "per_decade": -133.535923
+      }
+    },
+    {
+      "id": "ZHP",
+      "name": "High Plains (Ogallala), United States",
+      "countries": [
+        "United States"
+      ],
+      "lonlat": [
+        -100.5,
+        37.75
+      ],
+      "tws": {
+        "verdict": "likely",
+        "per_decade": -55.047343
+      }
+    },
+    {
+      "id": "ZIN",
+      "name": "Northwest India (Punjab, Haryana, Rajasthan)",
+      "countries": [
+        "India",
+        "Pakistan"
+      ],
+      "lonlat": [
+        74.5,
+        28.25
+      ],
+      "tws": {
+        "verdict": "confirmed",
+        "per_decade": -222.549196
+      }
+    },
+    {
+      "id": "ZNC",
+      "name": "North China Plain",
+      "countries": [
+        "China"
+      ],
+      "lonlat": [
+        116.25,
+        37.5
+      ],
+      "tws": {
+        "verdict": "confirmed",
+        "per_decade": -159.402431
+      }
+    },
+    {
+      "id": "ZAR",
+      "name": "Arabian aquifer system (Saq), Saudi Arabia",
+      "countries": [
+        "Saudi Arabia",
+        "Jordan"
+      ],
+      "lonlat": [
+        42.5,
+        27.0
+      ],
+      "tws": {
+        "verdict": "confirmed",
+        "per_decade": -91.195439
+      }
+    },
+    {
+      "id": "ZTE",
+      "name": "Tigris-Euphrates basin",
+      "countries": [
+        "Iraq",
+        "Iran",
+        "Syria",
+        "Turkey"
+      ],
+      "lonlat": [
+        43.5,
+        34.25
+      ],
+      "tws": {
+        "verdict": "confirmed",
+        "per_decade": -86.875118
+      }
+    },
+    {
+      "id": "ZGU",
+      "name": "Guarani aquifer system, South America",
+      "countries": [
+        "Brazil",
+        "Paraguay",
+        "Argentina",
+        "Uruguay"
+      ],
+      "lonlat": [
+        -52.75,
+        -23.5
+      ],
+      "tws": {
+        "verdict": "inconclusive",
+        "per_decade": -21.82354
+      }
+    }
+  ]
+}

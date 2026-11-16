@@ -27,6 +27,7 @@ export interface CaseRef {
   sen_per_decade: number | null;
   ci95: [number | null, number | null];
   units: string;
+  ref_zone?: string;   // contrasts: the reference zone (Z5 desert in Ica, <zone>R natural land in the atlas)
 }
 
 export interface WellsZone {
@@ -98,6 +99,22 @@ export interface Manifest {
   verdict_labels: Record<Verdict, string>;
   demo_cases: DemoCase[];
   provisional: string;
+  atlas?: AtlasEntry[];
+  atlas_note?: string;
+}
+
+export interface AtlasWitness {
+  id: string; verdict: Verdict; per_decade: number | null; ci95: [number | null, number | null]; units: string;
+  classic_false_alarm: boolean; years_to_detect: number | null;
+}
+export interface AtlasEntry {
+  id: string; name: string; description: string; lonlat: [number, number]; focus: boolean;
+  area_km2: number; grace_footprints: number; tws: AtlasWitness; gws: AtlasWitness; rain: AtlasWitness;
+  countries: string[]; ndvi?: AtlasWitness; et?: AtlasWitness; t2m?: AtlasWitness; lst?: AtlasWitness;
+  ndvi_gap?: AtlasWitness; lst_gap?: AtlasWitness;
+  impact?: { grace_km3_per_yr: number | null; cropland_km2?: number; crop_water_mm3_2020_2024?: number;
+    crop_water_change_mm3?: number; crop_water_verdict?: string };
+  rain_area: string; reading: string; reference: string;
 }
 
 export interface SeriesPoint {
@@ -133,6 +150,7 @@ export interface Trend {
   windows: Window[];
   windows_same_sign: number;
   windows_significant: number;
+  jackknife?: { year: number; sen_per_decade: number | null; p_block_bootstrap: number | null }[];
   jackknife_flips_sign: boolean;
   jackknife_significant: number;
   jackknife_n: number;
@@ -205,4 +223,16 @@ export interface WellProps {
   date_end: string;
   depth_start_m: number;
   depth_end_m: number;
+}
+
+export interface PeriodBounds { start: number; end: number }
+
+export interface ExploratoryPeriod extends PeriodBounds {
+  n: number; sen_per_decade: number | null; p_block_bootstrap: number | null;
+  p_arma: number | null; result: "both" | "one" | "none" | "insufficient";
+}
+
+export interface PeriodGrid {
+  id: string; units: string; starts: number[]; ends: number[]; min_years: number; method: string;
+  periods: ExploratoryPeriod[];
 }

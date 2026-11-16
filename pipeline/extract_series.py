@@ -4,7 +4,9 @@
 Output: data/processed/series_long.csv (tidy, one row per month/zone/variable).
 Missing months stay empty (NaN in pandas, null in JSON); nothing is interpolated.
 """
+import os
 import sys
+import time
 from pathlib import Path
 
 import ee
@@ -20,14 +22,14 @@ N_MONTHS = 252
 
 VARIABLES = {
     # key: (zones, units, data_type, product, scale_m)
-    "ndvi": (["Z1", "Z2", "Z5"], "unitless", "observed", "MODIS Terra MOD13Q1 v6.1", 250),
-    "et": (["Z1", "Z2"], "mm/month", "estimated", "MODIS MOD16A2GF v6.1", 500),
-    "gws": (["ZW"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (GWS_tavg)", 1000),
+    "ndvi": (["Z1", "Z2", "Z5", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU", "ZCR", "ZHPR", "ZINR", "ZNCR", "ZARR", "ZTER", "ZGUR"], "unitless", "observed", "MODIS Terra MOD13Q1 v6.1", 250),
+    "et": (["Z1", "Z2", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm/month", "estimated", "MODIS MOD16A2GF v6.1", 500),
+    "gws": (["ZW", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (GWS_tavg)", 1000),
     "tws_gldas": (["ZW"], "mm", "modeled", "GLDAS-2.2 CLSM GRACE-DA (TWS_tavg)", 1000),
-    "tws_grace": (["ZW"], "mm", "observed", "GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", 5000),
-    "precip": (["Z4", "Z1"], "mm/month", "observed", "GPM IMERG Final Monthly V07", 5000),
-    "lst": (["Z1", "Z2", "Z5"], "degC", "observed", "MODIS Terra MOD11A2 v6.1 (LST_Day_1km)", 1000),
-    "t2m": (["ZW", "Z4"], "degC", "modeled", "MERRA-2 M2T1NXSLV (T2M), monthly mean of hourly", 10000),
+    "tws_grace": (["ZW", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm", "observed", "GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", 5000),
+    "precip": (["Z4", "Z1", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "mm/month", "observed", "GPM IMERG Final Monthly V07", 5000),
+    "lst": (["Z1", "Z2", "Z5", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU", "ZCR", "ZHPR", "ZINR", "ZNCR", "ZARR", "ZTER", "ZGUR"], "degC", "observed", "MODIS Terra MOD11A2 v6.1 (LST_Day_1km)", 1000),
+    "t2m": (["ZW", "Z4", "ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU"], "degC", "modeled", "MERRA-2 M2T1NXSLV (T2M), monthly mean of hourly", 10000),
 }
 
 
@@ -66,10 +68,19 @@ def collection(var):
     raise ValueError(var)
 
 
+# Atlas aquifer boxes are thousands of km wide: sample them at each product's native grid to stay within quota.
+NATIVE_SCALE = {"gws": 27000, "tws_grace": 50000, "precip": 11000, "ndvi": 2000, "et": 2000, "t2m": 50000, "lst": 2000}
+FIELD_VARS = {"ndvi", "et", "lst"}  # atlas boxes: cropland mask for these, whole box for the rest
+
+
 def monthly_series(var, zone, scale):
     col, how = collection(var)
     region, mask = Z.zone_masks()[zone]
     start = ee.Date(START)
+    if Z.is_atlas(zone):
+        scale = NATIVE_SCALE.get(var, scale)
+        if var not in FIELD_VARS:
+            mask = None
 
     def per_month(i):
         d0 = start.advance(ee.Number(i), "month")
@@ -86,8 +97,17 @@ def monthly_series(var, zone, scale):
             ee.Algorithms.If(how == "mean_x_days", ee.Number(val).multiply(days), val))
         return ee.Feature(None, {"date": d0.format("YYYY-MM"), "value": val})
 
-    fc = ee.FeatureCollection(ee.List.sequence(0, N_MONTHS - 1).map(per_month))
-    rows = [f["properties"] for f in fc.getInfo()["features"]]
+    rows = []
+    for y0 in range(0, N_MONTHS, 12):  # one year per request keeps concurrent aggregations low
+        fc = ee.FeatureCollection(ee.List.sequence(y0, min(y0 + 11, N_MONTHS - 1)).map(per_month))
+        for attempt in range(8):  # Earth Engine answers 429 "Too many concurrent aggregations" under load
+            try:
+                rows += [f["properties"] for f in fc.getInfo()["features"]]
+                break
+            except ee.EEException as e:
+                if "concurrent" not in str(e) and "429" not in str(e) or attempt == 7:
+                    raise
+                time.sleep(5 * (attempt + 1))
     return pd.DataFrame(rows)
 
 
@@ -95,11 +115,14 @@ def main():
     """python pipeline/extract_series.py [var ...]  (no args: all variables; with args: only those, merged into the CSV)"""
     Z.init()
     only = set(sys.argv[1:])
+    zones_only = set(filter(None, os.environ.get("ZONES", "").split(",")))  # e.g. ZONES=ZHP,ZIN to add new zones only
     frames = []
     for var, (zs, units, dtype, product, scale) in VARIABLES.items():
         if only and var not in only:
             continue
         for zone in zs:
+            if zones_only and zone not in zones_only:
+                continue
             df = monthly_series(var, zone, scale)
             df["zone"], df["variable"], df["units"], df["data_type"], df["source"] = zone, var, units, dtype, product
             n_ok = df["value"].notna().sum()
@@ -108,7 +131,9 @@ def main():
     out = pd.concat(frames, ignore_index=True)[["date", "zone", "variable", "value", "units", "data_type", "source"]]
     if only and OUT.exists():
         old = pd.read_csv(OUT)
-        out = pd.concat([old[~old.variable.isin(only)], out], ignore_index=True)
+        done = set(zip(out.variable, out.zone))
+        keep = ~pd.Series([(v, z) in done for v, z in zip(old.variable, old.zone)], index=old.index)
+        out = pd.concat([old[keep], out], ignore_index=True)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(OUT, index=False)
     print("wrote", OUT, len(out), "rows")
