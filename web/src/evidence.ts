@@ -40,12 +40,16 @@ const atlasNotesEs: Record<string, string> = {
 const verdicts: Record<Verdict, Translation> = {
   confirmed: ["Confirmed trend", "Tendencia confirmada"],
   likely: ["Likely trend", "Tendencia probable"],
-  inconclusive: ["Inconclusive", "No concluyente"],
-  insufficient_data: ["Insufficient data", "Datos insuficientes"],
+  inconclusive: ["Trend to evaluate", "Tendencia a evaluar"],
+  insufficient_data: ["Trend to evaluate", "Tendencia a evaluar"],
 };
 
+// One display category; retain the distinct scientific verdicts in the data.
+export const VERDICT_CATEGORIES = ["confirmed", "likely", "inconclusive"] as const;
+export const verdictCategory = (verdict: Verdict) => verdict === "insufficient_data" ? "inconclusive" : verdict;
+
 export const EVIDENCE_TEXT = {
-  confirmed: "Confirmed trend", likely: "Likely trend", inconclusive: "Inconclusive", insufficient_data: "Insufficient data",
+  confirmed: "Confirmed trend", likely: "Likely trend", inconclusive: "Trend to evaluate", insufficient_data: "Trend to evaluate",
 } satisfies Record<Verdict, string>;
 
 export const verdictLabel = (language: Language, verdict: Verdict) => translate(language, ...verdicts[verdict]);

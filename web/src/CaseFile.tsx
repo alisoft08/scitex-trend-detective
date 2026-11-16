@@ -41,8 +41,8 @@ export function EffectBar({ est, limits }: { est: number | null; limits: [number
 
 type InspectPoint = (point: Omit<HoveredPoint, "chart">) => void;
 
-export function CasePlot({ cf, mode = "anomaly", simple = false, reference, window, onInspect }: {
-  cf: CaseFile; mode?: "anomaly" | "value"; simple?: boolean; reference?: CaseFile; window?: Window; onInspect?: InspectPoint;
+export function CasePlot({ cf, mode = "anomaly", simple = false, reference, window, onInspect, showTrendLabel = false, connectGaps = false }: {
+  cf: CaseFile; mode?: "anomaly" | "value"; simple?: boolean; reference?: CaseFile; window?: Window; onInspect?: InspectPoint; showTrendLabel?: boolean; connectGaps?: boolean;
 }) {
   const { t } = useLocale();
   const { caseUnits, zoneName } = useEvidence();
@@ -53,14 +53,16 @@ export function CasePlot({ cf, mode = "anomaly", simple = false, reference, wind
     : t("Monthly anomalies", "Anomalías mensuales");
   const missing = cf.n - cf.n_valid;
   return <figure className="case-plot">
-    <TrendChart series={cf.series} trend={cf.trend} mode={mode} units={units} simple={simple} reference={reference?.series} onInspect={onInspect}
+    <TrendChart series={cf.series} trend={cf.trend} mode={mode} units={units} simple={simple} reference={reference?.series} onInspect={onInspect} showTrendLabel={showTrendLabel} connectGaps={connectGaps}
       referenceLabel={reference?.zone.id === "Z5" ? t("Desert", "Desierto") : t("Reference", "Referencia")}
       tone={cf.witness === "greenness" ? "green" : cf.witness === "heat" ? "heat" : cf.witness === "water" ? "water" : "climate"} window={window} />
     <figcaption className="plot-legend small">
       <span><i className="plot-key" />{label}</span>
       {reference && <span><i className="plot-key dashed" />{zoneName(reference.zone.id, reference.zone.name)}</span>}
-      {mode === "anomaly" && <span><i className="plot-key trend" />{t("Full-period trend", "Tendencia del periodo completo")}</span>}
-      {missing > 0 && <span><i className="plot-key gap" />{t(`${missing} missing months`, `${missing} meses sin datos`)}</span>}
+      {mode === "anomaly" && (!window || window.sen_per_decade !== null) && <span><i className="plot-key trend" />{window
+        ? t(`Trend · ${window.start}–${window.end}`, `Tendencia · ${window.start}–${window.end}`)
+        : t("Full-period trend", "Tendencia del periodo completo")}</span>}
+      {!connectGaps && missing > 0 && <span><i className="plot-key gap" />{t(`${missing} missing months`, `${missing} meses sin datos`)}</span>}
     </figcaption>
   </figure>;
 }
@@ -75,7 +77,7 @@ function FieldComparison({ field, desert, onInspect }: { field: CaseRef; desert:
         "La misma variable en dos áreas y en la misma escala. Compara cuándo ambas series se mueven juntas y cuándo se separan.")}</p>
     </div>
     {a.error || b.error ? <p className="error" role="alert">{t("Could not load the study and reference records.", "No se pudieron cargar las series del área de estudio y de referencia.")}</p>
-      : a.data && b.data ? <CasePlot cf={a.data} reference={b.data} mode="value" onInspect={onInspect} />
+      : a.data && b.data ? <CasePlot cf={a.data} reference={b.data} mode="value" onInspect={onInspect} connectGaps />
       : <p className="loading">{t("Loading the two records…", "Cargando las dos series…")}</p>}
   </div>;
 }
@@ -169,7 +171,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
   const explorer = level === "explorer", expert = level === "expert";
   const selectedPeriod = grid?.periods.find((period) => period.start === from && period.end === to);
   const fullRecord = !grid || (from === grid.starts[0] && to === grid.ends[grid.ends.length - 1]);
-  const activeWindow = expert && !fullRecord && selectedPeriod?.sen_per_decade != null ? selectedPeriod : undefined;
+  const activeWindow = !fullRecord ? selectedPeriod : undefined;
   const referenceArea = comparison && zoneName(comparison.desert.zone, comparison.desert.zone_name);
   const showRaw = !explorer && cf?.kind === "case" && mode === "value";
   const caseChartVisible = !comparison || !explorer;
@@ -289,13 +291,13 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         "The chart shows the original monthly values. Switch to Anomalies to see the long-term trend with the typical seasonal cycle removed.",
         "El gráfico muestra los valores mensuales originales. Cambia a Anomalías para ver la tendencia de largo plazo tras descontar el ciclo estacional típico.",
       ) : t(
-        "Each point is the difference from the usual value for that calendar month. The dark line is the trend for the full period. Switch to Original values to see the original monthly series.",
-        "Cada punto es la diferencia respecto al valor habitual de ese mes del calendario. La línea oscura muestra la tendencia del periodo completo. Cambia a Valores originales para ver la serie mensual original.",
+        "Each point is the difference from the usual value for that calendar month. The dark line and its label show the trend for the selected period. Switch to Original values to see the original monthly series.",
+        "Cada punto es la diferencia respecto al valor habitual de ese mes del calendario. La línea oscura y su etiqueta muestran la tendencia del periodo seleccionado. Cambia a Valores originales para ver la serie mensual original.",
       )}</p>}
       {comparison ? <p className="small muted">{t("Use this graph to track how the gap between cropland and its reference area changes after expressing both in standard deviations.",
         "Usa este gráfico para seguir cómo cambia la brecha entre el cultivo y su zona de referencia al expresar ambas series en desviaciones estándar.")}</p>
         : explorer && <p className="control-help">{t("Each point shows the difference from the average for that calendar month.", "Cada punto muestra la diferencia respecto al promedio de ese mes del calendario.")}</p>}
-      <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} onInspect={(point) => {
+      <CasePlot cf={cf} mode={showRaw ? "value" : "anomaly"} simple={explorer} window={activeWindow} showTrendLabel connectGaps onInspect={(point) => {
         lastPoint.current = { point: { ...point, chart: "case" }, mode: chartMode };
       }} />
       {checkAvailable && <button className="text-button small" onClick={() => showDetails(extractionDetails.current)}>{t("Compare extracted values with NASA’s reference series ↓", "Comparar los valores extraídos con la serie de referencia de NASA ↓")}</button>}

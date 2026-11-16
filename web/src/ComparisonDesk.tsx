@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useJSON } from "./data";
 import { comparisonPair } from "./comparisons";
 import { CasePlot, EffectBar } from "./CaseFile";
-import { useEvidence } from "./evidence";
+import { useEvidence, verdictCategory, VERDICT_CATEGORIES } from "./evidence";
 import { useLocale } from "./i18n";
 import { ShareLink } from "./ShareLink";
 import { WITNESSES } from "./Workspace";
@@ -87,7 +87,7 @@ export function ComparisonDesk({ manifest, level, pair, onPair, onCase, href, ad
   }
 
   const matches = manifest.cases.filter((c) => (!variable || c.variable.replace(/_contrast$/, "") === variable)
-    && (!zone || c.zone === zone) && (!verdict || c.verdict === verdict));
+    && (!zone || c.zone === zone) && (!verdict || verdictCategory(c.verdict) === verdict));
   const contrast = matchedContrast(manifest, a, b);
   const option = (c: CaseRef) => `${variableName(c.variable, c.short, true)} · ${zoneName(c.zone, c.zone_name)}`;
   const labelA = t("Case A", "Caso A"), labelB = t("Case B", "Caso B");
@@ -161,7 +161,7 @@ export function ComparisonDesk({ manifest, level, pair, onPair, onCase, href, ad
         </select></label>
         <label className="research-field">{t("Evidence", "Evidencia")}<select value={verdict} onChange={(e) => setVerdict(e.target.value)}>
           <option value="">{t("All results", "Todos los resultados")}</option>
-          {Object.keys(manifest.verdict_labels).map((id) => <option key={id} value={id}>{verdictText(id as CaseRef["verdict"])}</option>)}
+          {VERDICT_CATEGORIES.map((id) => <option key={id} value={id}>{verdictText(id)}</option>)}
         </select></label>
       </div>
       {matches.length === 0 && <p role="status">{t("No published cases match these filters.", "Ningún caso publicado coincide con estos filtros.")}</p>}

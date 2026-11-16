@@ -7,11 +7,12 @@ import { LensHero, type LensStop } from "./LensHero";
 import { fmt } from "./format";
 import { amount, dirOf, proven, short, Spark, Verdict, WITNESSES } from "./Atlas";
 import { useLocale } from "./i18n";
+import { EVIDENCE_TEXT } from "./evidence";
 import type { AtlasEntry, Manifest } from "./types";
 
 interface Tour { [zone: string]: { ratio: number; bbox: [number, number, number, number]; stops: { lon: number; lat: number; change: string }[] } }
 
-const WORD: Record<string, string> = { confirmed: "Confirmed trend", likely: "Likely trend", inconclusive: "Inconclusive", insufficient_data: "Insufficient data" };
+const WORD = EVIDENCE_TEXT;
 
 /** Headline from the verdicts: what the satellites see on the surface and in the water below. */
 function headline(a: AtlasEntry) {

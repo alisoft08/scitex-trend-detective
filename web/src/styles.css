@@ -211,8 +211,7 @@ button { font: inherit; color: inherit; }
   padding: 0.14rem 0.5rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
 .pill.confirmed { background: var(--stamp); color: var(--stamp-ink); border-color: var(--stamp); }
 .pill.likely { color: var(--amber); }
-.pill.inconclusive { color: var(--muted); border-style: dashed; }
-.pill.insufficient_data { color: var(--muted); border-style: dotted; }
+.pill.inconclusive, .pill.insufficient_data { color: var(--muted); border-style: dashed; }
 
 .effect { position: relative; display: block; height: 18px; min-width: 0; }
 .effect .zero { position: absolute; top: -2px; bottom: -2px; width: 0; border-left: 1.5px dashed var(--muted); }
@@ -246,12 +245,18 @@ button { font: inherit; color: inherit; }
 .chart .series.water { stroke: var(--water); }
 .chart .series.climate { stroke: var(--muted); }
 .chart .series.heat { stroke: var(--heat); }
+.chart .series.gap-bridge { stroke-linecap: round; }
 .chart .annual { fill: none; stroke-width: 2.25; }
 .chart .annual.green { stroke: var(--green); } .chart .annual.water { stroke: var(--water); } .chart .annual.climate { stroke: var(--ink); }
 .chart .senline { stroke: var(--ink); stroke-width: 2.25; }
 .chart .band { fill: var(--ink); opacity: 0.08; }
 .chart .gap { fill: var(--grid); }
 .chart .label-strong { fill: var(--ink); font-weight: 600; }
+.chart .trend-data-label rect { fill: var(--surface); fill-opacity: .97; stroke: var(--line); }
+.chart .trend-data-label .trend-label-leader { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart .trend-data-label .trend-label-point { fill: var(--ink); stroke: var(--surface); stroke-width: 1.5; }
+.chart .trend-data-label .trend-label-period { fill: var(--muted); font-size: 11px; font-weight: 500; }
+.chart .trend-data-label .trend-label-value { fill: var(--ink); font-size: 13px; font-weight: 700; }
 
 /* ---------- the lab ---------- */
 .lab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.2rem 2rem; padding: clamp(1.2rem, 2.5vw, 2rem);
@@ -318,6 +323,49 @@ button { font: inherit; color: inherit; }
 .research-nav .nav { margin-left: auto; }
 .research-app { min-height: calc(100svh - 60px); background: var(--bg); }
 .research-page { display: grid; gap: 1.15rem; padding-block: clamp(1.4rem, 3vw, 3rem) 4rem; }
+/* Resume: the selected area's four published signals, with their geographic scope. */
+.resume-heading { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.resume-heading .research-heading h1 { font-size: clamp(1.8rem, 3.3vw, 2.9rem); }
+.resume-period { display: grid; flex-shrink: 0; gap: .25rem; padding-left: 1.4rem; border-left: 2px solid var(--line); font-size: .85rem; }
+.resume-period a { font-size: .78rem; }
+.resume-indicators { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: linear-gradient(120deg, #f1f5fc, #fafbfc); }
+.resume-indicator { padding: 1.2rem 1.4rem; min-width: 0; border-top: 3px solid var(--accent); }
+.resume-indicator + .resume-indicator { border-left: 1px solid var(--line); }
+.resume-indicator-0 { border-top-color: var(--water); }
+.resume-indicator-2 { border-top-color: var(--green); }
+.resume-indicator h2 { font-size: .84rem; line-height: 1.4; min-height: 2.8em; }
+.resume-value { font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.045em; line-height: 1.2; margin-top: .45rem; }
+.resume-unit { font-size: .76rem; color: var(--muted); margin: .1rem 0 .8rem; }
+.resume-scope { font-size: .7rem; color: var(--muted); line-height: 1.5; margin-top: .5rem; }
+.resume-indicator .pill { display: inline-block; max-width: 100%; white-space: normal; line-height: 1.4; }
+.resume-chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.resume-chart { display: grid; align-content: start; gap: .7rem; }
+.resume-chart > header { display: flex; justify-content: space-between; align-items: start; gap: .6rem; }
+.resume-chart h2 { font-size: 1.05rem; line-height: 1.35; }
+.resume-chart header p { font-size: .73rem; margin-top: .2rem; }
+.resume-detail { flex-shrink: 0; border: 0; background: transparent; color: var(--accent); font: inherit; font-size: .76rem; cursor: pointer; padding: .2rem; }
+.resume-detail:hover { text-decoration: underline; }
+.resume-chart .chart { width: 100%; height: auto; }
+.resume-chart-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .3rem .7rem; color: var(--muted); font-size: .65rem; }
+.resume-chart-key { display: inline-flex; align-items: center; gap: .4rem; }
+.resume-chart-key::before { content: ""; width: 17px; border-top: 2px solid var(--water); }
+.resume-chart-key.greenness::before { border-color: var(--green); }
+.resume-chart-key.climate::before { border-color: var(--muted); }
+.resume-chart-key i { width: 17px; border-top: 2px solid var(--ink); margin-left: .4rem; }
+.resume-placeholder { display: grid; place-content: center; min-height: 190px; color: var(--muted); font-size: .85rem; }
+.resume-footnote { color: var(--muted); font-size: .75rem; line-height: 1.7; max-width: 120ch; }
+@media (max-width: 960px) {
+  .resume-heading { align-items: start; }
+  .resume-indicators { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .resume-indicator:nth-child(3) { border-left: 0; }
+}
+@media (max-width: 730px) {
+  .resume-heading { flex-direction: column; gap: .8rem; }
+  .resume-period { padding-left: .8rem; }
+  .resume-chart-grid { grid-template-columns: minmax(0, 1fr); }
+  .resume-indicator { padding: .85rem; }
+  .resume-indicator .pill { font-size: .58rem; }
+}
 .research-heading { display: grid; gap: .42rem; padding-bottom: .35rem; }
 .research-heading .eyebrow { color: var(--accent); }
 .research-heading h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.02; text-wrap: pretty; }

@@ -89,7 +89,7 @@ export const dirOf = (w: AtlasWitness): "down" | "up" | "flat" => !proven(w) ? "
 export const bare = (w: AtlasWitness) => w.per_decade === null ? "n/a" : signed(w.units === "mm" ? w.per_decade / 10 : w.per_decade, 2);
 const VERDICT_WORD: Record<AtlasWitness["verdict"], Translation> = {
   confirmed: ["Confirmed", "Confirmada"], likely: ["Likely", "Probable"],
-  inconclusive: ["Not proven", "No concluyente"], insufficient_data: ["Too little data", "Datos insuficientes"],
+  inconclusive: ["Trend to evaluate", "Tendencia a evaluar"], insufficient_data: ["Trend to evaluate", "Tendencia a evaluar"],
 };
 
 /** A dot and a word: filled for confirmed, ring for likely, hollow grey when not proven. */

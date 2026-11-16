@@ -1,10 +1,12 @@
 // AI-assisted: Codex (OpenAI). A compact snapshot of the active research screen.
 import { CHAT_PAGES, type ChatPage, type PageChatContext } from "./chat-contract";
 import { DATASETS } from "./Sources";
+import { summaryRecords } from "./resume-data";
 import type { Translation } from "./i18n";
 import type { AtlasEntry, AtlasWitness, CaseRef, Manifest } from "./types";
 
 const TITLES: Record<ChatPage, Translation> = {
+  resume: ["Area overview", "Resumen de la zona"],
   aquifer: ["Aquifer", "Acuífero"],
   ica: ["Ica deep dive", "Análisis de Ica"],
   map: ["Evidence map", "Mapa de evidencias"],
@@ -14,6 +16,11 @@ const TITLES: Record<ChatPage, Translation> = {
 };
 
 const QUESTIONS: Record<ChatPage, Translation[]> = {
+  resume: [
+    ["What are the main changes in this area?", "¿Cuáles son los principales cambios en esta zona?"],
+    ["Do these four records cover the same area?", "¿Estas cuatro series cubren la misma área?"],
+    ["How should I interpret a trend to evaluate?", "¿Cómo interpreto una tendencia a evaluar?"],
+  ],
   aquifer: [
     ["What do the NASA witnesses measure?", "¿Qué miden los testigos de NASA?"],
     ["How do I interpret the GRACE result?", "¿Cómo interpreto el resultado de GRACE?"],
@@ -80,6 +87,13 @@ export function pageChatContext(view: string, params: URLSearchParams, manifest:
   const title = TITLES[view][language === "en" ? 0 : 1];
   const page: PageChatContext = { view, pageId: view, title, facts: [], language };
   switch (view) {
+    case "resume": {
+      const selected = manifest.cases.find((record) => record.id === params.get("case"));
+      if (!selected) return page;
+      return { ...page, pageId: `resume:${selected.zone}`, title: `${title} · ${selected.zone_name}`,
+        facts: [{ label: "Period", value: manifest.period }, ...summaryRecords(manifest, selected).flatMap((record) => record ? [caseFact(record)] : []),
+          { label: "Interpretation", value: "GRACE: regional total water. GLDAS: modeled groundwater, assimilates GRACE. Records may cover distinct study areas; use each area label." }] };
+    }
     case "aquifer":
     case "ica": {
       const id = view === "ica" ? "ZW" : params.get("id");

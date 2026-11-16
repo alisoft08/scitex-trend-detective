@@ -5,6 +5,7 @@ import { pageChatContext } from "./page-chat";
 import type { ChatContext } from "./chat-contract";
 import { HeroMap } from "./HeroMap";
 import { Workspace } from "./Workspace";
+import { Resume } from "./Resume";
 import { ComparisonDesk } from "./ComparisonDesk";
 import { comparisonPair } from "./comparisons";
 import { Lab } from "./Lab";
@@ -23,6 +24,7 @@ const DEFAULT_CASE = "ZW_tws_grace";
 const DEFAULT_PAIR = [DEFAULT_CASE, "ZIN_tws_grace"] as const;
 const VIEWS = [
   { id: "ica", label: ["Ica deep dive", "Análisis de Ica"] },
+  { id: "resume", label: ["Resume", "Resume"] },
   { id: "investigate", label: ["Detective desk", "Mesa de investigación"] },
   { id: "map", label: ["Ica evidence map", "Mapa de evidencias de Ica"] },
   { id: "method", label: ["Trend lab", "Laboratorio de tendencias"] },
@@ -104,7 +106,7 @@ export default function App() {
   const [picked, setPicked] = useState(false);
   const showNav = !isHome || picked;
   const page = !isHome && view !== "investigate" && manifest
-    ? pageChatContext(view, route.params, manifest, pair, language) : undefined;
+    ? pageChatContext(view, view === "resume" ? new URLSearchParams({ case: selectedCase?.id ?? lastCase }) : route.params, manifest, pair, language) : undefined;
 
   return (
     <>
@@ -113,7 +115,7 @@ export default function App() {
           <a href="#atlas" className="brand" tabIndex={showNav ? undefined : -1} aria-label={t("Oasis Paradox · Back to the global atlas", "Oasis Paradox · Volver al atlas global")}>Oasis <span>Paradox</span></a>
           <nav className="nav" aria-label={t("Investigation tools", "Herramientas de investigación")}>
             {visible.map((v) => (
-              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : v.id === "compare" ? pairLink(lastPair) : `#${v.id}`}
+              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : v.id === "resume" ? `#resume?case=${encodeURIComponent(lastCase)}` : v.id === "compare" ? pairLink(lastPair) : `#${v.id}`}
                 tabIndex={showNav ? undefined : -1} className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{t(v.label[0], v.label[1])}</a>
             ))}
           </nav>
@@ -135,6 +137,7 @@ export default function App() {
           {view === "ica" && <HeroMap m={manifest} primary={{ label: t("View the selected variable’s trend analysis →", "Ver análisis de tendencia de la variable seleccionada →"), go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Audiences onCompare={() => selectPair(DEFAULT_PAIR)} onLab={() => navigate("#method")} />}
+          {view === "resume" && <Resume m={manifest} selected={selectedCase} onCase={selectCase} />}
           {view === "investigate" && <Workspace m={manifest} level={LEVEL} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} onLead={followLead} chatContextRef={caseChatRef} />}
           {view === "map" && <MapView m={manifest} level={LEVEL} onCase={selectCase} />}
