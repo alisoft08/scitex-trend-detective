@@ -5,6 +5,7 @@ import { pageChatContext } from "./page-chat";
 import type { ChatContext } from "./chat-contract";
 import { HeroMap } from "./HeroMap";
 import { Workspace } from "./Workspace";
+import { Resume } from "./Resume";
 import { ComparisonDesk } from "./ComparisonDesk";
 import { comparisonPair } from "./comparisons";
 import { Lab } from "./Lab";
@@ -20,7 +21,8 @@ import type { Manifest, PeriodBounds } from "./types";
 const LEVEL = "expert";
 const DEFAULT_CASE = "ZIN_tws_grace";   // the desk opens on the clearest confirmed loss, not on Ica
 const DEFAULT_PAIR = ["ZIN_tws_grace", "ZW_tws_grace"] as const;   // a loss GRACE sees, and one it cannot
-const VIEWS = ["ica", "compare", ...toolsNavigation.map(({ id }) => id)];
+const HEADER_TOOLS = [{ id: "resume", label: ["Resume", "Resume"] }, ...toolsNavigation] as const;
+const VIEWS = ["ica", "compare", ...HEADER_TOOLS.map(({ id }) => id)];
 
 function readRoute() {
   const [hash, query] = location.hash.slice(1).split("?");
@@ -77,6 +79,7 @@ export default function App() {
   };
   const caseLink = (id: string, period?: PeriodBounds) => `#investigate?case=${encodeURIComponent(id)}`
     + (period ? `&from=${period.start}&to=${period.end}` : "");
+  const resumeLink = (id: string) => `#resume?case=${encodeURIComponent(id)}`;
   const pairLink = (pair: readonly [string, string]) => `#compare?left=${encodeURIComponent(pair[0])}&right=${encodeURIComponent(pair[1])}`;
   const selectCase = (id: string, period?: PeriodBounds) => { setLastCase(id); navigate(caseLink(id, period)); };
   const selectPair = (pair: readonly [string, string]) => {
@@ -96,7 +99,8 @@ export default function App() {
   const [picked, setPicked] = useState(false);
   const showNav = !isHome || picked;
   const page = !isHome && view !== "investigate" && manifest
-    ? pageChatContext(view, route.params, manifest, pair, language) : undefined;
+    ? pageChatContext(view, view === "resume" && selectedCase ? new URLSearchParams({ case: selectedCase.id }) : route.params,
+      manifest, pair, language) : undefined;
 
   return (
     <>
@@ -108,8 +112,9 @@ export default function App() {
               <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.5" /><ellipse cx="8" cy="8" rx="2.8" ry="6.5" /><path d="M1.5 8h13" /></svg>
               {t("Globe", "Globo")}
             </a>
-            {toolsNavigation.map((v) => (
-              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : `#${v.id}`}
+            {HEADER_TOOLS.map((v) => (
+              <a key={v.id} href={v.id === "resume" ? resumeLink(selectedCase?.id ?? lastCase)
+                : v.id === "investigate" ? caseLink(lastCase) : `#${v.id}`}
                 className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{t(v.label[0], v.label[1])}</a>
             ))}
           </nav>
@@ -130,6 +135,7 @@ export default function App() {
           }} />}
           {view === "investigate" && <Workspace m={manifest} level={LEVEL} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} requestedPeriod={requestedPeriod} chatContextRef={caseChatRef} />}
+          {view === "resume" && <Resume m={manifest} selected={selectedCase} onCase={selectCase} />}
           {view === "method" && <section className="wrap wide research-page">
             <div className="research-heading"><p className="eyebrow">{t("Simulation", "Simulación")}</p><h1>{t("Put the tests on trial", "Pon a prueba los métodos estadísticos")}</h1></div>
             <Lab level={LEVEL} onCase={() => selectCase("ZW_gws")} />

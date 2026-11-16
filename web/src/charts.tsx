@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { SeriesPoint, Trend, Window } from "./types";
 import type { HoveredPoint } from "./chat-contract";
 import { useLocale } from "./i18n";
+import { missingValueConnections } from "./chart-gaps";
 
 function niceTicks(min: number, max: number, count = 5): number[] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [];
@@ -46,10 +47,12 @@ export function TrendChart(props: {
   reference?: SeriesPoint[];
   referenceLabel?: string;
   window?: Window;
+  showTrendLabel?: boolean;
+  connectGaps?: boolean;
   onInspect?: (point: Omit<HoveredPoint, "chart">) => void;
 }) {
-  const { t, fmt, language } = useLocale();
-  const { series, trend, mode, tone, units, simple, reference, referenceLabel, window, onInspect } = props;
+  const { t, fmt, language, signed } = useLocale();
+  const { series, trend, mode, tone, units, simple, reference, referenceLabel, window, onInspect, showTrendLabel, connectGaps = false } = props;
   const H = props.height ?? 300;
   const m = { l: 58, r: 14, t: 14, b: 30 };
   const iw = W - m.l - m.r;
@@ -61,14 +64,30 @@ export function TrendChart(props: {
   const ys = series.map((p) => (mode === "anomaly" ? p.anomaly : p.value));
   const aligned = reference && new Map(reference.map((p) => [p.date, mode === "anomaly" ? p.anomaly : p.value]));
   const comparison = aligned && series.map((p) => aligned.get(p.date) ?? null);
-  const slope = (trend.sen_per_decade ?? 0) / 10;
-  const icpt = trend.intercept ?? 0;
+  const firstYear = Number(series[0]?.date.slice(0, 4) ?? 2004);
+  const lastYear = Number(series[n - 1]?.date.slice(0, 4) ?? firstYear);
+  const trendStart = window ? Math.max(0, window.start - firstYear) : 0;
+  const trendEnd = window ? Math.min(T, window.end - firstYear + 11 / 12) : T;
+  const selectedSlope = window ? window.sen_per_decade : trend.sen_per_decade;
+  const slope = (selectedSlope ?? 0) / 10;
+  // The period slope is precomputed in Python. Only locate that existing fit
+  // on the anomaly chart using the same median-residual intercept convention.
+  const offsets = window ? series.flatMap((point, index) => {
+    const time = index / 12;
+    return time >= trendStart && time <= trendEnd && point.valid && point.anomaly !== null && Number.isFinite(point.anomaly)
+      ? [point.anomaly - slope * time] : [];
+  }).sort((a, b) => a - b) : [];
+  const middle = Math.floor(offsets.length / 2);
+  const icpt = window ? offsets.length ? offsets.length % 2 ? offsets[middle] : (offsets[middle - 1] + offsets[middle]) / 2 : null : trend.intercept;
+  const hasTrend = selectedSlope !== null && Number.isFinite(selectedSlope) && icpt !== null && Number.isFinite(icpt) && trendEnd >= trendStart;
+  const fitStart = icpt === null ? 0 : icpt + slope * trendStart;
+  const fitEnd = icpt === null ? 0 : icpt + slope * trendEnd;
   const finite = [...ys, ...(comparison ?? [])].filter((v): v is number => v !== null && Number.isFinite(v));
   let ymin = finite.length ? Math.min(...finite) : -1;
   let ymax = finite.length ? Math.max(...finite) : 1;
   if (mode === "anomaly") {
-    ymin = Math.min(ymin, icpt, icpt + slope * T, 0);
-    ymax = Math.max(ymax, icpt, icpt + slope * T, 0);
+    ymin = Math.min(ymin, ...(hasTrend ? [fitStart, fitEnd] : []), 0);
+    ymax = Math.max(ymax, ...(hasTrend ? [fitStart, fitEnd] : []), 0);
   }
   const pad = (ymax - ymin) * 0.06 || 1;
   ymin -= pad; ymax += pad;
@@ -87,6 +106,20 @@ export function TrendChart(props: {
 
   const monthly = pathFrom(ys.map((v, i) => [x(i / 12), v === null ? null : y(v)]));
   const otherLine = comparison && pathFrom(comparison.map((v, i) => [x(i / 12), v === null ? null : y(v)]));
+  const connections = connectGaps ? missingValueConnections(ys) : [];
+  const referenceConnections = connectGaps && comparison ? missingValueConnections(comparison) : [];
+  // These are separate SVG strokes between existing observations. Missing
+  // months stay null in the series, hover readouts and statistical inputs.
+  const bridgePath = (values: (number | null)[], segments: [number, number][]) => segments.map(([from, to]) =>
+    `M${x(from / 12).toFixed(1)},${y(values[from]!).toFixed(1)}L${x(to / 12).toFixed(1)},${y(values[to]!).toFixed(1)}`).join("");
+  const trendPeriod = `${window?.start ?? firstYear}–${window?.end ?? lastYear}`;
+  const trendValue = hasTrend ? `${signed(selectedSlope)} ${units}/${t("decade", "década")}` : t("Insufficient data", "Datos insuficientes");
+  const labelWidth = Math.min(iw - 12, Math.max(180, trendValue.length * 7.4 + 22));
+  const labelHeight = 46;
+  const endX = x(trendEnd), endY = y(fitEnd);
+  const labelX = Math.max(m.l + 6, Math.min(W - m.r - labelWidth, endX - labelWidth + 10));
+  const above = endY - labelHeight - 12 >= m.t + 4;
+  const labelY = hasTrend ? Math.max(m.t + 4, Math.min(m.t + ih - labelHeight - 4, above ? endY - labelHeight - 12 : endY + 12)) : m.t + 18;
 
   function onMove(e: React.PointerEvent<SVGSVGElement>) {
     const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
@@ -106,9 +139,15 @@ export function TrendChart(props: {
 
   return (
     <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img"
-      aria-label={comparison ? t("Monthly values for the study and reference areas from 2004 to 2024", "Valores mensuales del área de estudio y de referencia de 2004 a 2024") : mode === "anomaly" ? t("Monthly anomalies and full-period Sen trend from 2004 to 2024", "Anomalías mensuales y tendencia de Sen de 2004 a 2024") : t("Monthly original values from 2004 to 2024", "Valores originales mensuales de 2004 a 2024")}
+      aria-label={comparison ? t("Monthly values for the study and reference areas from 2004 to 2024", "Valores mensuales del área de estudio y de referencia de 2004 a 2024") : mode === "anomaly"
+        ? t(`Monthly anomalies. Sen trend ${trendPeriod}: ${trendValue}.`, `Anomalías mensuales. Tendencia de Sen ${trendPeriod}: ${trendValue}.`)
+        : t("Monthly original values from 2004 to 2024", "Valores originales mensuales de 2004 a 2024")}
       onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
-      {window && <rect className="window-highlight" x={x(window.start - 2004)} y={m.t} width={x(Math.min(window.end - 2004 + 11 / 12, T)) - x(window.start - 2004)} height={ih} />}
+      {(connections.length > 0 || referenceConnections.length > 0) && <desc>{t(
+        "Connecting segments visually join observations across missing months. They are not observations and are not used in the statistical analysis.",
+        "Los segmentos de conexión unen visualmente observaciones separadas por meses sin datos. No son observaciones ni se usan en el análisis estadístico.",
+      )}</desc>}
+      {window && <rect className="window-highlight" x={x(trendStart)} y={m.t} width={x(trendEnd) - x(trendStart)} height={ih} />}
       {gaps.map(([a, b]) => (
         <rect key={a} className="gap" x={x(a / 12)} y={m.t} width={Math.max(2, x(b / 12) - x(a / 12))} height={ih} />
       ))}
@@ -125,11 +164,22 @@ export function TrendChart(props: {
       <text x={m.l - 8} y={m.t - 2} textAnchor="end" className="label-strong">{units}</text>
       <path className={`series ${tone}`} d={monthly} />
       {otherLine && <path className="series reference-line" d={otherLine} />}
-      {mode === "anomaly" && trend.sen_per_decade !== null && (
+      {connections.length > 0 && <path className={`series ${tone} gap-bridge`} d={bridgePath(ys, connections)} pointerEvents="none" />}
+      {comparison && referenceConnections.length > 0 && <path className="series reference-line gap-bridge" d={bridgePath(comparison, referenceConnections)} pointerEvents="none" />}
+      {mode === "anomaly" && hasTrend && (
         <>
-          <line className="senline" x1={x(0)} y1={y(icpt)} x2={x(T)} y2={y(icpt + slope * T)} />
+          <line className="senline" x1={x(trendStart)} y1={y(fitStart)} x2={endX} y2={endY} />
         </>
       )}
+      {mode === "anomaly" && showTrendLabel && <g className="trend-data-label" pointerEvents="none">
+        {hasTrend && <>
+          <line className="trend-label-leader" x1={endX} y1={endY} x2={Math.max(labelX + 12, Math.min(labelX + labelWidth - 12, endX))} y2={above ? labelY + labelHeight : labelY} />
+          <circle cx={endX} cy={endY} r={3.5} className="trend-label-point" />
+        </>}
+        <rect x={labelX} y={labelY} width={labelWidth} height={labelHeight} rx={7} />
+        <text className="trend-label-period" x={labelX + 10} y={labelY + 16}>{trendPeriod} · {t("Sen trend", "Tendencia de Sen")}</text>
+        <text className="trend-label-value" x={labelX + 10} y={labelY + 35}>{trendValue}</text>
+      </g>}
       {hp && hv !== null && (
         <g>
           <line className="axis" x1={x(hover! / 12)} x2={x(hover! / 12)} y1={m.t} y2={m.t + ih} />

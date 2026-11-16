@@ -251,8 +251,8 @@ export function Atlas({ m, onCase, onPick, onOpen, showLanguage }: {
         <p className="aq-note">{m.atlas_note && t(m.atlas_note,
           "Las regiones se eligieron a partir de estudios con GRACE (Richey et al. 2015; Rodell et al. 2018). Los recuadros son aproximados y pueden diferir de los límites oficiales. Se usan los mismos productos de NASA, periodo (2004–2024) y motor. Fuera de Ica, el único control es el índice de El Niño (ONI).",
         )} {t(
-          "A filled dot marks a confirmed trend, a ring marks a likely trend, and a hollow gray dot marks an inconclusive result. Gold indicates a decline and blue an increase.",
-          "El punto relleno indica una tendencia confirmada, el anillo una tendencia probable y el círculo gris vacío un resultado no concluyente. El dorado indica descenso y el azul, aumento.",
+          "A filled dot marks a confirmed trend, a ring marks a likely trend, and a hollow gray dot marks a trend to evaluate. Gold indicates a decline and blue an increase.",
+          "El punto relleno indica una tendencia confirmada, el anillo una tendencia probable y el círculo gris vacío una tendencia a evaluar. El dorado indica descenso y el azul, aumento.",
         )}</p>
       </div>
     </div>

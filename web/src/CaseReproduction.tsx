@@ -72,8 +72,8 @@ export function CaseReproduction({ cf, referenceId, generatedAt, title, detailsR
       "Los polígonos de análisis definen las áreas muestreadas y pueden diferir de los límites oficiales de los acuíferos. El ZIP reproduce el resultado del periodo completo a partir de las series procesadas.",
     )}</p>
     {exploratory && <p className="small muted">{t(
-      "The ZIP also includes the estimate, tests and citation for the selected exploratory period.",
-      "El ZIP también incluye la estimación, las pruebas y la cita del periodo exploratorio seleccionado.",
+      "The ZIP also includes the monthly series, estimate, tests and citation for the selected exploratory period.",
+      "El ZIP también incluye la serie mensual, la estimación, las pruebas y la cita del periodo exploratorio seleccionado.",
     )}</p>}
     <p className="small">{citation}</p>
     <div className="evidence-actions">

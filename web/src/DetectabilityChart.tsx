@@ -78,7 +78,7 @@ export function DetectabilityChart({ atlas, onOpen }: { atlas: AtlasEntry[]; onO
       </div>}
     </div>
     <figcaption>
-      <span className="detect-legend"><i style={{ background: COLOR.down, borderColor: COLOR.down }} />{t("falling", "descenso")} <i style={{ background: COLOR.up, borderColor: COLOR.up }} />{t("rising", "aumento")} <i className="ring" style={{ borderColor: COLOR.flat }} />{t("inconclusive · ring with a dot: likely", "no concluyente · anillo con punto: probable")}</span>
+      <span className="detect-legend"><i style={{ background: COLOR.down, borderColor: COLOR.down }} />{t("falling", "descenso")} <i style={{ background: COLOR.up, borderColor: COLOR.up }} />{t("rising", "aumento")} <i className="ring" style={{ borderColor: COLOR.flat }} />{t("trend to evaluate · ring with a dot: likely", "tendencia a evaluar · anillo con punto: probable")}</span>
       {t("GRACE/GRACE-FO JPL mascons, 2004–2024. The whiskers show the 95% slope interval (block bootstrap). Study areas are approximate.",
         "Celdas de concentración de masa de GRACE/GRACE-FO JPL, 2004–2024. Las barras muestran el intervalo del 95 % para la pendiente (bootstrap por bloques). Las áreas de estudio son aproximadas.")}
     </figcaption>

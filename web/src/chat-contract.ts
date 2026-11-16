@@ -43,7 +43,7 @@ export type ChatContext = {
   language: "en" | "es";
 };
 
-export const CHAT_PAGES = ["aquifer", "ica", "method", "compare", "sources"] as const;
+export const CHAT_PAGES = ["aquifer", "resume", "ica", "method", "compare", "sources"] as const;
 export type ChatPage = typeof CHAT_PAGES[number];
 
 export type PageChatContext = {

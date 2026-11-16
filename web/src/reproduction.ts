@@ -14,7 +14,7 @@ import zoneProcessing from "../../pipeline/zones.py?raw";
 import sources from "../../REFERENCES.md?raw";
 import license from "../../LICENSE?raw";
 import { translate, type Language } from "./i18n";
-import type { CaseFile, ExploratoryPeriod } from "./types";
+import type { CaseFile, ExploratoryPeriod, SeriesPoint } from "./types";
 import type { caseGeometry } from "./case-research";
 
 const inputFiles = {
@@ -33,6 +33,13 @@ const inputFiles = {
   "requirements.txt": "numpy==2.5.4\npandas==3.1.1\nscipy==1.18.1\nstatsmodels==0.15.0\npymannkendall==1.4.3\npyyaml==6.0.3\n",
 };
 
+function chartCsv(series: SeriesPoint[]) {
+  return [
+    "date,value,analysis_anomaly,valid",
+    ...series.map((row) => [row.date, row.value ?? "", row.anomaly ?? "", row.valid].join(",")),
+  ].join("\n");
+}
+
 export async function downloadCase(cf: CaseFile, options: {
   generatedAt: string; language: Language; title: string; citation: string; geometry: ReturnType<typeof caseGeometry>;
   exploratory?: { period: ExploratoryPeriod; method?: string; citation: string };
@@ -40,10 +47,6 @@ export async function downloadCase(cf: CaseFile, options: {
   const { generatedAt, language, title, citation, geometry, exploratory } = options;
   const t = (english: string, spanish: string) => translate(language, english, spanish);
   const { id, source } = cf;
-  const record = [
-    "date,value,analysis_anomaly,valid",
-    ...cf.series.map((row) => [row.date, row.value ?? "", row.anomaly ?? "", row.valid].join(",")),
-  ].join("\n");
   const readme = [
     t(`# Oasis Paradox case ${id}`, `# Caso ${id} de Oasis Paradox`),
     "",
@@ -60,8 +63,8 @@ export async function downloadCase(cf: CaseFile, options: {
     t("published/citation.txt contains the case citation; published/study-area.geojson contains the analysis polygon and any reference polygon.",
       "published/citation.txt contiene la cita del caso; published/study-area.geojson contiene el polígono de análisis y, cuando corresponde, el de referencia."),
     ...(exploratory ? [t(
-      `Exploratory analysis ${exploratory.period.start}–${exploratory.period.end}: exploratory/period.json contains the selected estimate and test results, and exploratory/citation.txt contains its citation. The reproduction command below applies to the published full period.`,
-      `Análisis exploratorio ${exploratory.period.start}–${exploratory.period.end}: exploratory/period.json contiene la estimación y las pruebas del periodo seleccionado y exploratory/citation.txt contiene su cita. El comando de reproducción de abajo corresponde al periodo completo publicado.`,
+      `Exploratory analysis ${exploratory.period.start}–${exploratory.period.end}: exploratory/chart.csv contains the months in the selection, exploratory/period.json contains the estimate and tests, and exploratory/citation.txt contains its citation. The reproduction command below applies to the published full period.`,
+      `Análisis exploratorio ${exploratory.period.start}–${exploratory.period.end}: exploratory/chart.csv contiene los meses seleccionados, exploratory/period.json contiene la estimación y las pruebas y exploratory/citation.txt contiene su cita. El comando de reproducción de abajo corresponde al periodo completo publicado.`,
     )] : []),
     t("data/processed/series_long.csv and climate_indices.csv contain the analysis inputs used by the runner.",
       "data/processed/series_long.csv y climate_indices.csv contienen los datos de entrada del análisis."),
@@ -85,7 +88,7 @@ export async function downloadCase(cf: CaseFile, options: {
   const inputs = {
     ...inputFiles,
     "README.md": readme,
-    "published/chart.csv": record,
+    "published/chart.csv": chartCsv(cf.series),
     "published/case.json": JSON.stringify(cf, null, 2),
     "published/citation.txt": citation + "\n",
     "published/study-area.geojson": JSON.stringify(geometry, null, 2),
@@ -93,6 +96,8 @@ export async function downloadCase(cf: CaseFile, options: {
       "exploratory/period.json": JSON.stringify({
         case_id: id, analysis: "exploratory", data_snapshot: generatedAt, units: cf.units, method: exploratory.method, ...exploratory.period,
       }, null, 2),
+      "exploratory/chart.csv": chartCsv(cf.series.filter(({ date }) =>
+        date >= `${exploratory.period.start}-01` && date <= `${exploratory.period.end}-12`)),
       "exploratory/citation.txt": exploratory.citation + "\n",
     }),
   };
