@@ -5,7 +5,7 @@ import { CaseFileView } from "./CaseFile";
 import { useEvidence } from "./evidence";
 import { useLocale } from "./i18n";
 import type { Level } from "./levels";
-import type { CaseRef, Manifest } from "./types";
+import type { CaseRef, Manifest, PeriodBounds } from "./types";
 
 export const WITNESSES = [
   { id: "ndvi", symbol: "↗" },
@@ -58,8 +58,9 @@ function Prediction({ refCase }: { refCase: CaseRef }) {
   );
 }
 
-export function Workspace({ m, level, selected, onCase, caseLink, chatContextRef }: {
-  m: Manifest; level: Level; selected: CaseRef; onCase: (id: string) => void; caseLink: (id: string) => string;
+export function Workspace({ m, level, selected, onCase, caseLink, requestedPeriod, chatContextRef }: {
+  m: Manifest; level: Level; selected: CaseRef; requestedPeriod?: PeriodBounds;
+  onCase: (id: string, period?: PeriodBounds) => void; caseLink: (id: string, period?: PeriodBounds) => string;
   chatContextRef: MutableRefObject<(() => ChatContext) | null>;
 }) {
   const { t } = useLocale();
@@ -148,7 +149,8 @@ export function Workspace({ m, level, selected, onCase, caseLink, chatContextRef
           )}
         </aside>
         <div className="research-stack">
-          <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} href={caseLink(selected.id)} chatContextRef={chatContextRef}
+          <CaseFileView key={selected.id} caseRef={selected} level={level} manifest={m} requestedPeriod={requestedPeriod}
+            caseLink={(period) => caseLink(selected.id, period)} onPeriodChange={(period) => onCase(selected.id, period)} chatContextRef={chatContextRef}
             practice={level !== "explorer" ? <Prediction refCase={selected} /> : undefined}
             comparison={selected.kind === "contrast" && base && desert ? { field: base, desert } : undefined} />
         </div>

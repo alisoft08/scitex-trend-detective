@@ -225,8 +225,14 @@ export interface WellProps {
   depth_end_m: number;
 }
 
+export interface PeriodBounds { start: number; end: number }
+
+export interface ExploratoryPeriod extends PeriodBounds {
+  n: number; sen_per_decade: number | null; p_block_bootstrap: number | null;
+  p_arma: number | null; result: "both" | "one" | "none" | "insufficient";
+}
+
 export interface PeriodGrid {
   id: string; units: string; starts: number[]; ends: number[]; min_years: number; method: string;
-  periods: { start: number; end: number; n: number; sen_per_decade: number | null; p_block_bootstrap: number | null;
-    p_arma: number | null; result: "both" | "one" | "none" | "insufficient" }[];
+  periods: ExploratoryPeriod[];
 }

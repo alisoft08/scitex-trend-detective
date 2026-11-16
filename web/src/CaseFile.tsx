@@ -10,7 +10,7 @@ import { ShareLink } from "./ShareLink";
 import { useEvidence } from "./evidence";
 import { useLocale, type Translation } from "./i18n";
 import type { Level } from "./levels";
-import type { CaseFile, CaseRef, CriterionKey, Manifest, PeriodGrid, Window } from "./types";
+import type { CaseFile, CaseRef, CriterionKey, Manifest, PeriodBounds, PeriodGrid, Window } from "./types";
 
 const criteria: [CriterionKey, Translation][] = [
   ["C0", ["Valid observations in at least 80% of months and 15 years", "Observaciones válidas en al menos el 80 % de los meses y en 15 años"]],
@@ -150,8 +150,9 @@ function ExpertAudit({ cf }: { cf: CaseFile }) {
   </div>;
 }
 
-export function CaseFileView({ caseRef, level, manifest, href, comparison, chatContextRef, practice }: {
-  caseRef: CaseRef; level: Level; manifest: Manifest; href: string; comparison?: { field: CaseRef; desert: CaseRef };
+export function CaseFileView({ caseRef, level, manifest, caseLink, requestedPeriod, onPeriodChange, comparison, chatContextRef, practice }: {
+  caseRef: CaseRef; level: Level; manifest: Manifest; comparison?: { field: CaseRef; desert: CaseRef };
+  caseLink: (period?: PeriodBounds) => string; requestedPeriod?: PeriodBounds; onPeriodChange: (period?: PeriodBounds) => void;
   chatContextRef: MutableRefObject<(() => ChatContext) | null>; practice?: ReactNode;
 }) {
   const { t, signed, pfull, language } = useLocale();
@@ -159,17 +160,19 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
   const { data: cf, error } = useJSON<CaseFile>(caseRef.path);
   const [mode, setMode] = useState<"anomaly" | "value">("anomaly");
   const { data: grid } = useJSON<PeriodGrid>(`periods/${caseRef.id}.json`);
-  const [start, setStart] = useState<number>();
-  const [end, setEnd] = useState<number>();
-  const from = start ?? grid?.starts[0];
-  const to = end ?? grid?.ends[grid.ends.length - 1];
+  const firstYear = grid?.starts[0];
+  const lastYear = grid?.ends[grid.ends.length - 1];
+  const requested = grid?.periods.find((period) => period.start === requestedPeriod?.start && period.end === requestedPeriod?.end);
+  const from = requested?.start ?? firstYear;
+  const to = requested?.end ?? lastYear;
   const extractionDetails = useRef<HTMLDetailsElement>(null);
   const reproductionDetails = useRef<HTMLDetailsElement>(null);
   const lastPoint = useRef<{ point: HoveredPoint; mode: ChatContext["chartMode"] }>();
   const explorer = level === "explorer", expert = level === "expert";
   const selectedPeriod = grid?.periods.find((period) => period.start === from && period.end === to);
-  const fullRecord = !grid || (from === grid.starts[0] && to === grid.ends[grid.ends.length - 1]);
-  const activeWindow = expert && !fullRecord && selectedPeriod?.sen_per_decade != null ? selectedPeriod : undefined;
+  const exploratory = from !== firstYear || to !== lastYear ? selectedPeriod : undefined;
+  const activeWindow = expert && exploratory?.sen_per_decade != null ? exploratory : undefined;
+  const analysisHref = caseLink(exploratory);
   const referenceArea = comparison && zoneName(comparison.desert.zone, comparison.desert.zone_name);
   const showRaw = !explorer && cf?.kind === "case" && mode === "value";
   const caseChartVisible = !comparison || !explorer;
@@ -212,6 +215,10 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
   const title = caseTitle(cf.variable, cf.zone.id, cf.label);
   const disagreement = cf.classic_test_says_significant && cf.verdict === "inconclusive";
   const checkAvailable = !explorer && hasExtractionCheck(cf.id);
+
+  function changePeriod(start: number, end: number) {
+    onPeriodChange(start === firstYear && end === lastYear ? undefined : { start, end });
+  }
 
   function showDetails(details: HTMLDetailsElement | null) {
     if (!details) return;
@@ -259,13 +266,14 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         <strong>{dataKind(cf)}</strong> · {cf.source.agency} {cf.source.product} {cf.source.version}
         {" · "}<a href={`https://doi.org/${cf.source.doi}`} target="_blank" rel="noreferrer">{t("View dataset DOI (new tab)", "Consultar DOI del conjunto de datos (nueva pestaña)")}</a>
       </p>
+      {exploratory && <p className="control-help"><strong>{t("Exploratory analysis", "Análisis exploratorio")} · {from}–{to}</strong></p>}
       <div className="case-mast-actions">
         {caseChartVisible && <button type="button" className="btn primary" onClick={() => {
           const chart = document.getElementById("case-chart-title");
           chart?.focus({ preventScroll: true });
           chart?.scrollIntoView({ block: "start" });
         }}>{t("Explore the monthly chart ↓", "Explorar el gráfico mensual ↓")}</button>}
-        <ShareLink href={href} label={t("Copy analysis link", "Copiar enlace del análisis")} />
+        <ShareLink href={analysisHref} label={t("Copy analysis link", "Copiar enlace del análisis")} />
         {expert && <button type="button" className="btn research-secondary" onClick={() => showDetails(reproductionDetails.current)}>
           {t("Cite or download analysis data ↓", "Citar o descargar datos del análisis ↓")}
         </button>}
@@ -312,29 +320,29 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
         <label className="research-field">{t("From", "Desde")}
           <select value={from} onChange={(event) => {
             const next = Number(event.target.value);
-            setStart(next);
-            if (to - next + 1 < grid.min_years) setEnd(grid.ends.find((year) => year - next + 1 >= grid.min_years));
+            const end = grid.ends.find((year) => year >= to && year - next + 1 >= grid.min_years);
+            if (end !== undefined) changePeriod(next, end);
           }}>
             {grid.starts.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
         </label>
         <label className="research-field">{t("To", "Hasta")}
-          <select value={to} onChange={(event) => setEnd(Number(event.target.value))}>
+          <select value={to} onChange={(event) => changePeriod(from, Number(event.target.value))}>
             {grid.ends.filter((year) => year - from + 1 >= grid.min_years).map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
         </label>
-        {!fullRecord && <button type="button" className="btn research-secondary" onClick={() => { setStart(undefined); setEnd(undefined); }}>
+        {exploratory && <button type="button" className="btn research-secondary" onClick={() => onPeriodChange()}>
           {t("Reset to full period", "Volver al periodo completo")}
         </button>}
-        {selectedPeriod && !fullRecord && <p className="period-result" role="status">
-          <strong>{from}–{to}</strong>: <strong className="num">{signed(selectedPeriod.sen_per_decade)} {perDecade(cf.units)}</strong>
-          {" · "}{t("Block-bootstrap Mann–Kendall", "Mann–Kendall con bootstrap por bloques")} {pfull(selectedPeriod.p_block_bootstrap)} · {t("AR(1) regression", "Regresión AR(1)")} {pfull(selectedPeriod.p_arma)}
+        {exploratory && <p className="period-result" role="status">
+          <strong>{t("Exploratory analysis", "Análisis exploratorio")} · {from}–{to}</strong>: <strong className="num">{signed(exploratory.sen_per_decade)} {perDecade(cf.units)}</strong>
+          {" · "}{t("Block-bootstrap Mann–Kendall", "Mann–Kendall con bootstrap por bloques")} {pfull(exploratory.p_block_bootstrap)} · {t("AR(1) regression", "Regresión AR(1)")} {pfull(exploratory.p_arma)}
           {" · "}<b>{({
             both: t("both tests significant", "ambas pruebas significativas"),
             one: t("only one test significant", "solo una prueba significativa"),
             none: t("not significant", "no significativo"),
             insufficient: t("too few valid months", "meses válidos insuficientes"),
-          })[selectedPeriod.result]}</b>.
+          })[exploratory.result]}</b>.
         </p>}
       </div>}
     </section>}
@@ -342,6 +350,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
     {checkAvailable && <Validation caseId={cf.id} detailsRef={extractionDetails} />}
     {!explorer && <TestResults cf={cf} />}
     {expert && <ExpertAudit cf={cf} />}
-    {expert && <CaseReproduction key={cf.id} detailsRef={reproductionDetails} cf={cf} referenceId={caseRef.ref_zone} generatedAt={manifest.generated_at} title={title} />}
+    {expert && <CaseReproduction key={analysisHref} detailsRef={reproductionDetails} cf={cf} referenceId={caseRef.ref_zone}
+      generatedAt={manifest.generated_at} title={title} exploratory={exploratory} exploratoryMethod={grid?.method} href={analysisHref} />}
   </div>;
 }

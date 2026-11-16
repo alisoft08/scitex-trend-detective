@@ -56,13 +56,15 @@ function caseFact(c: CaseRef) {
 }
 
 function aquiferFacts(a: AtlasEntry): PageChatContext["facts"] {
+  const ica = a.id === "ZW";
   const witnesses: [string, AtlasWitness | undefined][] = [
-    ["Total water storage (GRACE)", a.tws], ["Groundwater storage (GLDAS)", a.gws], ["Rainfall", a.rain],
+    [ica ? "Regional total water storage (GRACE)" : "Total water storage (GRACE)", a.tws],
+    ["Groundwater storage (GLDAS)", a.gws], ["Rainfall", a.rain],
     ["Greenness", a.ndvi], ["Evapotranspiration", a.et], ["Air temperature", a.t2m], ["Surface temperature", a.lst],
     ["Cropland–reference greenness gap", a.ndvi_gap], ["Cropland–reference surface temperature gap", a.lst_gap],
   ];
   const facts = witnesses.flatMap(([label, w]) => w ? [{ label, value: trend(w.per_decade, w.units, w.verdict) }] : []);
-  if (a.impact?.grace_km3_per_yr != null) facts.push({ label: "GRACE regional total water", value: `${a.impact.grace_km3_per_yr} km³/year` });
+  if (!ica && a.impact?.grace_km3_per_yr != null) facts.push({ label: "GRACE regional total water", value: `${a.impact.grace_km3_per_yr} km³/year` });
   if (a.impact?.crop_water_mm3_2020_2024 != null) facts.push({
     label: "Cropland water use, 2020–2024", value: `${a.impact.crop_water_mm3_2020_2024} million m³/year (MODIS ET)`,
   });

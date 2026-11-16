@@ -3,17 +3,21 @@ import { useState, type RefObject } from "react";
 import { caseCitation, caseGeometry } from "./case-research";
 import { useEvidence } from "./evidence";
 import { useLocale } from "./i18n";
-import type { CaseFile } from "./types";
+import type { CaseFile, ExploratoryPeriod } from "./types";
 
-export function CaseReproduction({ cf, referenceId, generatedAt, title, detailsRef }: {
+export function CaseReproduction({ cf, referenceId, generatedAt, title, detailsRef, exploratory, exploratoryMethod, href }: {
   cf: CaseFile; referenceId?: string; generatedAt: string; title: string; detailsRef: RefObject<HTMLDetailsElement>;
+  exploratory?: ExploratoryPeriod; exploratoryMethod?: string; href: string;
 }) {
   const { t, language } = useLocale();
   const { casePeriod, dataKind, zoneName, mask, resolution } = useEvidence();
   const [copyState, setCopyState] = useState<"copied" | "manual">();
   const [downloadState, setDownloadState] = useState<"preparing" | "ready" | "error">();
   const geometry = caseGeometry(cf.zone.id, referenceId);
-  const citation = caseCitation(cf, generatedAt, { language, title, zone: zoneName(cf.zone.id, cf.zone.name) });
+  const labels = { language, title, zone: zoneName(cf.zone.id, cf.zone.name) };
+  const fullCitation = caseCitation(cf, generatedAt, labels);
+  const citation = exploratory ? caseCitation(cf, generatedAt, labels, exploratory,
+    location.protocol === "file:" ? undefined : new URL(href, location.href).href) : fullCitation;
   const geometryUrl = `data:application/geo+json;charset=utf-8,${encodeURIComponent(JSON.stringify(geometry))}`;
   const hasGeometry = geometry.features.length === (referenceId ? 2 : 1);
   const { source } = cf;
@@ -31,7 +35,8 @@ export function CaseReproduction({ cf, referenceId, generatedAt, title, detailsR
     setDownloadState("preparing");
     try {
       const { downloadCase } = await import("./reproduction");
-      await downloadCase(cf, { generatedAt, language, title, citation, geometry });
+      await downloadCase(cf, { generatedAt, language, title, citation: fullCitation, geometry,
+        exploratory: exploratory && { period: exploratory, method: exploratoryMethod, citation } });
       setDownloadState("ready");
     } catch {
       setDownloadState("error");
@@ -47,6 +52,8 @@ export function CaseReproduction({ cf, referenceId, generatedAt, title, detailsR
     <dl className="research-facts">
       <div><dt>{t("Case ID and data snapshot", "ID del caso y fecha de los datos")}</dt><dd>{cf.id} · {generatedAt}</dd></div>
       <div><dt>{t("Full analysis period", "Periodo completo del análisis")}</dt><dd>{casePeriod(cf.period)} · {cf.n_valid}/{cf.n} {t("valid months", "meses válidos")}</dd></div>
+      {exploratory && <div><dt>{t("Exploratory analysis", "Análisis exploratorio")}</dt>
+        <dd>{exploratory.start}–{exploratory.end} · {exploratory.n} {t("valid months", "meses válidos")}</dd></div>}
       <div><dt>{t("Input dataset and version", "Fuente de datos y versión")}</dt><dd>
         {source.agency} · {source.product} ({source.version}) · {dataKind(cf)} · {resolution(cf)}
         {" · "}<a href={`https://doi.org/${source.doi}`} target="_blank" rel="noreferrer">{t("Dataset DOI", "DOI de la fuente")}</a>
@@ -64,6 +71,10 @@ export function CaseReproduction({ cf, referenceId, generatedAt, title, detailsR
       "The analysis polygons define the sampled areas and can differ from official aquifer boundaries. The ZIP reproduces the full-period result from the processed series.",
       "Los polígonos de análisis definen las áreas muestreadas y pueden diferir de los límites oficiales de los acuíferos. El ZIP reproduce el resultado del periodo completo a partir de las series procesadas.",
     )}</p>
+    {exploratory && <p className="small muted">{t(
+      "The ZIP also includes the estimate, tests and citation for the selected exploratory period.",
+      "El ZIP también incluye la estimación, las pruebas y la cita del periodo exploratorio seleccionado.",
+    )}</p>}
     <p className="small">{citation}</p>
     <div className="evidence-actions">
       <button type="button" className="btn research-secondary" onClick={() => void copyCitation()}>

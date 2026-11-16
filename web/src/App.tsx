@@ -15,7 +15,7 @@ import { Atlas } from "./Atlas";
 import { AquiferPage } from "./AquiferPage";
 import { LanguageSelect, toolsNavigation, useLocale } from "./i18n";
 import { useJSON } from "./data";
-import type { Manifest } from "./types";
+import type { Manifest, PeriodBounds } from "./types";
 
 const LEVEL = "expert";
 const DEFAULT_CASE = "ZIN_tws_grace";   // the desk opens on the clearest confirmed loss, not on Ica
@@ -75,15 +75,20 @@ export default function App() {
       setRoute(readRoute());
     }
   };
-  const caseLink = (id: string) => `#investigate?case=${encodeURIComponent(id)}`;
+  const caseLink = (id: string, period?: PeriodBounds) => `#investigate?case=${encodeURIComponent(id)}`
+    + (period ? `&from=${period.start}&to=${period.end}` : "");
   const pairLink = (pair: readonly [string, string]) => `#compare?left=${encodeURIComponent(pair[0])}&right=${encodeURIComponent(pair[1])}`;
-  const selectCase = (id: string) => { setLastCase(id); navigate(caseLink(id)); };
+  const selectCase = (id: string, period?: PeriodBounds) => { setLastCase(id); navigate(caseLink(id, period)); };
   const selectPair = (pair: readonly [string, string]) => {
     setLastPair(pair);
     navigate(pairLink(pair));
   };
   const selectedCase = manifest?.cases.find((c) => c.id === route.params.get("case"))
     ?? manifest?.cases.find((c) => c.id === lastCase) ?? manifest?.cases[0];
+  const from = route.params.get("from") ?? "";
+  const to = route.params.get("to") ?? "";
+  const requestedPeriod = selectedCase?.id === route.params.get("case") && /^\d{4}$/.test(from) && /^\d{4}$/.test(to)
+    ? { start: Number(from), end: Number(to) } : undefined;
   const pair: readonly [string, string] = linkedPair ?? lastPair;
   const isAquifer = view === "aquifer";
   const isHome = !VIEWS.includes(view) && !isAquifer;
@@ -124,7 +129,7 @@ export default function App() {
             else if (target.startsWith("case:")) selectCase(target.slice(5)); else navigate(target);
           }} />}
           {view === "investigate" && <Workspace m={manifest} level={LEVEL} selected={selectedCase} onCase={selectCase}
-            caseLink={caseLink} chatContextRef={caseChatRef} />}
+            caseLink={caseLink} requestedPeriod={requestedPeriod} chatContextRef={caseChatRef} />}
           {view === "method" && <section className="wrap wide research-page">
             <div className="research-heading"><p className="eyebrow">{t("Simulation", "Simulación")}</p><h1>{t("Put the tests on trial", "Pon a prueba los métodos estadísticos")}</h1></div>
             <Lab level={LEVEL} onCase={() => selectCase("ZW_gws")} />

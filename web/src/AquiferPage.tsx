@@ -7,7 +7,7 @@ import { LensHero, type LensStop } from "./LensHero";
 import { useAtlasLocale } from "./atlas-locale";
 import { verdictLabel } from "./evidence";
 import { useLocale } from "./i18n";
-import { dirOf, proven, Spark, Verdict, WITNESSES } from "./Atlas";
+import { dirOf, IndiaHistoricalContext, proven, Spark, Verdict, WITNESSES } from "./Atlas";
 import type { AtlasEntry, Manifest } from "./types";
 
 interface Tour { [zone: string]: { ratio: number; bbox: [number, number, number, number]; stops: { lon: number; lat: number; change: string }[] } }
@@ -64,7 +64,7 @@ export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
             </button><small>{t(kind, kindEs)}{w.classic_false_alarm ? t(" · a classic test would call this significant", " · una prueba clásica la consideraría significativa") : ""}</small></th>
             <td><Spark path={path} tone={dirOf(w)} /></td>
             <td className="r num">{amount(w)}</td>
-            <td><Verdict w={w} /></td>
+            <td><Verdict w={w} regional={ica && key === "tws"} /></td>
           </tr>;
         })}</tbody>
       </table>
@@ -166,14 +166,11 @@ function AquiferExtras({ m, a, onCase }: { m: Manifest; a: AtlasEntry; onCase: (
   const millions = t("million m³", "millones de m³");
   return <>
     {im && <section className="aq-impact" aria-label={t("Impact", "Impacto")}>
-      <div><strong className="num">{water == null ? fmt(null) : Math.abs(water) < 0.1
+      {!ica && <div><strong className="num">{water == null ? fmt(null) : Math.abs(water) < 0.1
         ? `${signed(Math.round(water * 1000))} ${millions}` : `${signed(water)} km³`}</strong>
-        <span>{t(`per year in estimated total water storage (GRACE trend × ${fmt(Math.round(a.area_km2))} km²).`,
-          `al año en el almacenamiento total de agua estimado (tendencia de GRACE × ${fmt(Math.round(a.area_km2))} km²).`)}
-          {ica && t(" The satellites indicate a net regional gain while the monitored wells show declines in water level.",
-            " Los satélites indican un aumento neto regional, mientras que en los pozos monitoreados se observan descensos del nivel de agua.")}
-          {a.id === "ZIN" && t(` Rodell et al. (2009, Nature) estimated ${fmt(17.7)} km³ of loss per year for 2002–2008 using GRACE.`,
-            ` Rodell et al. (2009, Nature) estimaron con GRACE una pérdida de ${fmt(17.7)} km³ al año entre 2002 y 2008.`)}</span></div>
+        <span>{t(`per year in estimated total water storage in 2004–2024 (GRACE trend × ${fmt(Math.round(a.area_km2))} km²).`,
+          `al año en el almacenamiento total de agua estimado entre 2004 y 2024 (tendencia de GRACE × ${fmt(Math.round(a.area_km2))} km²).`)}
+          {a.id === "ZIN" && <IndiaHistoricalContext />}</span></div>}
       {cropWater != null && <div><strong className="num">{fmt(cropWater >= 1000 ? cropWater / 1000 : cropWater)} {cropWater >= 1000 ? "km³" : millions}</strong>
         <span>{ica ? t(
           `estimated annual crop water use, 2020–2024 (MODIS ET over ${fmt(im.cropland_km2)} km² in Villacurí, a lower bound).`,

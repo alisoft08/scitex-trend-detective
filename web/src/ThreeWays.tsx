@@ -18,7 +18,7 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
   const wells = pct(m.wells.share_falling);
   const classic = atlas.filter((a) => a.gws?.per_decade !== null);
   const engine = classic.filter((a) => proven(a.gws?.verdict));
-  const alarms = classic.filter((a) => a.gws?.classic_false_alarm).length;
+  const disagreements = classic.filter((a) => a.gws?.classic_false_alarm).length;
   const both: AtlasEntry[] = atlas.filter((a) => a.tws.verdict === "confirmed" && (a.tws.per_decade ?? 0) < 0
     && proven(a.ndvi?.verdict) && (a.ndvi?.per_decade ?? 0) > 0 && proven(a.et?.verdict) && (a.et?.per_decade ?? 0) > 0
     && !(proven(a.rain.verdict) && (a.rain.per_decade ?? 0) < 0));
@@ -58,8 +58,8 @@ export function ThreeWays({ m, onCase, onOpen }: { m: Manifest; onCase: (id: str
           "The classic Mann–Kendall test finds a significant rise in GLDAS groundwater estimates for Ica",
           "La prueba clásica de Mann–Kendall encuentra un aumento significativo en la estimación de agua subterránea de GLDAS para Ica",
         )}{pText && <> (p = {pText})</>}. {t(
-          `Water levels fell in ${wells} of ${m.wells.n} wells between their first and last readings (${m.wells.period.replace(/ \(.*\)/, "").replace("-", "–")}). Two readings per well are insufficient for a trend test. Accounting for dependence between months leaves the GLDAS result inconclusive. Across the atlas, the classic GLDAS test raised ${alarms} such alarms. The engine finds a confirmed or likely GLDAS trend in ${engine.length} of ${classic.length} aquifers.`,
-          `El nivel bajó en el ${wells} de ${m.wells.n} pozos entre la primera y la última lectura (${m.wells.period.replace(/ \(.*\)/, "").replace("-", "–")}). Dos lecturas por pozo son insuficientes para una prueba de tendencia. Al considerar la dependencia entre meses, el resultado de GLDAS es no concluyente. En el atlas, la prueba clásica de GLDAS produjo ${alarms} falsas alarmas de este tipo. El motor encuentra una tendencia confirmada o probable en GLDAS en ${engine.length} de ${classic.length} acuíferos.`,
+          `Water levels fell in ${wells} of ${m.wells.n} wells between their first and last readings (${m.wells.period.replace(/ \(.*\)/, "").replace("-", "–")}). Two readings per well are insufficient for a trend test. Accounting for dependence between months leaves the GLDAS result inconclusive. Across the atlas, the classic test found ${disagreements} significant GLDAS results that the combined criteria classified as inconclusive. The engine finds a confirmed or likely GLDAS trend in ${engine.length} of ${classic.length} aquifers.`,
+          `El nivel bajó en el ${wells} de ${m.wells.n} pozos entre la primera y la última lectura (${m.wells.period.replace(/ \(.*\)/, "").replace("-", "–")}). Dos lecturas por pozo son insuficientes para una prueba de tendencia. Al considerar la dependencia entre meses, el resultado de GLDAS es no concluyente. En el atlas, la prueba clásica encontró ${disagreements} resultados significativos en GLDAS que el criterio combinado dejó como no concluyentes. El motor encuentra una tendencia confirmada o probable en GLDAS en ${engine.length} de ${classic.length} acuíferos.`,
         )}</p>
         <button className="text-button" onClick={() => onCase("ZW_gws")}>{t("See where the tests disagree for GLDAS in Ica", "Ver en qué discrepan las pruebas de GLDAS en Ica")}</button>
       </article>

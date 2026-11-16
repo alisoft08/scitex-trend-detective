@@ -11,7 +11,7 @@ const TILES: { who: Translation; decision: Translation; does: Translation; cta: 
     decision: ["Can we trust a claimed trend?", "¿Qué tan sólida es la tendencia que nos presentan?"],
     does: ["See the uncertainty, statistical tests and NASA source. In Ica, for example, the classic test flags an increase in modeled groundwater, but the combined result is inconclusive.",
       "Consulta la incertidumbre, las pruebas estadísticas y la fuente de NASA. En Ica, por ejemplo, la prueba clásica señala un aumento del agua subterránea modelada, pero el resultado combinado es no concluyente."],
-    cta: ["See that false alarm", "Ver el análisis de esa falsa alarma"], target: "case:ZW_gws" },
+    cta: ["See why the tests disagree", "Ver por qué discrepan las pruebas"], target: "case:ZW_gws" },
   { who: ["Researchers and teachers", "Investigadores y docentes"],
     decision: ["Does the verdict hold up?", "¿Se sostiene el veredicto?"],
     does: ["Review the pre-registered rule, robustness over different periods and the results after leaving out one year. Run a simulation and download data, code and settings to reproduce a case.",

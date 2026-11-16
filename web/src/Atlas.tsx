@@ -61,7 +61,7 @@ function useAtlasFacts(m: Manifest, atlas: AtlasEntry[]): string[] {
   const confirmedLoss = falling.filter((a) => a.tws.verdict === "confirmed");
   const likelyLoss = falling.length - confirmedLoss.length;
   const worst = [...confirmedLoss].sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0];
-  const alarms = atlas.reduce((n, a) => n + [a.tws, a.gws, a.rain, a.ndvi, a.et, a.t2m].filter((w) => w?.classic_false_alarm).length, 0);
+  const disagreements = atlas.reduce((n, a) => n + [a.tws, a.gws, a.rain, a.ndvi, a.et, a.t2m].filter((w) => w?.classic_false_alarm).length, 0);
   const greening = atlas.filter((a) => proven(a.ndvi) && (a.ndvi?.per_decade ?? 0) > 0 && proven(a.et) && (a.et?.per_decade ?? 0) > 0
     && falling.includes(a)).length;   // the sentence claims both greener and more water use, so both are required
   return [
@@ -75,8 +75,8 @@ function useAtlasFacts(m: Manifest, atlas: AtlasEntry[]): string[] {
       "En zonas agrícolas pequeñas, como Ica, GRACE no puede localizar la pérdida. Los pozos aportan mediciones locales."),
     greening ? t(`In ${greening} draining aquifers the cropland is getting greener and using more water.`,
       `En ${greening} acuíferos con descensos, los cultivos están más verdes y usan más agua.`) : "",
-    alarms ? t(`A classic trend test raised ${alarms} false alarms in these series. Our engine did not confirm those trends.`,
-      `Una prueba de tendencia clásica produjo ${alarms} falsas alarmas en estas series. El motor no confirmó esas tendencias.`) : "",
+    disagreements ? t(`The classic test found ${disagreements} significant results that the combined criteria classified as inconclusive.`,
+      `La prueba clásica encontró ${disagreements} resultados significativos que el criterio combinado dejó como no concluyentes.`) : "",
     t(`21 years of NASA data, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS and MERRA-2. ${m.cases.length} case files.`,
       `21 años de datos de NASA, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS y MERRA-2. ${m.cases.length} análisis disponibles.`),
   ].filter(Boolean);
@@ -85,13 +85,21 @@ function useAtlasFacts(m: Manifest, atlas: AtlasEntry[]): string[] {
 export const dirOf = (w: AtlasWitness): "down" | "up" | "flat" => !proven(w) ? "flat" : (w.per_decade ?? 0) < 0 ? "down" : "up";
 const VERDICT_WORD: Record<AtlasWitness["verdict"], string> = { confirmed: "Confirmed", likely: "Likely", inconclusive: "Inconclusive", insufficient_data: "Insufficient data" };
 
+export function IndiaHistoricalContext() {
+  const { t, fmt } = useLocale();
+  return t(
+    ` For historical context, Rodell et al. (2009) estimated a groundwater loss of ${fmt(17.7)} ± ${fmt(4.5)} km³ per year in 2002–2008 for a different study area.`,
+    ` Como contexto histórico, Rodell et al. (2009) estimaron una pérdida de agua subterránea de ${fmt(17.7)} ± ${fmt(4.5)} km³ al año entre 2002 y 2008, para un área de estudio distinta.`,
+  );
+}
+
 /** A dot and a word: filled for confirmed, ring for likely, hollow grey when inconclusive. */
-export function Verdict({ w, compact = false }: { w: AtlasWitness; compact?: boolean }) {
+export function Verdict({ w, compact = false, regional = false }: { w: AtlasWitness; compact?: boolean; regional?: boolean }) {
   const { t, language } = useLocale();
   const d = dirOf(w);
   const word = d === "flat" ? verdictLabel(language, w.verdict) : t(
-    `${VERDICT_WORD[w.verdict]} ${d === "down" ? "fall" : "rise"}`,
-    `${d === "down" ? "Descenso" : "Aumento"} ${w.verdict === "confirmed" ? "confirmado" : "probable"}`,
+    `${VERDICT_WORD[w.verdict]}${regional ? " regional" : ""} ${d === "down" ? "fall" : "rise"}`,
+    `${d === "down" ? "Descenso" : "Aumento"} ${w.verdict === "confirmed" ? "confirmado" : "probable"}${regional ? " en la región" : ""}`,
   );
   return <span className={`vd ${d} ${w.verdict} ${compact ? "compact" : ""}`} title={word}><i aria-hidden="true" />{compact ? <span className="sr-only">{word}</span> : word}</span>;
 }
@@ -145,9 +153,7 @@ export function Atlas({ m, onCase, onPick, onOpen, showLanguage }: {
   const big = atlas.filter((x) => x.grace_footprints >= 2);
   const bigLoss = big.filter((x) => proven(x.tws) && (x.tws.per_decade ?? 0) < 0);
   const bigRest = big.filter((x) => !bigLoss.includes(x));
-  // GRACE trend (mm/yr) x box area (km2) -> km3/yr; compared with Rodell et al. (2009), Nature 460, 999.
-  const zin = atlas.find((x) => x.id === "ZIN");
-  const rodell = zin?.tws.per_decade != null ? Math.abs(zin.tws.per_decade / 10) * zin.area_km2 / 1e6 : null;
+  const indiaWaterChange = atlas.find((x) => x.id === "ZIN")?.impact?.grace_km3_per_yr;
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
   const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
   const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); onPick(); onOpen(id); };
@@ -202,10 +208,12 @@ export function Atlas({ m, onCase, onPick, onOpen, showLanguage }: {
           <p>{t(
             "Each aquifer is analyzed with the same NASA data and pre-registered rule, 2004–2024. The regions were selected from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018). They do not form a random sample of the world.",
             "Cada acuífero se analiza con los mismos productos de NASA y la misma regla prerregistrada, de 2004 a 2024. Las regiones se eligieron a partir de estudios previos con GRACE (Richey et al. 2015; Rodell et al. 2018). No forman una muestra aleatoria mundial.",
-          )}{rodell !== null && t(
-            ` For Northwest India, the engine estimates a loss of ${fmt(rodell)} km³ per year using GRACE. Rodell et al. (2009) estimated ${fmt(17.7)} km³ per year for 2002–2008, with a different study area.`,
-            ` Para el noroeste de India, el motor estima con GRACE una pérdida de ${fmt(rodell)} km³ al año. Rodell et al. (2009) estimaron ${fmt(17.7)} km³ al año para 2002–2008, con un área de estudio distinta.`,
-          )}</p>
+          )}{indiaWaterChange != null && indiaWaterChange < 0 && <>
+            {t(
+              ` For Northwest India, the atlas estimates a loss of ${fmt(-indiaWaterChange)} km³ per year in total water storage from GRACE in 2004–2024.`,
+              ` Para el noroeste de India, el atlas estima con GRACE una pérdida de ${fmt(-indiaWaterChange)} km³ al año en el almacenamiento total de agua entre 2004 y 2024.`,
+            )}<IndiaHistoricalContext />
+          </>}</p>
         </header>
         <section className="detect" aria-labelledby="detect-title">
           <h3 id="detect-title">{t("Can a satellite see your aquifer?", "¿Puede un satélite detectar cambios en tu acuífero?")}</h3>
