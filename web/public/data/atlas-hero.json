@@ -63,21 +63,6 @@
       }
     },
     {
-      "id": "ZNC",
-      "name": "North China Plain",
-      "countries": [
-        "China"
-      ],
-      "lonlat": [
-        116.25,
-        37.5
-      ],
-      "tws": {
-        "verdict": "confirmed",
-        "per_decade": -159.402431
-      }
-    },
-    {
       "id": "ZAR",
       "name": "Arabian aquifer system (Saq), Saudi Arabia",
       "countries": [

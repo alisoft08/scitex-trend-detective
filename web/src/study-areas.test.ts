@@ -17,7 +17,6 @@ describe("Study area follows the selected country or region", () => {
   });
 
   it.each([
-    ["ZNC", ["ZNC", "ZNCR"]],
     ["ZINR", ["ZIN", "ZINR"]],
     ["ZAR", ["ZAR", "ZARR"]],
     ["ZTE", ["ZTE", "ZTER"]],

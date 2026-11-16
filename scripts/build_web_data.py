@@ -97,16 +97,16 @@ CASES = [  # (zone, variable, covariates)
     ("ZC", "tws_grace", ["oni"]),
     ("ZC", "gws", ["oni"]),
     # World aquifer atlas: GRACE, GLDAS and IMERG rain over each aquifer box, ENSO control only.
-    *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")
+    *[(z, v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZAR", "ZTE", "ZGU")
       for v in ("tws_grace", "gws", "precip", "ndvi", "et", "t2m", "lst")
       if (z, v) not in {("ZC", "tws_grace"), ("ZC", "gws")}],
 ]
-CASES += [(f"{z}R", v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]   # atlas reference land
+CASES += [(f"{z}R", v, ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]   # atlas reference land
 
 # (field zone, variable, reference zone, covariates): cropland minus land that is not irrigated
 CONTRASTS = [("Z2", "ndvi", "Z5", ["icen_like", "oni"]), ("Z1", "ndvi", "Z5", ["icen_like", "oni"]),
              ("Z2", "lst", "Z5", ["icen_like", "oni"]), ("Z1", "lst", "Z5", ["icen_like", "oni"]),
-             *[(z, v, f"{z}R", ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]]
+             *[(z, v, f"{z}R", ["oni"]) for z in ("ZC", "ZHP", "ZIN", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "lst")]]
 CONTRAST_META = {
     "ndvi": ("Greenness gap", "greenness",
              "Field NDVI minus reference NDVI after standardizing each series by calendar month."),
@@ -131,17 +131,17 @@ NOTES = {
 
 NOTES.update({f"{z}_{v}": ["Atlas case: the box around this aquifer system is approximate, not its official boundary. "
                              "Only El Niño (ONI) is used as a control."]
-              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip", "t2m")})
+              for z in ("ZHP", "ZIN", "ZAR", "ZTE", "ZGU") for v in ("tws_grace", "gws", "precip", "t2m")})
 NOTES.update({f"{z}_{v}": ["Atlas case: cropland pixels from MODIS MCD12Q1 land cover 2020 (IGBP classes 12 and 14) "
                            "inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control."]
-              for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "et")})
+              for z in ("ZC", "ZHP", "ZIN", "ZAR", "ZTE", "ZGU") for v in ("ndvi", "et")})
 NOTES["ZC_t2m"] = ["Air temperature over the same box as the Central Valley water cases."]
 NOTES.update({f"{z}_gws": ["GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region: "
                            "when both fall, that is one line of evidence, not two."]
-              for z in ("ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})
+              for z in ("ZHP", "ZIN", "ZAR", "ZTE", "ZGU")})
 NOTES.update({f"{z}_lst": ["Terra's overpass has drifted earlier since about 2020, which can cool absolute daytime temperatures; "
                            "the heat gap against natural land in the same box cancels that shared effect."]
-              for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")})
+              for z in ("ZC", "ZHP", "ZIN", "ZAR", "ZTE", "ZGU")})
 NOTES["ZC_precip"] = ["Rain over the same box as the Central Valley water cases."]
 
 VERDICT_LABEL = {"confirmed": "Confirmed trend", "likely": "Likely trend",
@@ -177,9 +177,9 @@ def fmt_p(p):
 ZONE_PHRASE = {"Z1": "the Ica Valley", "Z2": "the Villacuri plains", "Z4": "the upper Ica basin",
                "Z5": "the low-NDVI reference", "ZW": "the Ica-Villacuri analysis region",
                "ZC": "California's Central Valley",
-               "ZHP": "the High Plains aquifer", "ZIN": "northwest India", "ZNC": "the North China Plain",
+               "ZHP": "the High Plains aquifer", "ZIN": "northwest India",
                "ZAR": "the Arabian aquifer system", "ZTE": "the Tigris-Euphrates basin", "ZGU": "the Guarani aquifer system",
-               **{f"{z}R": "natural land in the same box" for z in ("ZC", "ZHP", "ZIN", "ZNC", "ZAR", "ZTE", "ZGU")}}
+               **{f"{z}R": "natural land in the same box" for z in ("ZC", "ZHP", "ZIN", "ZAR", "ZTE", "ZGU")}}
 
 
 def summary_text(case, meta, zone_id):
@@ -421,7 +421,7 @@ def reproduce_case(case_id):
 # ---------- world aquifer atlas ----------
 # (zone, centre lon/lat, GRACE case, GLDAS case, rain case, published reference)
 COUNTRIES = {"ZW": ["Peru"], "ZC": ["United States"], "ZHP": ["United States"], "ZIN": ["India", "Pakistan"],
-             "ZNC": ["China"], "ZAR": ["Saudi Arabia", "Jordan"], "ZTE": ["Iraq", "Iran", "Syria", "Turkey"],
+             "ZAR": ["Saudi Arabia", "Jordan"], "ZTE": ["Iraq", "Iran", "Syria", "Turkey"],
              "ZGU": ["Brazil", "Paraguay", "Argentina", "Uruguay"]}
 # Field witnesses per atlas zone: (greenness, crop water use, air temperature); Ica uses its Villacurí fields.
 FIELD_CASES = {"ZW": ("Z2_ndvi", "Z2_et", "ZW_t2m", "Z2_lst", "Z2_vs_Z5_ndvi", "Z2_vs_Z5_lst")}
@@ -431,7 +431,6 @@ ATLAS = [
     ("ZC", (-120.60, 37.65), "ZC_tws_grace", "ZC_gws", "ZC_precip", "Famiglietti et al. (2011)"),
     ("ZHP", (-100.50, 37.75), "ZHP_tws_grace", "ZHP_gws", "ZHP_precip", "Richey et al. (2015); Rodell et al. (2018)"),
     ("ZIN", (74.50, 28.25), "ZIN_tws_grace", "ZIN_gws", "ZIN_precip", "Rodell et al. (2018)"),
-    ("ZNC", (116.25, 37.50), "ZNC_tws_grace", "ZNC_gws", "ZNC_precip", "Rodell et al. (2018)"),
     ("ZAR", (42.50, 27.00), "ZAR_tws_grace", "ZAR_gws", "ZAR_precip", "Richey et al. (2015); Rodell et al. (2018)"),
     ("ZTE", (43.50, 34.25), "ZTE_tws_grace", "ZTE_gws", "ZTE_precip", "Rodell et al. (2018)"),
     ("ZGU", (-52.75, -23.50), "ZGU_tws_grace", "ZGU_gws", "ZGU_precip", "Richey et al. (2015)"),

@@ -1,6 +1,6 @@
 # Oasis Paradox
 
-Oasis Paradox is a reproducible atlas of water storage trends across eight irrigated aquifer regions.
+Oasis Paradox is a reproducible atlas of water storage trends across seven irrigated aquifer regions.
 It helps hydrology and remote sensing students and researchers compare monthly NASA records, inspect
 the strength of the evidence and rerun the analysis. Ica, Peru links the regional signals to local wells.
 Team SciTeX, Lima · NASA Space Apps Challenge 2026, *Be An Earth System Trend Detective!*.
@@ -31,7 +31,7 @@ significance tests to the monthly NASA series.
 | Challenge step | Where in Oasis Paradox |
 | --- | --- |
 | 1. Decide on the data variable(s) | Up to seven NASA witnesses per aquifer (GRACE, GLDAS, GPM IMERG, MODIS NDVI, ET and surface temperature, MERRA-2), each with a plain definition and data type |
-| 2. Choose a region | The globe and its search: eight irrigated aquifers; in Ica, fields, desert, headwaters and the water block |
+| 2. Choose a region | The globe and its search: seven irrigated aquifers; in Ica, fields, desert, headwaters and the water block |
 | 3. Select the time period | "Choose the time period" in every case file: any period of 10 years or more between 2004 and 2024 (precomputed in Python, `engine/periods.py`) |
 | 4. Create the time series and examine it | The monthly record with its trend line, annual sparklines, and the question "First look: does this series appear to have a trend?" before the verdict |
 | 5. Analyze the trend for significance | Mann-Kendall with a moving-block bootstrap and a regression with ARMA errors, 95% interval, windows, jackknife, controls, the false-alarm warning and the trend lab |
@@ -41,7 +41,7 @@ significance tests to the monthly NASA series.
 | Challenge question | Where |
 | --- | --- |
 | What is changing? | Variable cards with plain definitions and data type (observed / modeled / estimated) |
-| Where? | Per-pixel NDVI trend map (MODIS, 250 m), zones, 87 field wells, and a 3D globe of eight aquifers |
+| Where? | Per-pixel NDVI trend map (MODIS, 250 m), zones, 87 field wells, and a 3D globe of seven aquifers |
 | How much? | Theil-Sen slope per decade with a block-bootstrap 95% range |
 | Is it significant? | A verdict (confirmed / likely / inconclusive / insufficient data) with every criterion shown, next to what a classic test would have said |
 
@@ -81,7 +81,6 @@ our consensus rule (block-bootstrap Mann-Kendall AND regression with AR errors) 
 | Central Valley, California | 2.12 | Confirmed, -13.4 mm/yr (-19.0 to -8.3) | Inconclusive, -2.7 mm/yr (-5.5 to +0.1) | Inconclusive |
 | High Plains (Ogallala), United States | 10.21 | Likely, -5.5 mm/yr (-9.5 to -1.5) | Inconclusive, -2.1 mm/yr (-5.5 to +1.1) | Inconclusive |
 | Northwest India (Punjab, Haryana, Rajasthan) | 8.49 | Confirmed, -22.3 mm/yr (-26.3 to -18.1) | Confirmed, -4.4 mm/yr (-5.3 to -3.5) | Inconclusive |
-| North China Plain | 4.33 | Confirmed, -15.9 mm/yr (-20.6 to -11.3) | Confirmed, -7.2 mm/yr (-9.8 to -4.5) | Likely |
 | Arabian aquifer system (Saq), Saudi Arabia | 9.77 | Confirmed, -9.1 mm/yr (-9.9 to -8.3) | Confirmed, -1.1 mm/yr (-1.8 to -0.5) | Inconclusive |
 | Tigris-Euphrates basin | 10.38 | Confirmed, -8.7 mm/yr (-12.9 to -5.2) | Confirmed, -3.4 mm/yr (-5.5 to -1.6) | Inconclusive |
 | Guarani aquifer system, South America | 19.11 | Inconclusive, -2.2 mm/yr (-7.1 to +2.6) | Inconclusive, -3.2 mm/yr (-7.2 to +0.8) | Inconclusive |
@@ -96,7 +95,7 @@ field lab remain in the code for reference. The app does not display a reading-l
 
 - **Home: the world aquifer globe.** A large 3D globe on a MODIS mosaic over a black background, search by aquifer or
   country, and satellite mini cards. The home explains the source, scale and method checks, then shows the detectability chart
-  and comparison table for the eight aquifers.
+  and comparison table for the seven aquifers.
 - **One page per aquifer** (`#aquifer?id=ZIN`, opened from the globe or the overview table): Ica's landing view for
   every aquifer (2004 outside the lens, 2024 inside; the lens tours the places where the surface changed most), the
   reading, up to seven NASA witnesses with annual sparklines, and "Analyze" links that open each witness's case file, a

@@ -12,12 +12,12 @@ const lx = (v: number) => M.l + (Math.log10(v) - Math.log10(X0)) / (Math.log10(X
 const COLOR = { down: "#a8700a", up: "#3c78bb", flat: "#71706f" } as const;
 // Label side per aquifer, so neighbours (Arabia, Tigris-Euphrates, High Plains) do not collide.
 const LABEL: Record<string, [number, number, "start" | "end"]> = {
-  ZW: [12, 4, "start"], ZC: [12, 4, "start"], ZHP: [-12, -8, "end"], ZIN: [12, 4, "start"], ZNC: [12, 4, "start"],
+  ZW: [12, 4, "start"], ZC: [12, 4, "start"], ZHP: [-12, -8, "end"], ZIN: [12, 4, "start"],
   ZAR: [-12, 14, "end"], ZTE: [12, 2, "start"], ZGU: [-12, -10, "end"],
 };
 const SHORT: Record<string, Translation> = {
   ZW: ["Ica, Peru", "Ica, Perú"], ZC: ["Central Valley", "Valle Central"], ZHP: ["High Plains", "Altas Llanuras"],
-  ZIN: ["NW India", "Noroeste de India"], ZNC: ["North China Plain", "Llanura del Norte de China"],
+  ZIN: ["NW India", "Noroeste de India"],
   ZAR: ["Arabia (Saq)", "Arabia (Saq)"], ZTE: ["Tigris–Euphrates", "Tigris–Éufrates"], ZGU: ["Guarani", "Guaraní"],
 };
 

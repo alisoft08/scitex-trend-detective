@@ -13,7 +13,6 @@ const descriptionsEs: Record<string, string> = {
   ZC: "Los valles californianos de Sacramento y San Joaquín extraen para riego mucho más agua subterránea que Ica. Allí GRACE midió por primera vez el agotamiento de un acuífero desde el espacio.",
   ZHP: "Región de cereales irrigados sobre el acuífero Ogallala, desde Dakota del Sur hasta Texas.",
   ZIN: "Zona de arroz y trigo regados con agua de pozos, donde GRACE mostró por primera vez una gran pérdida de agua subterránea en India.",
-  ZNC: "Los cultivos de trigo y maíz y las grandes ciudades dependen de acuíferos profundos y someros.",
   ZAR: "Explotaciones agrícolas del desierto extraen agua subterránea fósil cuya recarga actual es mínima.",
   ZTE: "Llanuras irrigadas de Irak, Irán, Siria y Turquía afectadas por la sequía y el bombeo.",
   ZGU: "Uno de los mayores acuíferos del mundo, bajo Brasil, Paraguay, Argentina y Uruguay, en una región húmeda.",

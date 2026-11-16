@@ -27,7 +27,7 @@ export const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m" | 
 
 // Mini-card side per aquifer, chosen so neighbours (Arabia and Tigris-Euphrates, California and the High Plains) do not overlap.
 const MINI_DIR: Record<string, NonNullable<GlobeMarker["dir"]>> = {
-  ZW: "sw", ZC: "nw", ZHP: "ne", ZIN: "se", ZNC: "ne", ZAR: "sw", ZTE: "nw", ZGU: "se",
+  ZW: "sw", ZC: "nw", ZHP: "ne", ZIN: "se", ZAR: "sw", ZTE: "nw", ZGU: "se",
 };
 // Largest confirmed loss first: the globe opens on the clearest example.
 const startId = (atlas: AtlasEntry[]) => [...atlas].filter((a) => tone(a) === "down")

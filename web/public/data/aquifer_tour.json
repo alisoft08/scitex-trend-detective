@@ -104,41 +104,6 @@
    }
   ]
  },
- "ZNC": {
-  "ratio": 1.0828,
-  "bbox": [
-   113.0,
-   34.5,
-   119.5,
-   40.5
-  ],
-  "stops": [
-   {
-    "lon": 116.616,
-    "lat": 38.865,
-    "change": "less green",
-    "delta": -0.111
-   },
-   {
-    "lon": 118.593,
-    "lat": 38.324,
-    "change": "greener",
-    "delta": 0.106
-   },
-   {
-    "lon": 114.666,
-    "lat": 36.405,
-    "change": "less green",
-    "delta": -0.083
-   },
-   {
-    "lon": 113.664,
-    "lat": 39.378,
-    "change": "greener",
-    "delta": 0.081
-   }
-  ]
- },
  "ZAR": {
   "ratio": 1.3746,
   "bbox": [

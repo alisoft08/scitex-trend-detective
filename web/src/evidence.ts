@@ -15,13 +15,12 @@ const atlasPlaces: Record<string, Translation> = {
   ZC: ["Central Valley, California", "Valle Central, California"],
   ZHP: ["High Plains (Ogallala), United States", "Altas Llanuras (Ogallala), Estados Unidos"],
   ZIN: ["Northwest India (Punjab, Haryana, Rajasthan)", "Noroeste de India (Punjab, Haryana, Rajastán)"],
-  ZNC: ["North China Plain", "Llanura del Norte de China"],
   ZAR: ["Arabian aquifer system (Saq), Saudi Arabia", "Sistema acuífero de Arabia (Saq), Arabia Saudita"],
   ZTE: ["Tigris–Euphrates basin", "Cuenca del Tigris y el Éufrates"],
   ZGU: ["Guarani aquifer system, South America", "Sistema acuífero Guaraní, Sudamérica"],
 };
 const naturalReferences: Record<string, string> = {
-  ZCR: "ZC", ZHPR: "ZHP", ZINR: "ZIN", ZNCR: "ZNC", ZARR: "ZAR", ZTER: "ZTE", ZGUR: "ZGU",
+  ZCR: "ZC", ZHPR: "ZHP", ZINR: "ZIN", ZARR: "ZAR", ZTER: "ZTE", ZGUR: "ZGU",
 };
 
 export function zoneLabel(language: Language, id: string, fallback = id) {

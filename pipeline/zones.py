@@ -28,7 +28,6 @@ AQUIFERS = {
     "ZC": CENTRAL_VALLEY,                      # Central Valley, California
     "ZHP": [-104.50, 32.00, -96.50, 43.50],   # High Plains (Ogallala), United States
     "ZIN": [70.00, 24.00, 79.00, 32.50],      # Northwest India (Punjab, Haryana, Rajasthan)
-    "ZNC": [113.00, 34.50, 119.50, 40.50],    # North China Plain
     "ZAR": [37.00, 23.00, 48.00, 31.00],      # Arabian aquifer system (Saq), Saudi Arabia
     "ZTE": [38.00, 30.00, 49.00, 38.50],      # Tigris-Euphrates
     "ZGU": [-58.50, -31.00, -47.00, -16.00],  # Guarani aquifer system, South America

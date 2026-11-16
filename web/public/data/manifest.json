@@ -61,13 +61,6 @@
       "mask": "none (box 70.0\u00b0E-79.0\u00b0E, 24.0\u00b0N-32.5\u00b0N; approximate, not the official aquifer boundary)"
     },
     {
-      "id": "ZNC",
-      "name": "North China Plain",
-      "role": "aquifer",
-      "description": "Wheat and maize fields and large cities drawing on deep and shallow aquifers.",
-      "mask": "none (box 113.0\u00b0E-119.5\u00b0E, 34.5\u00b0N-40.5\u00b0N; approximate, not the official aquifer boundary)"
-    },
-    {
       "id": "ZAR",
       "name": "Arabian aquifer system (Saq), Saudi Arabia",
       "role": "aquifer",
@@ -105,13 +98,6 @@
     {
       "id": "ZINR",
       "name": "Northwest India (Punjab: natural land (reference)",
-      "role": "reference",
-      "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
-      "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
-    },
-    {
-      "id": "ZNCR",
-      "name": "North China Plain: natural land (reference)",
       "role": "reference",
       "description": "Land in the same box that is neither cropland, forest, water nor city (MODIS MCD12Q1 2020: shrublands, savannas, grasslands, barren). It plays the role of Ica's desert control.",
       "mask": "MODIS MCD12Q1 2020 IGBP classes 6, 7, 9, 10 and 16 inside the aquifer box"
@@ -786,139 +772,6 @@
       "units": "\u00b0C"
     },
     {
-      "id": "ZNC_tws_grace",
-      "path": "cases/ZNC_tws_grace.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "tws_grace",
-      "label": "Total water storage (GRACE satellites)",
-      "short": "Total water (GRACE)",
-      "witness": "water",
-      "data_type": "observed",
-      "verdict": "confirmed",
-      "sen_per_decade": -159.402431,
-      "ci95": [
-        -205.596736,
-        -113.306902
-      ],
-      "units": "mm"
-    },
-    {
-      "id": "ZNC_gws",
-      "path": "cases/ZNC_gws.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "gws",
-      "label": "Groundwater storage (model)",
-      "short": "Groundwater (GLDAS)",
-      "witness": "water",
-      "data_type": "modeled",
-      "verdict": "confirmed",
-      "sen_per_decade": -72.274387,
-      "ci95": [
-        -97.703823,
-        -45.19059
-      ],
-      "units": "mm"
-    },
-    {
-      "id": "ZNC_precip",
-      "path": "cases/ZNC_precip.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "precip",
-      "label": "Rainfall",
-      "short": "Rain",
-      "witness": "climate",
-      "data_type": "estimated",
-      "verdict": "likely",
-      "sen_per_decade": 5.536932,
-      "ci95": [
-        1.067189,
-        9.859074
-      ],
-      "units": "mm/month"
-    },
-    {
-      "id": "ZNC_ndvi",
-      "path": "cases/ZNC_ndvi.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "ndvi",
-      "label": "Vegetation greenness (NDVI)",
-      "short": "Greenness",
-      "witness": "greenness",
-      "data_type": "observed",
-      "verdict": "confirmed",
-      "sen_per_decade": 0.027215,
-      "ci95": [
-        0.022503,
-        0.032335
-      ],
-      "units": "NDVI units"
-    },
-    {
-      "id": "ZNC_et",
-      "path": "cases/ZNC_et.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "et",
-      "label": "Water use by crops and soil (evapotranspiration)",
-      "short": "Water use (ET)",
-      "witness": "greenness",
-      "data_type": "estimated",
-      "verdict": "confirmed",
-      "sen_per_decade": 3.157551,
-      "ci95": [
-        2.360019,
-        4.048136
-      ],
-      "units": "mm/month"
-    },
-    {
-      "id": "ZNC_t2m",
-      "path": "cases/ZNC_t2m.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "t2m",
-      "label": "Air temperature at 2 m (reanalysis)",
-      "short": "Air temperature",
-      "witness": "climate",
-      "data_type": "modeled",
-      "verdict": "likely",
-      "sen_per_decade": 0.542444,
-      "ci95": [
-        0.134085,
-        0.938928
-      ],
-      "units": "\u00b0C"
-    },
-    {
-      "id": "ZNC_lst",
-      "path": "cases/ZNC_lst.json",
-      "kind": "case",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "lst",
-      "label": "Land surface temperature (daytime)",
-      "short": "Surface heat",
-      "witness": "heat",
-      "data_type": "observed",
-      "verdict": "inconclusive",
-      "sen_per_decade": 0.68055,
-      "ci95": [
-        0.149344,
-        1.200959
-      ],
-      "units": "\u00b0C"
-    },
-    {
       "id": "ZAR_tws_grace",
       "path": "cases/ZAR_tws_grace.json",
       "kind": "case",
@@ -1432,44 +1285,6 @@
       "units": "\u00b0C"
     },
     {
-      "id": "ZNCR_ndvi",
-      "path": "cases/ZNCR_ndvi.json",
-      "kind": "case",
-      "zone": "ZNCR",
-      "zone_name": "North China Plain: natural land (reference)",
-      "variable": "ndvi",
-      "label": "Vegetation greenness (NDVI)",
-      "short": "Greenness",
-      "witness": "greenness",
-      "data_type": "observed",
-      "verdict": "confirmed",
-      "sen_per_decade": 0.034623,
-      "ci95": [
-        0.03146,
-        0.037862
-      ],
-      "units": "NDVI units"
-    },
-    {
-      "id": "ZNCR_lst",
-      "path": "cases/ZNCR_lst.json",
-      "kind": "case",
-      "zone": "ZNCR",
-      "zone_name": "North China Plain: natural land (reference)",
-      "variable": "lst",
-      "label": "Land surface temperature (daytime)",
-      "short": "Surface heat",
-      "witness": "heat",
-      "data_type": "observed",
-      "verdict": "inconclusive",
-      "sen_per_decade": -0.04264,
-      "ci95": [
-        -0.505213,
-        0.453835
-      ],
-      "units": "\u00b0C"
-    },
-    {
       "id": "ZARR_ndvi",
       "path": "cases/ZARR_ndvi.json",
       "kind": "case",
@@ -1780,46 +1595,6 @@
       "ci95": [
         -0.394118,
         -0.161723
-      ],
-      "units": "standard deviations"
-    },
-    {
-      "id": "ZNC_vs_ZNCR_ndvi",
-      "path": "contrasts/ZNC_vs_ZNCR_ndvi.json",
-      "kind": "contrast",
-      "ref_zone": "ZNCR",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "ndvi_contrast",
-      "label": "Vegetation greenness (NDVI)",
-      "short": "Greenness",
-      "witness": "greenness",
-      "data_type": "observed",
-      "verdict": "confirmed",
-      "sen_per_decade": -0.580273,
-      "ci95": [
-        -0.698691,
-        -0.459587
-      ],
-      "units": "standard deviations"
-    },
-    {
-      "id": "ZNC_vs_ZNCR_lst",
-      "path": "contrasts/ZNC_vs_ZNCR_lst.json",
-      "kind": "contrast",
-      "ref_zone": "ZNCR",
-      "zone": "ZNC",
-      "zone_name": "North China Plain",
-      "variable": "lst_contrast",
-      "label": "Land surface temperature (daytime)",
-      "short": "Surface heat",
-      "witness": "heat",
-      "data_type": "observed",
-      "verdict": "confirmed",
-      "sen_per_decade": 0.456402,
-      "ci95": [
-        0.365054,
-        0.543163
       ],
       "units": "standard deviations"
     },
@@ -2583,139 +2358,6 @@
         "cropland_km2": 523301,
         "crop_water_mm3_2020_2024": 191550.8,
         "crop_water_change_mm3": 61301.6,
-        "crop_water_verdict": "confirmed"
-      }
-    },
-    {
-      "id": "ZNC",
-      "name": "North China Plain",
-      "countries": [
-        "China"
-      ],
-      "description": "Wheat and maize fields and large cities drawing on deep and shallow aquifers.",
-      "lonlat": [
-        116.25,
-        37.5
-      ],
-      "focus": false,
-      "area_km2": 382400.0,
-      "grace_footprints": 4.33,
-      "tws": {
-        "id": "ZNC_tws_grace",
-        "verdict": "confirmed",
-        "per_decade": -159.402431,
-        "ci95": [
-          -205.596736,
-          -113.306902
-        ],
-        "units": "mm",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "gws": {
-        "id": "ZNC_gws",
-        "verdict": "confirmed",
-        "per_decade": -72.274387,
-        "ci95": [
-          -97.703823,
-          -45.19059
-        ],
-        "units": "mm",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "rain": {
-        "id": "ZNC_precip",
-        "verdict": "likely",
-        "per_decade": 5.536932,
-        "ci95": [
-          1.067189,
-          9.859074
-        ],
-        "units": "mm/month",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "ndvi": {
-        "id": "ZNC_ndvi",
-        "verdict": "confirmed",
-        "per_decade": 0.027215,
-        "ci95": [
-          0.022503,
-          0.032335
-        ],
-        "units": "NDVI units",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "et": {
-        "id": "ZNC_et",
-        "verdict": "confirmed",
-        "per_decade": 3.157551,
-        "ci95": [
-          2.360019,
-          4.048136
-        ],
-        "units": "mm/month",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "t2m": {
-        "id": "ZNC_t2m",
-        "verdict": "likely",
-        "per_decade": 0.542444,
-        "ci95": [
-          0.134085,
-          0.938928
-        ],
-        "units": "\u00b0C",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "lst": {
-        "id": "ZNC_lst",
-        "verdict": "inconclusive",
-        "per_decade": 0.68055,
-        "ci95": [
-          0.149344,
-          1.200959
-        ],
-        "units": "\u00b0C",
-        "classic_false_alarm": true,
-        "years_to_detect": 33.568432
-      },
-      "ndvi_gap": {
-        "id": "ZNC_vs_ZNCR_ndvi",
-        "verdict": "confirmed",
-        "per_decade": -0.580273,
-        "ci95": [
-          -0.698691,
-          -0.459587
-        ],
-        "units": "standard deviations",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "lst_gap": {
-        "id": "ZNC_vs_ZNCR_lst",
-        "verdict": "confirmed",
-        "per_decade": 0.456402,
-        "ci95": [
-          0.365054,
-          0.543163
-        ],
-        "units": "standard deviations",
-        "classic_false_alarm": false,
-        "years_to_detect": null
-      },
-      "rain_area": "aquifer box",
-      "reading": "Its cropland is getting greener and using more water (MODIS). GRACE sees stored water falling. Rain shows no proven decline, so a drier climate is unlikely to be the main cause and pumping is the likely driver (GRACE also counts snow and soil water).",
-      "reference": "Rodell et al. (2018)",
-      "impact": {
-        "grace_km3_per_yr": -6.0953,
-        "cropland_km2": 238674,
-        "crop_water_mm3_2020_2024": 121847.5,
-        "crop_water_change_mm3": 18916.0,
         "crop_water_verdict": "confirmed"
       }
     },
