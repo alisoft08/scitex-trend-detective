@@ -26,7 +26,7 @@ const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCa
 
 export const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m" | "lst"; name: string; kind: string }[] = [
   { key: "tws", name: "Total water · GRACE", kind: "Observed" },
-  { key: "gws", name: "Groundwater · GLDAS", kind: "Model" },
+  { key: "gws", name: "Groundwater · GLDAS", kind: "Model fed by GRACE" },
   { key: "rain", name: "Rain · GPM IMERG", kind: "Estimated" },
   { key: "ndvi", name: "Cropland greenness · MODIS", kind: "Observed" },
   { key: "et", name: "Crop water use · MODIS ET", kind: "Estimated" },

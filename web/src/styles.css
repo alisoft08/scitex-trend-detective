@@ -1108,3 +1108,6 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 /* AI-assisted: Claude (Anthropic). A one-line statement, so the globe stays the protagonist. */
 .atlas-overlay .atlas-head p.atlas-purpose { margin-top: .5rem; max-width: 30ch; padding: .5rem .75rem; border-radius: 10px;
   font-size: .92rem; line-height: 1.45; background: rgba(6,10,24,.5); }
+
+/* AI-assisted: Claude (Anthropic). Analyze has three tools now (compare, test the tests, sources). */
+@media (min-width: 961px) { .aq-tools-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

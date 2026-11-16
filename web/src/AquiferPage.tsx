@@ -16,11 +16,13 @@ const WORD: Record<string, string> = { confirmed: "Confirmed trend", likely: "Li
 
 /** Headline from the verdicts: what the satellites see on the surface and in the water below. */
 function headline(a: AtlasEntry) {
+  // "Inconclusive" never means "no change": the surface line says "no proven change", not "barely changes".
   const down = proven(a.tws) && (a.tws.per_decade ?? 0) < 0;
   const green = !!a.ndvi && proven(a.ndvi) && (a.ndvi.per_decade ?? 0) > 0;
   if (down && green) return <>Greener fields.<br />A draining <em>aquifer</em>.</>;
-  if (down) return <>The surface barely changes.<br />The water <em>below</em> drains.</>;
-  return <>A vast aquifer.<br />No proven <em>loss</em> from space.</>;
+  if (down) return <>No proven change at the surface.<br />The water <em>below</em> drains.</>;
+  if (green) return <>Greener fields.<br />No proven <em>loss</em> from space.</>;
+  return <>No proven change at the surface.<br />No proven <em>loss</em> from space.</>;
 }
 
 export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
@@ -66,7 +68,7 @@ export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
         })}</tbody>
       </table>
       <AquiferExtras m={m} a={a} onCase={onCase} onGo={onGo} />
-      <AquiferTools m={m} a={a} onCase={onCase} onGo={onGo} />
+      <AquiferTools m={m} a={a} onGo={onGo} />
     </div>
   </section>
   </>;
@@ -84,7 +86,7 @@ function AquiferLens({ m, a, onWitnesses, onBack }: { m: Manifest; a: AtlasEntry
       const w = ws[i % ws.length];
       return { lon: s.lon, lat: s.lat, place: `Across the aquifer · ${w.name}`, finding: amount(w.v!),
         verdict: WORD[w.v!.verdict], tone: w.v!.verdict, source: `${w.kind} · 2004–2024`,
-        note: `Lens: ${s.change} in 2024 than in 2004 here.`,
+        note: `Lens: looks ${s.change} in 2024 than in 2004 here (two MODIS pictures, not a trend test).`,
         alarm: w.v!.classic_false_alarm ? "A classic test would call this significant; the combined evidence does not." : undefined };
     });
   }, [t, a]);
@@ -100,7 +102,7 @@ function AquiferLens({ m, a, onWitnesses, onBack }: { m: Manifest; a: AtlasEntry
 }
 
 /** Every analysis tool, already pointed at this aquifer. */
-function AquiferTools({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCase: (id: string) => void; onGo: (hash: string) => void }) {
+function AquiferTools({ m, a, onGo }: { m: Manifest; a: AtlasEntry; onGo: (hash: string) => void }) {
   const others = (m.atlas ?? []).filter((x) => x.id !== a.id);
   const [other, setOther] = useState(a.id === "ZW" ? "ZC" : "ZW");
   const o = others.find((x) => x.id === other) ?? others[0];
@@ -108,11 +110,6 @@ function AquiferTools({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCa
   return <section className="aq-tools" aria-labelledby="aq-tools-title">
     <h2 id="aq-tools-title">Analyze {short(a.name)}</h2>
     <div className="aq-tools-grid">
-      <div>
-        <h3>Examine a witness</h3>
-        <p>Open the case file: monthly record, choose the time period, the tests and the robustness checks.</p>
-        <div className="aq-tool-links">{WITNESSES.map(({ key, name }) => a[key] && <button key={key} onClick={() => onCase(a[key]!.id)}>{name.split(" · ")[0]}</button>)}</div>
-      </div>
       <div>
         <h3>Compare with another aquifer</h3>
         <p>Total water from GRACE, both records on the same timeline.</p>
@@ -126,7 +123,7 @@ function AquiferTools({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCa
       <div>
         <h3>Put the tests on trial</h3>
         <p>Simulate trendless data with memory and see how often a classic test raises a false alarm.</p>
-        <button className="aq-tool-go" onClick={() => onGo("#method")}>Open the trend lab</button>
+        <button className="aq-tool-go" onClick={() => onGo("#method")}>Test the tests</button>
       </div>
       <div>
         <h3>Sources</h3>
@@ -139,25 +136,15 @@ function AquiferTools({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCa
 
 const fmtN = (x: number | null | undefined, d = 1) => x === null || x === undefined ? "n/a" : Math.abs(x).toLocaleString("en-US", { maximumFractionDigits: d });
 
-/** Impact figures, the evidence map, cropland against natural land, and guided cases: Ica's tools for every aquifer. */
+/** Impact figures, the evidence map and cropland against natural land: Ica's tools for every aquifer. */
 function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCase: (id: string) => void; onGo: (hash: string) => void }) {
   const [layer, setLayer] = useState(true);
   const im = a.impact;
   const ica = a.id === "ZW";
-  const falling = proven(a.tws) && (a.tws.per_decade ?? 0) < 0;
-  const alarm = WITNESSES.map(({ key }) => a[key]).find((w) => w?.classic_false_alarm);
   const gaps = [
     { w: a.ndvi_gap, name: "Greenness gap", text: "Cropland greenness minus natural land, both standardized by calendar month: what irrigation adds beyond the weather both share." },
     { w: a.lst_gap, name: "Heat gap", text: "Cropland surface temperature minus natural land: irrigated fields cool by evaporating water." },
   ].filter((g) => g.w);
-  const leads = [
-    { title: falling ? "The draining aquifer" : "Is the water going?", text: "Follow total water from GRACE, 2004–2024.", go: () => onCase(a.tws.id) },
-    a.ndvi_gap && { title: "Greener than the land around", text: "Cropland against natural land in the same box.", go: () => onCase(a.ndvi_gap!.id) },
-    a.lst_gap && { title: "Hot or cool fields?", text: "Surface heat of the cropland against natural land.", go: () => onCase(a.lst_gap!.id) },
-    alarm ? { title: "When tests disagree", text: "A classic test calls this series significant; the engine does not.", go: () => onCase(alarm.id) }
-      : { title: "When tests disagree", text: "Simulate trendless data with memory and count false alarms.", go: () => onGo("#method") },
-  ].filter(Boolean) as { title: string; text: string; go: () => void }[];
-
   return <>
     {im && <section className="aq-impact" aria-label="Impact">
       <div><strong className="num">{im.grace_km3_per_yr === null ? "n/a" : `${im.grace_km3_per_yr < 0 ? "−" : "+"}${Math.abs(im.grace_km3_per_yr) < 0.1
@@ -203,10 +190,6 @@ function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onC
       </table>
     </section>}
 
-    <section className="aq-leads" aria-labelledby="aq-leads-title">
-      <h2 id="aq-leads-title">Guided cases</h2>
-      <div className="aq-leads-grid">{leads.map((l) => <button key={l.title} type="button" onClick={l.go}><strong>{l.title}</strong><span>{l.text}</span></button>)}</div>
-    </section>
   </>;
 }
 

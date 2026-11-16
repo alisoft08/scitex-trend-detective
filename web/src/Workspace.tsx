@@ -31,7 +31,10 @@ function atlasLeads(m: Manifest, zone: string): Lead[] | null {
   const z = zone.endsWith("R") && ATLAS_ZONES.includes(zone.slice(0, -1)) ? zone.slice(0, -1) : zone;
   if (!ATLAS_ZONES.includes(z)) return null;
   const name = PLACES[z]?.[0].replace(" (atlas)", "") ?? z;
-  const alarm = m.cases.find((c) => c.zone === z && c.kind === "case" && c.verdict === "inconclusive");
+  // A real false alarm of the classic test (flagged by the engine), never the GRACE case that already leads the list.
+  const entry = m.atlas?.find((x) => x.id === z);
+  const alarm = entry ? (["gws", "rain", "ndvi", "et", "lst", "t2m"] as const).map((k) => entry[k])
+    .find((w) => w?.classic_false_alarm && w.id !== `${z}_tws_grace`) : undefined;
   return [
     { title: ["The water from space", "El agua vista desde el espacio"],
       text: [`Follow total water from GRACE over ${name}.`, `Sigue el agua total de GRACE sobre ${name}.`], caseId: `${z}_tws_grace` },
@@ -40,7 +43,7 @@ function atlasLeads(m: Manifest, zone: string): Lead[] | null {
     { title: ["Hot or cool fields?", "¿Campos más cálidos o más frescos?"],
       text: ["Surface heat of the cropland against natural land.", "Calor superficial de los cultivos frente a la tierra natural."], caseId: `${z}_vs_${z}R_lst` },
     { title: ["When tests disagree", "Cuando las pruebas discrepan"],
-      text: alarm ? ["A series the engine leaves inconclusive.", "Una serie que el motor deja como no concluyente."]
+      text: alarm ? ["A classic test calls this series significant; the engine does not.", "Una prueba clásica la declara significativa; el motor no."]
         : ["Try a simulation where the true change is known.", "Prueba una simulación en la que conocemos el cambio real."],
       caseId: alarm?.id ?? `${z}_gws`, tool: alarm ? undefined : "lab" },
   ];
@@ -105,7 +108,7 @@ export function Workspace({ m, level, selected, onCase, caseLink, startWithLead,
         <summary>{t("Follow a guided case", "Explora un caso guiado")}</summary>
         <div className="lead-grid">
           {(atlasLeads(m, selected.zone) ?? LEADS).filter((lead) => m.cases.some((c) => c.id === lead.caseId)).map((lead) => (
-            <button key={lead.caseId} className="lead-card" onClick={() => {
+            <button key={lead.title[0]} className="lead-card" onClick={() => {
               setUnavailable("");
               onLead(lead.caseId, lead.tool);
             }}>
