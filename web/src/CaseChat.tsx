@@ -183,6 +183,8 @@ export function CaseChat({ selected, page, getContext }: {
             placeholder={selected ? t("Ask about this case…", "Pregunta sobre este expediente…") : t("Ask about this screen…", "Pregunta sobre esta pantalla…")} />
           <button type="submit" className="btn primary" disabled={pending !== null || !draft.trim()}>{t("Send", "Enviar")}</button>
         </form>
+        <p className="case-chat-note">{t("AI answer (Google Gemini). The numbers and the verdict come from the case file; check them there.",
+          "Respuesta de IA (Google Gemini). Las cifras y el veredicto vienen del expediente; verifícalos allí.")}</p>
       </div>
     </section>
     <button type="button" className="case-chat-launcher" ref={launcher} aria-expanded={open}

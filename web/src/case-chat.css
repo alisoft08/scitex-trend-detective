@@ -107,3 +107,6 @@
 .case-chat-form textarea { flex: 1; min-width: 0; resize: vertical; max-height: 5rem; padding: .45rem; border: 1px solid var(--line); border-radius: .5rem; font: inherit; color: inherit; }
 .case-chat button:disabled { opacity: .6; cursor: default; }
 .case-chat-error { margin: .35rem 0 .55rem; color: var(--no); }
+
+/* AI-assisted: Claude (Anthropic). States plainly that chat answers are AI-generated. */
+.case-chat-note { margin: .35rem 0 0; font-size: .7rem; line-height: 1.35; color: #71706f; }

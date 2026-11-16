@@ -13,20 +13,14 @@ import { ImpactBand } from "./ImpactBand";
 import { Audiences } from "./Audiences";
 import { Atlas } from "./Atlas";
 import { AquiferPage } from "./AquiferPage";
-import { useLocale, type Language } from "./i18n";
+import { LanguageSelect, toolsNavigation, useLocale } from "./i18n";
 import { useJSON } from "./data";
 import type { Manifest } from "./types";
 
 const LEVEL = "expert";
-const DEFAULT_CASE = "ZW_tws_grace";
-const DEFAULT_PAIR = [DEFAULT_CASE, "ZIN_tws_grace"] as const;
-const VIEWS = [
-  { id: "ica", label: ["Ica deep dive", "Análisis de Ica"] },
-  { id: "investigate", label: ["Detective desk", "Mesa de investigación"] },
-  { id: "method", label: ["Trend lab", "Laboratorio de tendencias"] },
-  { id: "compare", label: ["Compare cases", "Comparar casos"] },
-  { id: "sources", label: ["Sources", "Fuentes"] },
-] as const;
+const DEFAULT_CASE = "ZIN_tws_grace";   // the desk opens on the clearest confirmed loss, not on Ica
+const DEFAULT_PAIR = ["ZIN_tws_grace", "ZW_tws_grace"] as const;   // a loss GRACE sees, and one it cannot
+const VIEWS = ["ica", "compare", ...toolsNavigation.map(({ id }) => id)];
 
 function readRoute() {
   const [hash, query] = location.hash.slice(1).split("?");
@@ -39,7 +33,7 @@ function readRoute() {
 
 export default function App() {
   const { data: manifest, error } = useJSON<Manifest>("manifest.json");
-  const { t, language, setLanguage } = useLocale();
+  const { t, language } = useLocale();
   const caseChatRef = useRef<(() => ChatContext) | null>(null);
   const [route, setRoute] = useState(readRoute);
   const [lastCase, setLastCase] = useState(DEFAULT_CASE);
@@ -90,10 +84,9 @@ export default function App() {
   };
   const selectedCase = manifest?.cases.find((c) => c.id === route.params.get("case"))
     ?? manifest?.cases.find((c) => c.id === lastCase) ?? manifest?.cases[0];
-  const pair = linkedPair ?? lastPair;
-  const visible = VIEWS.filter((v) => v.id !== "ica");
+  const pair: readonly [string, string] = linkedPair ?? lastPair;
   const isAquifer = view === "aquifer";
-  const isHome = !VIEWS.some((v) => v.id === view) && !isAquifer;
+  const isHome = !VIEWS.includes(view) && !isAquifer;
   // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
   const [picked, setPicked] = useState(false);
   const showNav = !isHome || picked;
@@ -102,37 +95,38 @@ export default function App() {
 
   return (
     <>
-      <header className={`topnav research-nav ${showNav ? "" : "nav-hidden"}`} aria-hidden={!showNav || undefined}>
+      {showNav && <header className="topnav research-nav">
         <div className="wrap wide">
-          <a href="#atlas" className="brand" tabIndex={showNav ? undefined : -1} aria-label={t("Oasis Paradox · Back to the global atlas", "Oasis Paradox · Volver al atlas global")}>Oasis <span>Paradox</span></a>
+          <a href="#atlas" className="brand" aria-label={t("Oasis Paradox · Back to the globe", "Oasis Paradox · Volver al globo")}>Oasis <span>Paradox</span></a>
           <nav className="nav" aria-label={t("Investigation tools", "Herramientas de investigación")}>
-            {visible.map((v) => (
-              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : v.id === "compare" ? pairLink(lastPair) : `#${v.id}`}
-                tabIndex={showNav ? undefined : -1} className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{t(v.label[0], v.label[1])}</a>
+            <a href="#atlas" className="nav-globe">
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><circle cx="8" cy="8" r="6.5" /><ellipse cx="8" cy="8" rx="2.8" ry="6.5" /><path d="M1.5 8h13" /></svg>
+              {t("Globe", "Globo")}
+            </a>
+            {toolsNavigation.map((v) => (
+              <a key={v.id} href={v.id === "investigate" ? caseLink(lastCase) : `#${v.id}`}
+                className={view === v.id ? "on" : ""} aria-current={view === v.id ? "page" : undefined}>{t(v.label[0], v.label[1])}</a>
             ))}
           </nav>
-          <label className="language-switch">
-            <span className="sr-only">{t("Language", "Idioma")}</span>
-            <select value={language} tabIndex={showNav ? undefined : -1} onChange={(event) => setLanguage(event.target.value as Language)}>
-              <option value="en" lang="en">English</option>
-              <option value="es" lang="es">Español</option>
-            </select>
-          </label>
+          <LanguageSelect />
         </div>
-      </header>
-      {error && <p className="wrap error" role="alert">{error}</p>}
-      {!error && !manifest && <p className="wrap loading" role="status">Loading the evidence…</p>}
+      </header>}
+      {error && <p className="wrap error" role="alert">{t("Could not load the atlas data.", "No se pudieron cargar los datos del atlas.")}</p>}
+      {!error && !manifest && <p className="wrap loading" role="status">{t("Loading the evidence…", "Cargando la evidencia…")}</p>}
       {manifest && selectedCase && (
         <main className={`research-app lv-${LEVEL} ${showNav ? "" : "no-nav"}`}>
-          {isHome && <Atlas m={manifest} showLanguage={!showNav} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
+          {isHome && <Atlas m={manifest} onCase={selectCase} showLanguage={!showNav} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
           {isAquifer && <AquiferPage m={manifest} id={route.params.get("id") ?? ""} onCase={selectCase} onIca={() => navigate("#ica")} onBack={() => navigate("#atlas")} onGo={navigate} />}
-          {view === "ica" && <HeroMap m={manifest} primary={{ label: t("View the selected variable’s trend analysis →", "Ver análisis de tendencia de la variable seleccionada →"), go: () => selectCase(lastCase) }} />}
+          {view === "ica" && <HeroMap m={manifest} primary={{ label: t("View the selected variable’s trend analysis →", "Ver el análisis de tendencia de la variable seleccionada →"), go: () => selectCase(lastCase) }} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
-          {isHome && <Audiences onCompare={() => selectPair(DEFAULT_PAIR)} onLab={() => navigate("#method")} />}
+          {isHome && <Audiences onOpen={(target) => {
+            if (target === "#atlas") document.getElementById("atlas")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            else if (target.startsWith("case:")) selectCase(target.slice(5)); else navigate(target);
+          }} />}
           {view === "investigate" && <Workspace m={manifest} level={LEVEL} selected={selectedCase} onCase={selectCase}
             caseLink={caseLink} chatContextRef={caseChatRef} />}
           {view === "method" && <section className="wrap wide research-page">
-            <div className="research-heading"><p className="eyebrow">{t("Simulation", "Simulación")}</p><h1>{t("Trend lab", "Laboratorio de tendencias")}</h1></div>
+            <div className="research-heading"><p className="eyebrow">{t("Simulation", "Simulación")}</p><h1>{t("Put the tests on trial", "Pon a prueba los métodos estadísticos")}</h1></div>
             <Lab level={LEVEL} onCase={() => selectCase("ZW_gws")} />
           </section>}
           {view === "sources" && <Sources m={manifest} />}

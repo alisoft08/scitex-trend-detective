@@ -1,6 +1,7 @@
 // AI-assisted: Claude (Anthropic). A dependency-free 3D globe: orthographic projection of the MODIS world mosaic drawn
 // pixel by pixel on a canvas, with HTML markers on top (real buttons, so they are clickable and keyboard-friendly).
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLocale } from "./i18n";
 import { asset } from "./data";
 import { createGlobeGL } from "./globeGL";
 
@@ -28,6 +29,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   callout?: ReactNode;   // card that pops out of the globe, tied to the selected marker by a leader line
   autoRotate?: boolean;  // spin slowly on its own; pauses while dragged or after a pick
 }) {
+  const { t } = useLocale();
   const stage = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLDivElement>(null);
@@ -36,7 +38,7 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
   const lastSelected = useRef(selected);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const idleUntil = useRef(0);
-  const hovering = useRef(false);   // mouse over the globe or keyboard focus inside it
+  const hovering = useRef(false);   // pointer resting on a marker or its card, or keyboard focus inside the globe
   const canvas = useRef<HTMLCanvasElement>(null);
   const tex = useRef<{ data: Uint8ClampedArray; w: number; h: number } | null>(null);
   const view = useRef({ lon: 0, lat: 0 });
@@ -195,7 +197,12 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "mouse") hovering.current = true;   // also when the pointer was already here (after the welcome)
+    // AI-assisted: Claude (Anthropic). Moving the mouse pauses the spin; it resumes 4 s after the last movement, unless the
+    // pointer rests on a marker or its card (so they can be clicked).
+    if (e.pointerType === "mouse") {
+      idleUntil.current = Math.max(idleUntil.current, performance.now() + 4000);
+      hovering.current = !!(e.target as HTMLElement).closest(".globe-pin");
+    }
     const s = drag.current; if (!s) return;
     const k = 180 / size;
     view.current = { lon: s.lon - (e.clientX - s.x) * k, lat: Math.max(-55, Math.min(55, s.lat + (e.clientY - s.y) * k)) };
@@ -211,12 +218,13 @@ export function Globe({ markers, selected, onSelect, size = 520, label, callout,
     <div className="globe-stage" ref={stage}>
     <div className="globe" ref={box} style={{ width: size, maxWidth: "100%" }} role="group" aria-label={label} tabIndex={0}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; idleUntil.current = performance.now() + 4000; }} onKeyDown={onKey}
-      onPointerEnter={(e) => { if (e.pointerType === "mouse") hovering.current = true; }}
+      onPointerEnter={(e) => { if (e.pointerType === "mouse") idleUntil.current = Math.max(idleUntil.current, performance.now() + 4000); }}
       onPointerLeave={() => { hovering.current = false; idleUntil.current = Math.max(idleUntil.current, performance.now() + 2000); }}
-      onFocus={() => { hovering.current = true; }} onBlur={() => { hovering.current = false; }}>
+      onFocus={(e) => { if ((e.target as HTMLElement).matches(":focus-visible")) hovering.current = true; }}
+      onBlur={() => { hovering.current = false; }}>
       <div className="globe-halo" aria-hidden="true" />
       <canvas ref={canvas} className="globe-canvas" aria-hidden="true" />
-      {!ready && <p className="globe-loading">Loading MODIS mosaic…</p>}
+      {!ready && <p className="globe-loading">{t("Loading MODIS mosaic…", "Cargando el mosaico MODIS…")}</p>}
       {ready && markers.map((m) => {
         return <button key={m.id} type="button" ref={(el) => { pins.current[m.id] = el; }}
           className={`globe-pin ${m.tone} ${m.focus ? "focus" : ""} ${selected === m.id ? "on" : ""}`}

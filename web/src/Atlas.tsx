@@ -1,38 +1,26 @@
-// AI-assisted: Claude (Anthropic). World aquifer atlas: search or spin the globe to pick an aquifer, read its NASA
+// AI-assisted: Claude (Anthropic). World aquifer atlas: search or spin the globe to pick an aquifer, read its six NASA
 // witnesses, then compare all of them. Every number comes from the engine's manifest; nothing is computed here.
 import { useEffect, useMemo, useState } from "react";
 import { Globe, type GlobeMarker } from "./Globe";
+import { DetectabilityChart } from "./DetectabilityChart";
+import { ThreeWays } from "./ThreeWays";
 import { asset, useJSON } from "./data";
-import { EVIDENCE_TEXT } from "./evidence";
-import { fmt, signed } from "./format";
-import { useLocale, type Translation } from "./i18n";
-import type { Level } from "./levels";
+import { useAtlasLocale } from "./atlas-locale";
+import { verdictLabel } from "./evidence";
+import { LanguageSelect, toolsNavigation, useLocale } from "./i18n";
 import type { AtlasEntry, AtlasWitness, CaseFile, Manifest } from "./types";
 
 export const proven = (w?: AtlasWitness) => !!w && (w.verdict === "confirmed" || w.verdict === "likely");
 export const tone = (a: AtlasEntry): GlobeMarker["tone"] => !proven(a.tws) ? "flat" : (a.tws.per_decade ?? 0) < 0 ? "down" : "up";
 const arrow = (t: GlobeMarker["tone"]) => t === "down" ? "↓" : t === "up" ? "↑" : "?";
-/** Water storage in mm per year; the other witnesses per decade in their own units. */
-export function amount(w: AtlasWitness) {
-  if (w.per_decade === null) return "n/a";
-  if (w.units === "mm") return `${signed(w.per_decade / 10, 2)} mm/yr`;
-  const u = w.units === "NDVI units" ? "NDVI" : w.units === "degC" ? "°C" : w.units;
-  return `${signed(w.per_decade, 2)} ${u}/decade`;
-}
-/** Short name: drops the country after a comma and any parenthetical that lists several places. */
-export const short = (name: string) => name.replace(/ \(([^)]*)\)/, (m, inner: string) => inner.includes(",") ? "" : m).split(",")[0];
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const SPANISH_COUNTRIES: Record<string, string> = {
-  Peru: "Perú", "United States": "Estados Unidos", Pakistan: "Pakistán", "Saudi Arabia": "Arabia Saudita",
-  Jordan: "Jordania", Iraq: "Irak", Iran: "Irán", Syria: "Siria", Turkey: "Turquía", Brazil: "Brasil",
-};
 
 export const WITNESSES: { key: "tws" | "gws" | "rain" | "ndvi" | "et" | "t2m" | "lst"; name: string; spanish: string; kind: string; kindEs: string }[] = [
   { key: "tws", name: "Total water · GRACE", spanish: "Agua total · GRACE", kind: "Observed", kindEs: "Observación" },
-  { key: "gws", name: "Groundwater · GLDAS", spanish: "Agua subterránea · GLDAS", kind: "Model", kindEs: "Modelo" },
+  { key: "gws", name: "Groundwater · GLDAS", spanish: "Agua subterránea · GLDAS", kind: "Model fed by GRACE", kindEs: "Modelo alimentado por GRACE" },
   { key: "rain", name: "Rain · GPM IMERG", spanish: "Precipitación · GPM IMERG", kind: "Estimated", kindEs: "Estimación" },
   { key: "ndvi", name: "Cropland greenness · MODIS", spanish: "Verdor de los cultivos · MODIS", kind: "Observed", kindEs: "Observación" },
-  { key: "et", name: "Crop water use · MODIS ET", spanish: "Evapotranspiración de cultivos · MODIS ET", kind: "Estimated", kindEs: "Estimación" },
+  { key: "et", name: "Crop water use · MODIS ET", spanish: "Uso de agua de los cultivos · MODIS ET", kind: "Estimated", kindEs: "Estimación" },
   { key: "t2m", name: "Air temperature · MERRA-2", spanish: "Temperatura del aire · MERRA-2", kind: "Reanalysis", kindEs: "Reanálisis" },
   { key: "lst", name: "Cropland surface heat · MODIS LST", spanish: "Temperatura superficial de los cultivos · MODIS LST", kind: "Observed", kindEs: "Observación" },
 ];
@@ -53,57 +41,64 @@ function Welcome({ onDone }: { onDone: () => void }) {
   const { t } = useLocale();
   const [leaving, setLeaving] = useState(false);
   useEffect(() => {
-    const t1 = setTimeout(() => setLeaving(true), 2300), t2 = setTimeout(onDone, 3100);
+    const t1 = setTimeout(() => setLeaving(true), 1500), t2 = setTimeout(onDone, 2200);
     const skip = (e: KeyboardEvent) => { if (e.key === "Escape" || e.key === "Enter") { clearTimeout(t1); clearTimeout(t2); onDone(); } };
     window.addEventListener("keydown", skip);
     return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener("keydown", skip); };
   }, []);
   return <div className={`atlas-welcome ${leaving ? "leaving" : ""}`} role="dialog" aria-label={t("Welcome", "Bienvenida")} onClick={onDone}>
     <p>{t("Welcome to", "Te damos la bienvenida a")} <strong>Oasis Paradox</strong></p>
-    <span>by SciTeX · NASA Space Apps Challenge 2026</span>
+    <span>{t("by SciTeX", "por SciTeX")} · NASA Space Apps Challenge 2026</span>
   </div>;
 }
 
 /** Short facts that rotate at the top right; every number comes from the manifest. */
-function facts(m: Manifest, atlas: AtlasEntry[], t: (en: string, es: string) => string): string[] {
+function useAtlasFacts(m: Manifest, atlas: AtlasEntry[]): string[] {
+  const { t } = useLocale();
+  const { amount, shortName } = useAtlasLocale();
   const falling = atlas.filter((a) => proven(a.tws) && (a.tws.per_decade ?? 0) < 0);
-  const confirmed = falling.filter((a) => a.tws.verdict === "confirmed");
-  const likely = falling.length - confirmed.length;
-  const worst = [...confirmed].sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0];
-  const disagreements = atlas.reduce((n, a) => n + WITNESSES.filter(({ key }) => a[key]?.classic_false_alarm).length, 0);
+  // "Confirms" only for confirmed verdicts; likely ones are counted apart (both pass the engine, with different strength).
+  const confirmedLoss = falling.filter((a) => a.tws.verdict === "confirmed");
+  const likelyLoss = falling.length - confirmedLoss.length;
+  const worst = [...confirmedLoss].sort((a, b) => (a.tws.per_decade ?? 0) - (b.tws.per_decade ?? 0))[0];
+  const alarms = atlas.reduce((n, a) => n + [a.tws, a.gws, a.rain, a.ndvi, a.et, a.t2m].filter((w) => w?.classic_false_alarm).length, 0);
+  const greening = atlas.filter((a) => proven(a.ndvi) && (a.ndvi?.per_decade ?? 0) > 0 && proven(a.et) && (a.et?.per_decade ?? 0) > 0
+    && falling.includes(a)).length;   // the sentence claims both greener and more water use, so both are required
   return [
-    t(`A decline in total water storage is confirmed in ${confirmed.length} of ${atlas.length} GRACE study regions and likely in ${likely}.`,
-      `GRACE muestra un descenso del almacenamiento total de agua confirmado en ${confirmed.length} de ${atlas.length} regiones de estudio y probable en ${likely}.`),
-    worst ? t(`${short(worst.name)} has the steepest confirmed decline in regional total water storage: ${amount(worst.tws)}.`,
-      `${short(worst.name)} tiene el descenso confirmado más pronunciado del almacenamiento total de agua regional: ${amount(worst.tws).replace("mm/yr", "mm/año")}.`) : "",
-    t("In Ica, well levels describe local changes. GRACE measures total water storage over a much larger area.",
-      "En Ica, los niveles de los pozos muestran cambios locales. GRACE mide el almacenamiento total de agua en un área mucho mayor."),
-    disagreements ? t(`${disagreements} atlas records are significant under the classic test and inconclusive under the combined analysis.`,
-      `${disagreements} series del atlas son significativas según la prueba clásica y no concluyentes según el análisis combinado.`) : "",
+    t(
+      `One engine, the same NASA data, ${atlas.length} irrigated aquifers chosen from published GRACE hotspots. GRACE shows a loss in ${falling.length}: ${confirmedLoss.length} confirmed and ${likelyLoss} likely.`,
+      `Un mismo motor y los mismos datos de NASA para ${atlas.length} acuíferos irrigados seleccionados de estudios previos con GRACE. GRACE indica ${falling.length} descensos: ${confirmedLoss.length} confirmados y ${likelyLoss} ${likelyLoss === 1 ? "probable" : "probables"}.`,
+    ),
+    worst ? t(`${shortName(worst)} loses ${amount(worst.tws).replace("−", "")} of water: the largest confirmed loss in the atlas.`,
+      `${shortName(worst)} pierde ${amount(worst.tws).replace("−", "")} de agua, el mayor descenso confirmado del atlas.`) : "",
+    t("Where the farms are small, as in Ica, GRACE cannot locate the loss. Wells provide local measurements.",
+      "En zonas agrícolas pequeñas, como Ica, GRACE no puede localizar la pérdida. Los pozos aportan mediciones locales."),
+    greening ? t(`In ${greening} draining aquifers the cropland is getting greener and using more water.`,
+      `En ${greening} acuíferos con descensos, los cultivos están más verdes y usan más agua.`) : "",
+    alarms ? t(`A classic trend test raised ${alarms} false alarms in these series. Our engine did not confirm those trends.`,
+      `Una prueba de tendencia clásica produjo ${alarms} falsas alarmas en estas series. El motor no confirmó esas tendencias.`) : "",
     t(`21 years of NASA data, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS and MERRA-2. ${m.cases.length} case files.`,
-      `21 años de datos de NASA, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS y MERRA-2. ${m.cases.length} expedientes.`),
+      `21 años de datos de NASA, 2004–2024: GRACE, GLDAS, GPM IMERG, MODIS y MERRA-2. ${m.cases.length} análisis disponibles.`),
   ].filter(Boolean);
 }
 
 export const dirOf = (w: AtlasWitness): "down" | "up" | "flat" => !proven(w) ? "flat" : (w.per_decade ?? 0) < 0 ? "down" : "up";
-export const bare = (w: AtlasWitness) => w.per_decade === null ? "n/a" : signed(w.units === "mm" ? w.per_decade / 10 : w.per_decade, 2);
-const VERDICT_WORD: Record<AtlasWitness["verdict"], Translation> = {
-  confirmed: ["Confirmed", "Confirmada"], likely: ["Likely", "Probable"],
-  inconclusive: ["Not proven", "No concluyente"], insufficient_data: ["Too little data", "Datos insuficientes"],
-};
+const VERDICT_WORD: Record<AtlasWitness["verdict"], string> = { confirmed: "Confirmed", likely: "Likely", inconclusive: "Inconclusive", insufficient_data: "Insufficient data" };
 
-/** A dot and a word: filled for confirmed, ring for likely, hollow grey when not proven. */
+/** A dot and a word: filled for confirmed, ring for likely, hollow grey when inconclusive. */
 export function Verdict({ w, compact = false }: { w: AtlasWitness; compact?: boolean }) {
-  const { t } = useLocale();
+  const { t, language } = useLocale();
   const d = dirOf(w);
-  const [en, es] = VERDICT_WORD[w.verdict];
-  const word = d === "flat" ? t(en, es) : t(`${en} ${d === "down" ? "fall" : "rise"}`, `${d === "down" ? "Caída" : "Subida"} ${es.toLowerCase()}`);
+  const word = d === "flat" ? verdictLabel(language, w.verdict) : t(
+    `${VERDICT_WORD[w.verdict]} ${d === "down" ? "fall" : "rise"}`,
+    `${d === "down" ? "Descenso" : "Aumento"} ${w.verdict === "confirmed" ? "confirmado" : "probable"}`,
+  );
   return <span className={`vd ${d} ${w.verdict} ${compact ? "compact" : ""}`} title={word}><i aria-hidden="true" />{compact ? <span className="sr-only">{word}</span> : word}</span>;
 }
 
 /** Annual means of the monthly anomalies, drawn as a small line (display only; no statistics here). */
-export function Spark({ path, tone: t }: { path: string | null; tone: "down" | "up" | "flat" }) {
-  const { t: translate } = useLocale();
+export function Spark({ path, tone }: { path: string | null; tone: "down" | "up" | "flat" }) {
+  const { t } = useLocale();
   const { data } = useJSON<CaseFile>(path);
   if (!data) return <svg className="spark" viewBox="0 0 120 30" aria-hidden="true" />;
   const byYear = new Map<number, number[]>();
@@ -117,15 +112,16 @@ export function Spark({ path, tone: t }: { path: string | null; tone: "down" | "
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
   const d = pts.map(([x, y], k) => `${k ? "L" : "M"}${((x - x0) / (x1 - x0 || 1)) * 116 + 2},${28 - ((y - lo) / span) * 26}`).join(" ");
-  return <svg className={`spark ${t}`} viewBox="0 0 120 30" role="img" aria-label={translate(`Annual anomalies ${x0}–${x1}`, `Anomalías anuales ${x0}–${x1}`)}><path d={d} /></svg>;
+  return <svg className={`spark ${tone}`} viewBox="0 0 120 30" role="img" aria-label={t(`Annual anomalies ${x0}–${x1}`, `Anomalías anuales ${x0}–${x1}`)}><path d={d} /></svg>;
 }
 
-export function Atlas({ m, onIca, onPick, onOpen, showLanguage }: {
-  m: Manifest; level?: Level; onCase?: (id: string) => void; onIca: () => void; onPick?: () => void; showLanguage: boolean;
-  onOpen: (id: string) => void;   // open the aquifer's own page
+export function Atlas({ m, onCase, onPick, onOpen, showLanguage }: {
+  m: Manifest; onCase: (id: string) => void; onPick: () => void; onOpen: (id: string) => void; showLanguage: boolean;
 }) {
-  const { t, language, setLanguage } = useLocale();
+  const { t, fmt, signed } = useLocale();
+  const { name, shortName, countries, amount, list } = useAtlasLocale();
   const atlas = m.atlas ?? [];
+  const facts = useAtlasFacts(m, atlas);
   const [sel, setSel] = useState<string>(() => startId(atlas));
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -137,105 +133,103 @@ export function Atlas({ m, onIca, onPick, onOpen, showLanguage }: {
     const id = setInterval(() => setFact((f) => f + 1), 6500);
     return () => clearInterval(id);
   }, [intro]);
-  const shown = atlas;
-  const markers: GlobeMarker[] = useMemo(() => shown.map((x) => ({ id: x.id, lonlat: x.lonlat, label: short(x.name).replace(/ \(.*\)/, ""), tone: tone(x),
-    thumb: asset(`img/aquifers/${x.id}.jpg`), value: x.tws.per_decade === null ? undefined : amount(x.tws), dir: MINI_DIR[x.id] ?? "ne" })), [m.atlas]);
+  const markers: GlobeMarker[] = useMemo(() => (m.atlas ?? []).map((x) => ({
+    id: x.id, lonlat: x.lonlat, label: shortName(x).replace(/ \(.*\)/, ""), tone: tone(x),
+    thumb: asset(`img/aquifers/${x.id}.jpg`), value: x.tws.per_decade === null ? undefined : amount(x.tws), dir: MINI_DIR[x.id] ?? "ne",
+  })), [m.atlas, shortName, amount]);
   if (atlas.length < 2) return null;
   const a = atlas.find((x) => x.id === sel) ?? atlas[0];
   const q = norm(query.trim());
-  const spanishCountries = (x: AtlasEntry) => x.countries.map((country) => SPANISH_COUNTRIES[country] ?? country);
-  const countries = (x: AtlasEntry) => (language === "es" ? spanishCountries(x) : x.countries).join(", ");
-  const matches = shown.filter((x) => !q || norm(`${x.name} ${x.countries.join(" ")} ${spanishCountries(x).join(" ")}`).includes(q));
+  const matches = atlas.filter((x) => !q || norm(`${x.name} ${name(x)} ${x.countries.join(" ")} ${countries(x)}`).includes(q));
+  // Detectability finding, from the manifest: which aquifers span two or more GRACE footprints, and what GRACE says there.
+  const big = atlas.filter((x) => x.grace_footprints >= 2);
+  const bigLoss = big.filter((x) => proven(x.tws) && (x.tws.per_decade ?? 0) < 0);
+  const bigRest = big.filter((x) => !bigLoss.includes(x));
+  // GRACE trend (mm/yr) x box area (km2) -> km3/yr; compared with Rodell et al. (2009), Nature 460, 999.
+  const zin = atlas.find((x) => x.id === "ZIN");
+  const rodell = zin?.tws.per_decade != null ? Math.abs(zin.tws.per_decade / 10) * zin.area_km2 / 1e6 : null;
   // As wide as the screen allows: the globe fills the width and is cropped top and bottom, like Earth seen from orbit.
   const size = typeof window !== "undefined" ? Math.max(320, Math.min(1500, Math.round(window.innerWidth * 0.98))) : 1200;
-  const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); onPick?.(); onOpen(id); };
-  const toDetails = () => {
-    const heading = document.getElementById("atlas-details");
-    heading?.focus({ preventScroll: true });
-    heading?.scrollIntoView({ block: "start" });
-  };
-  const callout = <div className="callout-card" key={a.id}>
-    <img src={asset(`img/aquifers/${a.id}.jpg`)} alt={`Satellite view of ${a.name} (${a.id === "ZW" ? "Landsat 8/9, 2024" : "MODIS Terra, 2024"})`} />
-    <div className="callout-body">
-      <p className="eyebrow">{a.countries.join(", ")}</p>
-      <h3>{short(a.name)}</h3>
-      <p className="callout-num"><strong className="num">{amount(a.tws)}</strong> <span className={`pill ${a.tws.verdict}`}>{EVIDENCE_TEXT[a.tws.verdict]}</span></p>
-      <p className="small">Total water from NASA GRACE, 2004–2024 · {fmt(a.grace_footprints, 2)} GRACE footprints</p>
-      <p className="callout-reading">{a.reading}</p>
-      <div className="callout-actions">
-        <button className="text-button" onClick={toDetails}>View the data series ↓</button>
-        {a.focus && <button className="text-button" onClick={onIca}>Ica deep dive: wells and fields →</button>}
-      </div>
-    </div>
-  </div>;
-
-  void callout; // pop-out card kept for later: pass callout={callout} to <Globe> to show it again
-  const messages = facts(m, atlas, t);
+  const pick = (id: string) => { setSel(id); setOpen(false); setQuery(""); onPick(); onOpen(id); };
+  const bare = (w: AtlasWitness) => signed(w.per_decade === null ? null : w.per_decade / 10, 2);
   return <section className={`atlas ${intro ? "intro" : "ready"}`} aria-labelledby="atlas-title" id="atlas">
     {intro && <Welcome onDone={() => setIntro(false)} />}
     <div className="atlas-stage">
       <Globe markers={markers} selected={sel} onSelect={pick} size={size} autoRotate
-          label={t("Drag the globe or use the arrow keys to turn it. Select a marker to open its aquifer page.", "Arrastra el globo o usa las flechas del teclado para girarlo. Selecciona un marcador para abrir la ficha de su acuífero.")} />
+          label={t("Globe with the aquifers of the atlas. Drag or use the arrow keys to turn it, or search below.",
+            "Globo con los acuíferos del atlas. Arrástralo o usa las flechas del teclado para girarlo. También puedes usar el buscador.")} />
+      <nav className="atlas-links atlas-topnav" aria-label={t("Tools for every aquifer", "Herramientas para todos los acuíferos")}>
+        {toolsNavigation.map(({ id, label }) => <a key={id} href={`#${id}`}>{t(label[0], label[1])}</a>)}
+        {showLanguage && <LanguageSelect />}
+      </nav>
       <div className="atlas-overlay"><div className="wrap wide">
       <header className="atlas-head">
-        <h1 id="atlas-title">{t("Where is water storage changing?", "¿Dónde cambia el almacenamiento de agua?")}</h1>
+        <p className="atlas-kicker"><span>{t("Water stored on land and underground", "Agua almacenada en la superficie y bajo tierra")}</span> <span>{t(`${atlas.length} irrigated aquifers · NASA, 2004–2024`, `${atlas.length} acuíferos en zonas de riego · NASA, 2004–2024`)}</span></p>
+        <h1 id="atlas-title">{t("Is that trend real?", "¿Es real esa tendencia?")}</h1>
       </header>
-
-      <div className="atlas-tools">
-        <div className="atlas-search" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false); }}>
-          <label htmlFor="aquifer-search" className="sr-only">{t("Find an aquifer or a country", "Busca un acuífero o un país")}</label>
-          <input id="aquifer-search" type="search" value={query} placeholder={t("Search aquifer or country", "Busca un acuífero o un país")} autoComplete="off" aria-describedby="atlas-search-help"
+      </div></div>
+      <div className="atlas-tools atlas-bottom-search">
+        <div className="atlas-search">
+          <label htmlFor="aquifer-search" className="sr-only">{t("Find an aquifer or a country", "Buscar un acuífero o país")}</label>
+          <input id="aquifer-search" type="search" value={query} placeholder={t("Search aquifer or country", "Busca un acuífero o país")} autoComplete="off"
             role="combobox" aria-expanded={open} aria-controls="aquifer-list"
-            onFocus={() => setOpen(true)}
+            onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 150)}
             onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
             onKeyDown={(e) => { if (e.key === "Enter" && matches[0]) { e.preventDefault(); pick(matches[0].id); } if (e.key === "Escape") setOpen(false); }} />
           {open && <ul id="aquifer-list" className="atlas-list" role="listbox" aria-label={t(`${matches.length} aquifers`, `${matches.length} acuíferos`)}>
             {matches.map((x) => <li key={x.id} role="option" aria-selected={x.id === a.id}>
-              <button type="button" className={`atlas-item ${x.id === a.id ? "on" : ""}`} onClick={() => pick(x.id)}>
+              <button type="button" className={`atlas-item ${x.id === a.id ? "on" : ""}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(x.id)}>
                 <span className={`atlas-dot ${tone(x)}`} aria-hidden="true">{arrow(tone(x))}</span>
-                <span className="atlas-item-text"><strong>{short(x.name)}</strong><small>{countries(x)}</small></span>
+                <span className="atlas-item-text"><strong>{shortName(x)}</strong><small>{countries(x)}</small></span>
               </button>
             </li>)}
-            {matches.length === 0 && <li className="small atlas-empty">{t(`No aquifer matches “${query}”.`, `Ningún acuífero coincide con «${query}».`)}</li>}
+            {matches.length === 0 && <li className="small atlas-empty">{t(`No aquifer matches “${query}”.`, `No se encontraron acuíferos para «${query}».`)}</li>}
           </ul>}
         </div>
-        <button type="button" className="atlas-action" onClick={toDetails}>{t("Go to the aquifer table ↓", "Ir a la tabla de acuíferos ↓")}</button>
-        {showLanguage && <select className="atlas-action" aria-label={t("Language", "Idioma")} value={language} onChange={(e) => setLanguage(e.target.value === "es" ? "es" : "en")}>
-          <option value="en" lang="en">English</option>
-          <option value="es" lang="es">Español</option>
-        </select>}
       </div>
-      <p id="atlas-search-help" className="atlas-action-help">{t(
-        "Choose a search result or a marker to open the aquifer page and see its NASA variables.",
-        "Elige un resultado de la búsqueda o un marcador para abrir la ficha del acuífero y ver sus variables de NASA.",
-      )}</p>
-
-      </div></div>
-      <p className="atlas-blurb" key={fact} aria-live="polite">{messages[fact % messages.length]}</p>
-      <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend"><span className="lg down">↓</span> {t("falling", "descenso")} <span className="lg up">↑</span> {t("rising", "aumento")} <span className="lg flat">?</span> {t("not proven", "no concluyente")} · {t("Base map: MODIS Terra surface reflectance, 2024 (NASA)", "Mapa base: reflectancia superficial de MODIS Terra, 2024 (NASA)")}</p></div></div>
+      <p className="atlas-blurb" key={fact} aria-live="polite">{facts[fact % facts.length]}</p>
+      <div className="atlas-stage-foot"><div className="wrap wide"><p className="small atlas-legend">
+        <span className="lg down">↓</span> {t("falling", "descenso")} <span className="lg up">↑</span> {t("rising", "aumento")} <span className="lg flat">?</span> {t("inconclusive", "no concluyente")}
+        {t(" · Base map: MODIS Terra surface reflectance, 2024 (NASA)", " · Mapa base: reflectancia de superficie de MODIS Terra, 2024 (NASA)")}
+      </p></div></div>
     </div>
     <div className="aq-overview">
       <div className="wrap wide">
+        <ThreeWays m={m} onCase={onCase} onOpen={pick} />
         <header className="aq-overview-head">
           <p className="aq-kicker">{t("The atlas", "El atlas")}</p>
-          <h2 id="atlas-details" className="action-scroll-target" tabIndex={-1}>{t(`Water storage across ${atlas.length} aquifer regions`, `Almacenamiento de agua en ${atlas.length} regiones acuíferas`)}</h2>
-          <p>{t("The regions use the same NASA products and statistical rule for 2004–2024.", "Las regiones usan los mismos productos de NASA y la misma regla estadística para 2004–2024.")}</p>
-          <p>{t("Select an aquifer to open its page with satellite images from 2004 and 2024 and the table of NASA variables.",
-            "Selecciona un acuífero para abrir su ficha con imágenes satelitales de 2004 y 2024 y la tabla de variables de NASA.")}</p>
+          <h2>{t(`${atlas.length} irrigated aquifers, one engine`, `${atlas.length} acuíferos en zonas de riego, un mismo motor de análisis`)}</h2>
+          <p>{t(
+            "Each aquifer is analyzed with the same NASA data and pre-registered rule, 2004–2024. The regions were selected from published GRACE hotspots (Richey et al. 2015; Rodell et al. 2018). They do not form a random sample of the world.",
+            "Cada acuífero se analiza con los mismos productos de NASA y la misma regla prerregistrada, de 2004 a 2024. Las regiones se eligieron a partir de estudios previos con GRACE (Richey et al. 2015; Rodell et al. 2018). No forman una muestra aleatoria mundial.",
+          )}{rodell !== null && t(
+            ` For Northwest India, the engine estimates a loss of ${fmt(rodell)} km³ per year using GRACE. Rodell et al. (2009) estimated ${fmt(17.7)} km³ per year for 2002–2008, with a different study area.`,
+            ` Para el noroeste de India, el motor estima con GRACE una pérdida de ${fmt(rodell)} km³ al año. Rodell et al. (2009) estimaron ${fmt(17.7)} km³ al año para 2002–2008, con un área de estudio distinta.`,
+          )}</p>
         </header>
+        <section className="detect" aria-labelledby="detect-title">
+          <h3 id="detect-title">{t("Can a satellite see your aquifer?", "¿Puede un satélite detectar cambios en tu acuífero?")}</h3>
+          <p className="detect-finding">{t(
+            `Of the ${big.length} aquifers that span two or more GRACE footprints, ${bigLoss.length} show a confirmed or likely loss.`,
+            `De los ${big.length} acuíferos que abarcan dos o más huellas de GRACE, ${bigLoss.length} muestran un descenso confirmado o probable.`,
+          )}{bigRest.length > 0 && t(` No loss was established in ${list(bigRest.map(shortName))}.`, ` No se estableció un descenso en ${list(bigRest.map(shortName))}.`)} {t(
+            "Below one footprint, well measurements can help track local changes.",
+            "Por debajo de una huella, las mediciones en pozos ayudan a seguir los cambios locales.",
+          )}</p>
+          <DetectabilityChart atlas={atlas} onOpen={(id) => pick(id)} />
+        </section>
+        <h3 className="aq-table-title">{t("All aquifers", "Todos los acuíferos")}</h3>
         <div className="scroll-x">
           <table className="aq-table">
             <thead><tr>
-              <th scope="col">{t("Aquifer", "Acuífero")}</th><th scope="col">{t("Annual anomaly, GRACE", "Anomalía anual, GRACE")}</th>
+              <th scope="col">{t("Aquifer", "Acuífero")}</th><th scope="col">{t("Annual anomaly, GRACE", "Anomalía anual de GRACE")}</th>
               <th scope="col" className="r">{t("Total water", "Agua total")}<small>GRACE, {t("mm/yr", "mm/año")}</small></th>
               <th scope="col" className="r">{t("Groundwater", "Agua subterránea")}<small>GLDAS, {t("mm/yr", "mm/año")}</small></th>
               <th scope="col">{t("Rain", "Precipitación")}</th><th scope="col">{t("Cropland greenness", "Verdor de los cultivos")}</th><th scope="col">{t("Crop water use", "Evapotranspiración de cultivos")}</th>
               <th scope="col" className="r">{t("GRACE footprints", "Huellas de GRACE")}</th>
             </tr></thead>
             <tbody>{atlas.map((x) => <tr key={x.id} onClick={() => pick(x.id)}>
-              <th scope="row"><button type="button" onClick={(e) => { e.stopPropagation(); pick(x.id); }}>
-                {short(x.name)} <span className="table-action">{t("Open aquifer page →", "Abrir ficha del acuífero →")}</span>
-              </button><small>{countries(x)}</small></th>
+              <th scope="row"><button type="button" onClick={(e) => { e.stopPropagation(); pick(x.id); }}>{shortName(x)}</button><small>{countries(x)}</small></th>
               <td><Spark path={m.cases.find((c) => c.id === x.tws.id)?.path ?? null} tone={dirOf(x.tws)} /></td>
               <td className="r"><span className="num">{bare(x.tws)}</span><Verdict w={x.tws} compact /></td>
               <td className="r"><span className="num">{bare(x.gws)}</span><Verdict w={x.gws} compact /></td>
@@ -246,11 +240,12 @@ export function Atlas({ m, onIca, onPick, onOpen, showLanguage }: {
             </tr>)}</tbody>
           </table>
         </div>
-        <p className="aq-note">{t(
+        <p className="aq-note">{m.atlas_note && t(m.atlas_note,
+          "Las regiones se eligieron a partir de estudios con GRACE (Richey et al. 2015; Rodell et al. 2018). Los recuadros son aproximados y pueden diferir de los límites oficiales. Se usan los mismos productos de NASA, periodo (2004–2024) y motor. Fuera de Ica, el único control es el índice de El Niño (ONI).",
+        )} {t(
           "A filled dot marks a confirmed trend, a ring marks a likely trend, and a hollow gray dot marks an inconclusive result. Gold indicates a decline and blue an increase.",
-          "El punto relleno marca una tendencia confirmada, el anillo marca una tendencia probable y el círculo gris vacío marca un resultado no concluyente. El dorado indica descenso y el azul indica aumento.",
+          "El punto relleno indica una tendencia confirmada, el anillo una tendencia probable y el círculo gris vacío un resultado no concluyente. El dorado indica descenso y el azul, aumento.",
         )}</p>
-        <p className="aq-note">{m.atlas_note}</p>
       </div>
     </div>
   </section>;

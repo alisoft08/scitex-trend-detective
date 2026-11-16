@@ -20,6 +20,28 @@ export const DATASETS: [string, string, string, string, string, string][] = [
   ["Piezometric network report, Sept 2025 (87 wells)", "JUASVI (not NASA)", "Field", "Water-table change per well", "https://www.juasvi.com/pdfs/1760390572-informe-rmp-sep2025.pdf", "juasvi.com report"],
 ];
 
+const datasetSpanish: Record<string, [name: string, use: string]> = {
+  "10.5067/MODIS/MOD13Q1.061": ["MODIS Terra MOD13Q1 v6.1 (NDVI, 250 m)", "Series y mapas de verdor, incluido el verdor de los cultivos del atlas"],
+  "10.5067/MODIS/MOD16A2GF.061": ["MODIS MOD16A2GF v6.1 (evapotranspiración, 500 m)", "Uso de agua de los cultivos en Ica y los acuíferos del atlas"],
+  "10.5067/MODIS/MOD11A2.061": ["MODIS Terra MOD11A2 v6.1 (temperatura superficial terrestre, 1 km)", "Temperatura de la superficie terrestre"],
+  "10.5067/VJAFPLI1CSIV": ["MERRA-2 M2T1NXSLV 5.12.4 (diagnóstico de un solo nivel, T2M)", "Temperatura del aire en Ica y los acuíferos del atlas"],
+  "10.5067/TXBMLX370XX8": ["GLDAS-2.2 Catchment con asimilación de GRACE (0,25°)", "Almacenamiento de agua subterránea en Ica y el atlas mundial"],
+  "10.5067/TEMSC-3JC634": ["GRACE/GRACE-FO JPL Mascon RL06.3Mv04 CRI", "Almacenamiento total de agua en Ica y el atlas mundial"],
+  "10.5067/GPM/IMERG/3B-MONTH/07": ["GPM IMERG Final mensual V07", "Precipitación en la cabecera de Ica y sobre cada acuífero del atlas"],
+  "10.5067/MODIS/MCD12Q1.061": ["MODIS MCD12Q1 v6.1 (cobertura terrestre, 500 m)", "Máscara agrícola de los acuíferos del atlas"],
+  "10.5067/MODIS/MOD09A1.061": ["MODIS Terra MOD09A1 v6.1 (reflectancia de superficie, 500 m)", "Imágenes satelitales de cada acuífero en 2004 y 2024"],
+  "10.5067/MODIS/MOD09CMG.061": ["MODIS Terra MOD09CMG v6.1 (reflectancia de superficie, 0,05°)", "Mosaico mundial del globo del atlas"],
+  "USGS Collection 2": ["Landsat 5 TM y Landsat 8/9 OLI, colección 2, nivel 2", "Imágenes de antes y después"],
+  "10.5067/MEaSUREs/SRTM/SRTMGL1.003": ["Elevación SRTM de 30 m", "Máscara de la cabecera por encima de 2.500 m y relieve"],
+  "hydrosheds.org": ["HydroBASINS nivel 7", "Contorno de la cuenca del río Ica"],
+  "cpc.ncep.noaa.gov": ["ERSSTv5 Niño 1+2 y ONI", "Controles de El Niño, incluido un índice similar al ICEN calculado por el equipo"],
+  "juasvi.com report": ["Informe de la red piezométrica, septiembre de 2025 (87 pozos)", "Cambio del nivel freático por pozo"],
+};
+const typeSpanish: Record<string, string> = {
+  Observed: "Observación", Estimated: "Estimación", Reanalysis: "Reanálisis",
+  Modeled: "Modelo", Classified: "Clasificación", Derived: "Derivado", Index: "Índice", Field: "Medición de campo",
+};
+
 export function Sources({ m }: { m: Manifest }) {
   const { t } = useLocale();
   return (
@@ -31,9 +53,13 @@ export function Sources({ m }: { m: Manifest }) {
         <div className="scroll-x">
           <table className="data">
             <thead><tr><th>{t("Dataset", "Conjunto de datos")}</th><th>{t("Agency", "Organismo")}</th><th>{t("Type", "Tipo")}</th><th>{t("Use", "Uso")}</th><th>{t("DOI or link", "DOI o enlace")}</th></tr></thead>
-            <tbody>{DATASETS.map(([name, agency, type, use, href, label]) => (
-              <tr key={name}><td>{name}</td><td>{agency}</td><td>{type}</td><td>{use}</td><td><a href={href} target="_blank" rel="noreferrer">{label}</a></td></tr>
-            ))}</tbody>
+            <tbody>{DATASETS.map(([name, agency, type, use, href, label]) => {
+              const [nameEs, useEs] = datasetSpanish[label] ?? [name, use];
+              const labelEs = label === "USGS Collection 2" ? "Colección 2 de USGS" : label === "juasvi.com report" ? "Informe de JUASVI" : label;
+              return <tr key={name}><td>{t(name, nameEs)}</td><td>{t(agency, agency.replace(" (not NASA)", " (ajeno a NASA)"))}</td>
+                <td>{t(type, typeSpanish[type] ?? type)}</td><td>{t(use, useEs)}</td>
+                <td><a href={href} target="_blank" rel="noreferrer">{t(label, labelEs)}</a></td></tr>;
+            })}</tbody>
           </table>
         </div>
       </div>
@@ -50,18 +76,20 @@ export function Sources({ m }: { m: Manifest }) {
       </section>
       <div className="sources-cols">
         <div className="panel analysis-panel">
-          <h2>Team SciTeX, Lima</h2>
-          <p>Manuel (statistics and validity), Moisés (data pipeline), Jaime (zones, field context and story), Alison (app and video).
-            NASA Space Apps Challenge 2026, challenge “Be An Earth System Trend Detective!”.</p>
-          <p className="small muted">Code and text: MIT license. Well owners' names were removed from the JUASVI table.</p>
+          <h2>{t("Team SciTeX, Lima", "Equipo SciTeX, Lima")}</h2>
+          <p>{t("Manuel (statistics and validity), Moisés (data pipeline), Jaime (zones, field context and story), Alison (app and video).",
+            "Manuel (estadística y validez), Moisés (procesamiento de datos), Jaime (zonas, contexto de campo y narrativa), Alison (aplicación y video).")}
+            {t(" NASA Space Apps Challenge 2026, challenge", " NASA Space Apps Challenge 2026, reto")} <span lang="en">“Be An Earth System Trend Detective!”</span></p>
+          <p className="small muted">{t("Code and text: MIT license. Well owners' names were removed from the JUASVI table.",
+            "Código y texto con licencia MIT. Se retiraron los nombres de los propietarios de los pozos de la tabla de JUASVI.")}</p>
         </div>
         <div className="panel analysis-panel">
-          <h2>Use of AI</h2>
-          <p className="small">Claude (Anthropic) and Codex (OpenAI) helped write code for data extraction, the statistics engine and this app,
-            and drafted English text. Codex drew the Datron mascot illustrations from the official SciTeX poses. Every AI-assisted source
-            file is marked at the top. The verdict texts come from fixed templates filled with the engine's numbers; no language model
-            writes text at runtime. Results generated {m.generated_at}.</p>
-          <p className="small muted">{m.provisional}</p>
+          <h2>{t("Use of AI", "Uso de IA")}</h2>
+          <p className="small">{t(
+            "Claude (Anthropic) and Codex (OpenAI) helped write code for data extraction, the statistics engine and this app, and draft text. Codex illustrated Datron using official SciTeX poses. The statistical engine supplies the results for the verdict templates. Google Gemini generates the responses in Datron's chat.",
+            "Claude (Anthropic) y Codex (OpenAI) ayudaron a escribir el código de extracción de datos, del motor estadístico y de la aplicación, y a redactar textos. Codex ilustró a Datron a partir de poses oficiales de SciTeX. El motor estadístico aporta los resultados que se muestran en las plantillas de veredicto. Google Gemini genera las respuestas del chat de Datron.",
+          )} {t("Results generated", "Resultados generados el")} <time dateTime={m.generated_at}>{m.generated_at}</time>.</p>
+          <p className="small muted">{t(m.provisional, "Las zonas se definen mediante recuadros provisionales y máscaras satelitales. El equipo recalculará los resultados con los polígonos definitivos.")}</p>
         </div>
       </div>
     </section>

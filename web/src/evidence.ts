@@ -1,4 +1,5 @@
 // AI-assisted: Codex (OpenAI). Localize scientific metadata by stable dataset identifiers.
+import { useMemo } from "react";
 import { translate, useLocale, type Language, type Translation } from "./i18n";
 import type { CaseFile, DataType, Verdict } from "./types";
 
@@ -22,6 +23,13 @@ const atlasPlaces: Record<string, Translation> = {
 const naturalReferences: Record<string, string> = {
   ZCR: "ZC", ZHPR: "ZHP", ZINR: "ZIN", ZNCR: "ZNC", ZARR: "ZAR", ZTER: "ZTE", ZGUR: "ZGU",
 };
+
+export function zoneLabel(language: Language, id: string, fallback = id) {
+  const entry = PLACES[id] ?? atlasPlaces[id];
+  if (entry) return translate(language, ...entry);
+  const region = atlasPlaces[naturalReferences[id]];
+  return region ? translate(language, fallback, `${region[1]} · terreno natural de referencia`) : fallback;
+}
 const atlasNotesEs: Record<string, string> = {
   "Air temperature over the same box as the Central Valley water cases.": "La temperatura del aire se analiza en el mismo recuadro que las variables de agua del Valle Central.",
   "Atlas case: cropland pixels from MODIS MCD12Q1 land cover 2020 (IGBP classes 12 and 14) inside an approximate box around the aquifer. Only El Niño (ONI) is used as a control.":
@@ -34,6 +42,10 @@ const atlasNotesEs: Record<string, string> = {
     "Referencia publicada: Famiglietti et al. (2011), Geophysical Research Letters 38, L03403, DOI 10.1029/2010GL046442.",
   "GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region.":
     "GLDAS 2.2 asimila observaciones de GRACE. Ambas series comparten información en esta región.",
+  "GLDAS 2.2 assimilates GRACE, so it is not independent of the GRACE record for the same region: when both fall, that is one line of evidence, not two.":
+    "GLDAS 2.2 asimila observaciones de GRACE. Si ambas series disminuyen en la misma región, los dos resultados comparten evidencia.",
+  "Terra's overpass has drifted earlier since about 2020, which can cool absolute daytime temperatures; the heat gap against natural land in the same box cancels that shared effect.":
+    "Desde aproximadamente 2020, Terra pasa cada vez más temprano. Esto puede reducir las temperaturas diurnas registradas. Comparar los cultivos con el terreno natural del mismo recuadro ayuda a descontar ese efecto compartido.",
   "Rain over the same box as the Central Valley water cases.": "La precipitación se analiza en el mismo recuadro que las variables de agua del Valle Central.",
 };
 
@@ -115,72 +127,69 @@ const masks: Record<string, Translation> = {
 };
 
 export function useEvidence() {
-  const { t, fmt, signed } = useLocale();
-  const zoneName = (id: string, fallback = id) => {
-    const entry = PLACES[id] ?? atlasPlaces[id];
-    if (entry) return t(...entry);
-    const region = atlasPlaces[naturalReferences[id]];
-    return region ? t(fallback, `${region[1]} · terreno natural de referencia`) : fallback;
-  };
-  const baseVariable = (id: string) => id.replace(/_contrast$/, "");
-  const variableName = (id: string, fallback = id, compact = false) => {
-    const type = baseVariable(id);
-    if (id.endsWith("_contrast")) return type === "ndvi" ? t("Greenness gap", "Brecha de verdor") : t("Surface temperature gap", "Brecha de temperatura superficial");
-    const entry = VARIABLES[type];
-    return entry ? t(...(compact ? entry.short : entry.name)) : fallback;
-  };
-  const caseTitle = (variable: string, zone: string, fallback: string) => {
-    const label = variableName(variable, fallback);
-    if (!variable.endsWith("_contrast")) return label;
-    return PLACES[zone]
-      ? t(`${label} between fields and desert`, `${label} entre campos y desierto`)
-      : t(`${label} between cropland and natural land`, `${label} entre cultivos y terreno natural`);
-  };
-  const caseUnits = (units: string) => units
-    .replace("NDVI units", "NDVI").replace("standard deviations", t("SD", "DE"))
-    .replace("degC", "°C").replace("mm/month", t("mm/month", "mm/mes"));
-  const perDecade = (units: string) => `${caseUnits(units)}/${t("decade", "década")}`;
-  const casePeriod = (period: string) => period.replace("/", t(" to ", " a "));
-  const interval = (limits: [number | null, number | null]) =>
-    limits.every((limit) => limit !== null) ? t(`${fmt(limits[0])} to ${fmt(limits[1])}`, `${fmt(limits[0])} a ${fmt(limits[1])}`) : t("Unavailable", "No disponible");
-  const estimate = (cf: CaseFile) => `${signed(cf.trend.sen_per_decade)} ${perDecade(cf.units)}`;
-  const dataKind = (cf: CaseFile) => cf.kind === "contrast" ? t("Derived from observations", "Derivado de observaciones")
-    : cf.variable === "t2m" ? t("Reanalysis", "Reanálisis") : t(...types[cf.data_type]);
-  const describes = (cf: CaseFile) => {
-    const definition = VARIABLES[cf.variable]?.description;
-    if (!PLACES[cf.zone.id]) {
-      const contrastDefinition = t(
-        "Difference between cropland and natural land in the same region after standardizing both series by calendar month.",
-        "Diferencia entre cultivos y terreno natural de la misma región tras estandarizar ambas series por mes calendario.",
-      );
-      return [
-        cf.kind === "contrast" ? contrastDefinition : definition ? t(...definition) : cf.definition,
-        cf.notes.map((note) => t(note, atlasNotesEs[note] ?? note)).join(" "),
+  const { language, t, fmt, signed } = useLocale();
+  return useMemo(() => {
+    const zoneName = (id: string, fallback = id) => zoneLabel(language, id, fallback);
+    const baseVariable = (id: string) => id.replace(/_contrast$/, "");
+    const variableName = (id: string, fallback = id, compact = false) => {
+      const type = baseVariable(id);
+      if (id.endsWith("_contrast")) return type === "ndvi" ? t("Greenness gap", "Brecha de verdor") : t("Surface temperature gap", "Brecha de temperatura superficial");
+      const entry = VARIABLES[type];
+      return entry ? t(...(compact ? entry.short : entry.name)) : fallback;
+    };
+    const caseTitle = (variable: string, zone: string, fallback: string) => {
+      const label = variableName(variable, fallback);
+      if (!variable.endsWith("_contrast")) return label;
+      return PLACES[zone]
+        ? t(`${label} between fields and desert`, `${label} entre campos y desierto`)
+        : t(`${label} between cropland and natural land`, `${label} entre cultivos y terreno natural`);
+    };
+    const caseUnits = (units: string) => units
+      .replace("NDVI units", "NDVI").replace("standard deviations", t("SD", "DE"))
+      .replace("degC", "°C").replace("mm/month", t("mm/month", "mm/mes"));
+    const perDecade = (units: string) => `${caseUnits(units)}/${t("decade", "década")}`;
+    const casePeriod = (period: string) => period.replace("/", t(" to ", " a "));
+    const interval = (limits: [number | null, number | null]) =>
+      limits.every((limit) => limit !== null) ? t(`${fmt(limits[0])} to ${fmt(limits[1])}`, `${fmt(limits[0])} a ${fmt(limits[1])}`) : t("Unavailable", "No disponible");
+    const estimate = (cf: CaseFile) => `${signed(cf.trend.sen_per_decade)} ${perDecade(cf.units)}`;
+    const dataKind = (cf: CaseFile) => cf.kind === "contrast" ? t("Derived from observations", "Derivado de observaciones")
+      : cf.variable === "t2m" ? t("Reanalysis", "Reanálisis") : t(...types[cf.data_type]);
+    const describes = (cf: CaseFile) => {
+      const definition = VARIABLES[cf.variable]?.description;
+      if (!PLACES[cf.zone.id]) {
+        const contrastDefinition = t(
+          "Difference between cropland and natural land in the same region after standardizing both series by calendar month.",
+          "Diferencia entre cultivos y terreno natural de la misma región tras estandarizar ambas series por mes calendario.",
+        );
+        return [
+          cf.kind === "contrast" ? contrastDefinition : definition ? t(...definition) : cf.definition,
+          cf.notes.map((note) => t(note, atlasNotesEs[note] ?? note)).join(" "),
+        ];
+      }
+      if (cf.kind === "contrast") return [
+        t("Field minus desert reference, after standardizing each series by calendar month.", "Diferencia entre el campo y el desierto de referencia tras estandarizar cada serie por mes calendario."),
+        t("Vegetation data define the masks. The trend describes how the gap changed in the selected areas.", "Los datos de vegetación definen las máscaras. La tendencia describe cómo cambió la brecha en las áreas seleccionadas."),
       ];
-    }
-    if (cf.kind === "contrast") return [
-      t("Field minus desert reference, after standardizing each series by calendar month.", "Diferencia entre el campo y el desierto de referencia tras estandarizar cada serie por mes calendario."),
-      t("Vegetation data define the masks. The trend describes how the gap changed in the selected areas.", "Los datos de vegetación definen las máscaras. La tendencia describe cómo cambió la brecha en las áreas seleccionadas."),
-    ];
-    const entry = VARIABLES[cf.variable];
-    return entry ? [t(...entry.description), t(...entry.limit)] : [cf.definition, ""];
-  };
-  const resolution = (cf: CaseFile) => {
-    const entry = VARIABLES[baseVariable(cf.variable)];
-    return entry ? t(cf.source.resolution, entry.resolution[1]) : cf.source.resolution;
-  };
-  const mask = (zone: string, original: string) => {
-    const entry = masks[zone === "Z2" ? "Z1" : zone];
-    if (entry) return t(original, entry[1]);
-    if (naturalReferences[zone]) return t(original, "Clases IGBP 6, 7, 9, 10 y 16 del producto MODIS MCD12Q1 de 2020, dentro del recuadro del acuífero.");
-    return t(original, "Recuadro completo del área de estudio. Sus límites pueden consultarse en el GeoJSON.");
-  };
-  const covariate = (name: string) => {
-    const coastal = /^Coastal El Niño index \(lag (\d+) months\)$/.exec(name);
-    if (coastal) return t(name, `Índice de El Niño costero (rezago de ${coastal[1]} meses)`);
-    if (name === "Upper-basin rain, previous 12 months") return t(name, "Precipitación en la cuenca alta durante los 12 meses previos");
-    return name;
-  };
-  return { zoneName, variableName, caseTitle, caseUnits, perDecade, casePeriod, interval, estimate, dataKind, describes, resolution, mask, covariate,
-    verdictText: (verdict: Verdict) => t(...verdicts[verdict]), verdictSummary: (verdict: Verdict) => t(...summaries[verdict]) };
+      const entry = VARIABLES[cf.variable];
+      return entry ? [t(...entry.description), t(...entry.limit)] : [cf.definition, ""];
+    };
+    const resolution = (cf: CaseFile) => {
+      const entry = VARIABLES[baseVariable(cf.variable)];
+      return entry ? t(cf.source.resolution, entry.resolution[1]) : cf.source.resolution;
+    };
+    const mask = (zone: string, original: string) => {
+      const entry = masks[zone === "Z2" ? "Z1" : zone];
+      if (entry) return t(original, entry[1]);
+      if (naturalReferences[zone]) return t(original, "Clases IGBP 6, 7, 9, 10 y 16 del producto MODIS MCD12Q1 de 2020, dentro del recuadro del acuífero.");
+      return t(original, "Recuadro completo del área de estudio. Sus límites pueden consultarse en el GeoJSON.");
+    };
+    const covariate = (name: string) => {
+      const coastal = /^Coastal El Niño index \(lag (\d+) months\)$/.exec(name);
+      if (coastal) return t(name, `Índice de El Niño costero (rezago de ${coastal[1]} meses)`);
+      if (name === "Upper-basin rain, previous 12 months") return t(name, "Precipitación en la cuenca alta durante los 12 meses previos");
+      return name;
+    };
+    return { zoneName, variableName, caseTitle, caseUnits, perDecade, casePeriod, interval, estimate, dataKind, describes, resolution, mask, covariate,
+      verdictText: (verdict: Verdict) => t(...verdicts[verdict]), verdictSummary: (verdict: Verdict) => t(...summaries[verdict]) };
+  }, [language, t, fmt, signed]);
 }

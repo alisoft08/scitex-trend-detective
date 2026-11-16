@@ -4,6 +4,11 @@ import { numberFormat } from "./format";
 
 export type Language = "en" | "es";
 export type Translation = readonly [english: string, spanish: string];
+export const toolsNavigation = [
+  { id: "investigate", label: ["Detective desk", "Mesa de investigación"] },
+  { id: "method", label: ["Test the tests", "Laboratorio de tendencias"] },
+  { id: "sources", label: ["Sources", "Fuentes"] },
+] as const;
 const storageKey = "oasis-paradox-language";
 
 export const translate = (language: Language, english: string, spanish: string) => language === "es" ? spanish : english;
@@ -39,4 +44,15 @@ export function useLocale() {
   const locale = useContext(LocaleContext);
   if (!locale) throw new Error("LocaleProvider is required.");
   return locale;
+}
+
+export function LanguageSelect() {
+  const { language, setLanguage, t } = useLocale();
+  return <label className="language-switch">
+    <span className="sr-only">{t("Language", "Idioma")}</span>
+    <select value={language} onChange={(event) => setLanguage(event.target.value === "es" ? "es" : "en")}>
+      <option value="en" lang="en">English</option>
+      <option value="es" lang="es">Español</option>
+    </select>
+  </label>;
 }

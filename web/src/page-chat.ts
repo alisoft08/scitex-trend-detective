@@ -1,5 +1,6 @@
 // AI-assisted: Codex (OpenAI). A compact snapshot of the active research screen.
 import { CHAT_PAGES, type ChatPage, type PageChatContext } from "./chat-contract";
+import { atlasName } from "./atlas-locale";
 import { DATASETS } from "./Sources";
 import type { Translation } from "./i18n";
 import type { AtlasEntry, AtlasWitness, CaseRef, Manifest } from "./types";
@@ -7,7 +8,7 @@ import type { AtlasEntry, AtlasWitness, CaseRef, Manifest } from "./types";
 const TITLES: Record<ChatPage, Translation> = {
   aquifer: ["Aquifer", "Acuífero"],
   ica: ["Ica deep dive", "Análisis de Ica"],
-  method: ["Trend lab", "Laboratorio de tendencias"],
+  method: ["Test the tests", "Laboratorio de tendencias"],
   compare: ["Compare cases", "Comparar casos"],
   sources: ["Sources", "Fuentes"],
 };
@@ -24,7 +25,7 @@ const QUESTIONS: Record<ChatPage, Translation[]> = {
     ["How are GRACE and GLDAS different in Ica?", "¿En qué se diferencian GRACE y GLDAS en Ica?"],
   ],
   method: [
-    ["What does the trend lab simulate?", "¿Qué simula el laboratorio de tendencias?"],
+    ["What does the simulation test?", "¿Qué evalúa la simulación?"],
     ["Why can correlated months cause false alarms?", "¿Por qué los meses correlacionados causan falsas alarmas?"],
     ["How does a block bootstrap work here?", "¿Cómo funciona aquí el bootstrap por bloques?"],
   ],
@@ -79,7 +80,7 @@ export function pageChatContext(view: string, params: URLSearchParams, manifest:
       const id = view === "ica" ? "ZW" : params.get("id");
       const a = manifest.atlas?.find((entry) => entry.id === id);
       if (!a) return page;
-      return { ...page, pageId: `${view}:${a.id}`, title: view === "ica" ? title : a.name, facts: aquiferFacts(a) };
+      return { ...page, pageId: `${view}:${a.id}`, title: view === "ica" ? title : atlasName(language, a), facts: aquiferFacts(a) };
     }
     case "compare":
       return { ...page, pageId: `compare:${pair.join(":")}`, facts: pair.flatMap((id) => {

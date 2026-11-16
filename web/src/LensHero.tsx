@@ -2,6 +2,7 @@
 // 2024 inside it. The lens tours a list of stops on its own, each with an evidence card; the reader can take it over.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { brandAsset } from "./data";
+import { useLocale } from "./i18n";
 
 export interface LensStop {
   lon: number; lat: number; place: string; finding: string; source: string; verdict: string; tone: string;
@@ -22,6 +23,7 @@ export function LensHero({ before, after, altBefore, altAfter, bbox, ratio, stop
   primary: { label: string; go: () => void }; secondary?: { label: string; go: () => void };
   credit: string; datron?: boolean;
 }) {
+  const { t } = useLocale();
   const stage = useRef<HTMLDivElement>(null);
   const size = useRef({ w: 1, h: 1 });
   const manualUntil = useRef(0);
@@ -115,7 +117,7 @@ export function LensHero({ before, after, altBefore, altAfter, bbox, ratio, stop
         </div>
         {ev && (
           <div className={`hm-evidence ${cardSide}`} role="status">
-            <span className="ev-no">Evidence {String((active ?? 0) + 1).padStart(2, "0")}</span>
+            <span className="ev-no">{t("Evidence", "Evidencia")} {String((active ?? 0) + 1).padStart(2, "0")}</span>
             <span className="ev-place">{ev.place}</span>
             <strong className="ev-finding">{ev.finding}</strong>
             <span className="ev-meta">
@@ -126,7 +128,7 @@ export function LensHero({ before, after, altBefore, altAfter, bbox, ratio, stop
             {ev.alarm && <span className="ev-alarm">⚠ {ev.alarm}</span>}
           </div>
         )}
-        <span className="hm-legend" aria-hidden="true"><i className="lg-out" />2004 <i className="lg-in" />Inside the lens: 2024</span>
+        <span className="hm-legend" aria-hidden="true"><i className="lg-out" />2004 <i className="lg-in" />{t("Inside the lens: 2024", "Dentro de la lupa: 2024")}</span>
 
         <div className="hm-copy">
           <div className="wrap">
@@ -140,10 +142,10 @@ export function LensHero({ before, after, altBefore, altAfter, bbox, ratio, stop
           </div>
         </div>
         <span className="hm-credit">{credit}</span>
-        {datron && <div className={`hm-datron ${datronSays ? "says" : ""}`} tabIndex={0} aria-label="Datron, the SciTeX guide (AI-generated illustration): Take the lens. Every trend here was cross-examined."
+        {datron && <div className={`hm-datron ${datronSays ? "says" : ""}`} tabIndex={0} aria-label={t("Datron, the SciTeX guide (AI-generated illustration)", "Datron, guía de SciTeX (ilustración generada con IA)")}
           onMouseEnter={() => setDatronSays(true)} onMouseLeave={() => setDatronSays(false)} onFocus={() => setDatronSays(true)} onBlur={() => setDatronSays(false)}>
-          <span className="hm-bubble" aria-hidden="true">Take the lens. Every trend here was cross-examined.<small>Datron, your SciTeX guide</small></span>
-          <img src={brandAsset("datron-detective.png")} alt="" title="Datron (AI-generated illustration)" />
+          <span className="hm-bubble" aria-hidden="true">{t("Use the lens to compare the two images.", "Usa la lupa para comparar las dos imágenes.")}<small>{t("Datron, your SciTeX guide", "Datron, tu guía de SciTeX")}</small></span>
+          <img src={brandAsset("datron-detective.png")} alt="" title={t("Datron (AI-generated illustration)", "Datron (ilustración generada con IA)")} />
         </div>}
       </div>
     </header>

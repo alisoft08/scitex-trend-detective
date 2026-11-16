@@ -732,7 +732,6 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 
 /* AI-assisted: Claude (Anthropic). Globe home without the white bar until an aquifer is picked. */
 .research-nav { transition: transform .45s ease, opacity .45s ease; }
-.research-nav.nav-hidden { position: fixed; top: 0; left: 0; right: 0; transform: translateY(-100%); opacity: 0; pointer-events: none; }
 .no-nav .atlas-stage { height: 100svh; }
 @media (prefers-reduced-motion: reduce) { .research-nav { transition: none; } }
 /* AI-assisted: Claude (Anthropic). Editorial treatment below the globe: no boxes, hairline rules, tabular figures. */
@@ -961,3 +960,121 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .tool-levels { display: flex; justify-content: flex-end; padding-top: .72rem; }
 .tool-levels .level-switch { margin: 0; }
 .tool-levels + .research-page { padding-top: .75rem; }
+
+/* AI-assisted: Claude (Anthropic). Review changes: purpose and steps on the globe, headline chart, main series. */
+.atlas-purpose { margin: .5rem 0 0; max-width: 46ch; font-size: .95rem; line-height: 1.5; color: #d5dcec; text-shadow: 0 1px 8px rgba(0,0,0,.9); }
+.atlas-steps { display: flex; flex-wrap: wrap; gap: .3rem 1rem; list-style: none; margin: .7rem 0 0; padding: 0; font-size: .82rem; color: #e9edf6; }
+.atlas-steps li { display: inline-flex; align-items: center; gap: .4rem; text-shadow: 0 1px 6px rgba(0,0,0,.9); }
+.atlas-steps b { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: rgba(241,197,107,.9); color: #1a1c3a; font-size: .72rem; }
+.atlas-links { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-top: .7rem; pointer-events: auto; }
+.atlas-links a { font-size: .8rem; font-weight: 600; color: #c9d6ee; text-decoration: none; border-bottom: 1px solid rgba(201,214,238,.35); padding-bottom: 1px; }
+.atlas-links a:hover { color: #fff; border-bottom-color: #fff; }
+.detect { margin: 1.4rem 0 2.6rem; }
+.detect h3, .aq-table-title { margin: 0 0 .5rem; font-size: clamp(1.25rem, 1rem + .8vw, 1.6rem); font-weight: 400; letter-spacing: -.01em; color: #27295a; }
+.detect-finding { margin: 0 0 1rem; max-width: 72ch; font-size: 1rem; line-height: 1.6; color: #27295a; }
+.detect-chart { margin: 0; }
+.detect-plot { position: relative; max-width: 900px; }
+.detect-plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+.detect-band { fill: #f2f4f8; }
+.detect-band-label { font-size: 11px; fill: #71706f; font-family: inherit; }
+.detect-grid { stroke: #e9ecf2; stroke-width: 1; }
+.detect-zero { stroke: #9aa0ad; stroke-width: 1; stroke-dasharray: 3 3; }
+.detect-axis { stroke: #b8bdc8; }
+.detect-tick { font-size: 11px; fill: #71706f; font-variant-numeric: tabular-nums; }
+.detect-axis-label { font-size: 11.5px; fill: #4d5170; font-weight: 600; }
+.detect-ci { stroke-width: 2; stroke-linecap: round; opacity: .55; }
+.detect-dot { stroke-width: 2; }
+.detect-hit { fill: transparent; }
+.detect-label { font-size: 12px; font-weight: 600; fill: #27295a; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+.detect-pt { cursor: pointer; outline: none; }
+.detect-pt.on .detect-dot, .detect-pt:focus-visible .detect-dot { stroke-width: 3.5; }
+.detect-pt:focus-visible .detect-label { text-decoration: underline; }
+.detect-tip { position: absolute; transform: translate(-50%, calc(-100% - 14px)); display: grid; gap: .15rem; padding: .5rem .7rem; border-radius: 8px;
+  background: #fff; border: 1px solid #dfe3ea; box-shadow: 0 8px 24px rgba(39,41,90,.16); font-size: .8rem; color: #27295a; white-space: nowrap; pointer-events: none; }
+.detect-tip strong { font-size: .86rem; }
+.detect-tip-hint { color: #71706f; font-size: .72rem; }
+.detect-chart figcaption { margin-top: .5rem; font-size: .76rem; line-height: 1.5; color: #71706f; }
+.detect-legend { display: inline-flex; align-items: center; gap: .3rem; margin-right: .8rem; color: #4d5170; font-weight: 600; }
+.detect-legend i { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; display: inline-block; }
+.detect-legend i.ring { background: #fff; }
+@media (max-width: 700px) { .atlas-purpose { font-size: .86rem; } .atlas-steps { font-size: .76rem; } .detect-label { font-size: 13px; } }
+
+/* AI-assisted: Claude (Anthropic). The problem in three real examples: memory, scale, a single witness. */
+.three-ways { margin: 1.4rem 0 2.6rem; }
+.three-ways h3 { margin: 0 0 .5rem; font-size: clamp(1.25rem, 1rem + .8vw, 1.6rem); font-weight: 400; letter-spacing: -.01em; color: #27295a; }
+.three-ways-lede { margin: 0 0 1.1rem; max-width: 72ch; font-size: 1rem; line-height: 1.6; color: #27295a; }
+.three-ways-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.three-way { display: flex; flex-direction: column; gap: .5rem; min-width: 0; padding: 1.1rem 1.15rem 1rem; border-radius: 12px; background: #f5f7fb; border: 1px solid #e6e9f0; }
+.three-way-no { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #3c78bb; }
+.three-way strong { font-size: 1.05rem; line-height: 1.35; color: #27295a; text-wrap: balance; }
+.three-way p { margin: 0; flex: 1; font-size: .9rem; line-height: 1.6; color: #3f4566; }
+.three-way .text-button { align-self: flex-start; margin-top: .35rem; }
+@media (max-width: 900px) { .three-ways-grid { grid-template-columns: minmax(0, 1fr); } }
+.audiences-lede { margin: .2rem 0 1.1rem; max-width: 72ch; line-height: 1.6; color: #3f4566; }
+/* AI-assisted: Claude (Anthropic). Engine notes on a case (sensor drift, model dependence). */
+.case-notes { margin: .3rem 0 0; padding-left: 1.1rem; font-size: .78rem; line-height: 1.5; color: #4e5973; }
+.case-notes li + li { margin-top: .2rem; }
+/* AI-assisted: Claude (Anthropic). Card links read as links; home text stays legible over bright ice and cloud. */
+.three-way .text-button { color: #304b9a; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.three-way .text-button:hover { color: #27295a; }
+.atlas-purpose, .atlas-steps li { text-shadow: 0 0 14px rgba(2,4,12,.95), 0 0 4px rgba(2,4,12,.9), 0 1px 2px rgba(0,0,0,.9); }
+.atlas-links a { text-shadow: 0 0 10px rgba(2,4,12,.95), 0 1px 2px rgba(0,0,0,.9); }
+
+/* AI-assisted: Claude (Anthropic). Home layout (team request, 15 Nov): tools centred at the top, the problem statement on a
+   readable panel at the left, the aquifer search centred at the bottom. */
+.atlas-topnav { position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 7; display: flex; gap: .25rem; margin: 0;
+  width: max-content; max-width: calc(100% - 2rem);
+  padding: .3rem; border-radius: 999px; background: rgba(6,10,24,.62); border: 1px solid rgba(201,214,238,.22);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); pointer-events: auto; transition: opacity .9s ease; }
+.atlas-topnav a { padding: .42rem .95rem; border-radius: 999px; border-bottom: 0; color: #e6ecf7; font-size: .86rem; font-weight: 600;
+  text-decoration: none; text-shadow: none; white-space: nowrap; }
+.atlas-topnav a:hover, .atlas-topnav a:focus-visible { background: rgba(255,255,255,.14); color: #fff; }
+.atlas-topnav .language-switch { align-self: center; }
+.atlas-topnav .language-switch select { background: #101828; color: #eef4ff; border: 1px solid #667897; border-radius: 999px; padding: .35rem .55rem; font: inherit; font-size: .8rem; cursor: pointer; }
+.atlas-overlay .atlas-head p.atlas-purpose { margin: .75rem 0 0; max-width: 40ch; padding: .9rem 1.05rem; border-radius: 14px;
+  background: rgba(6,10,24,.62); border: 1px solid rgba(201,214,238,.18); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font-size: clamp(1rem, .9rem + .35vw, 1.15rem); line-height: 1.55; color: #f3f6fb; text-shadow: none; }
+.atlas-purpose strong { color: #f1c56b; font-weight: 700; }
+.atlas-bottom-search { position: absolute; left: 50%; bottom: 3.4rem; transform: translateX(-50%); z-index: 7; width: min(460px, calc(100% - 32px));
+  margin: 0; pointer-events: auto; transition: opacity .9s ease; }
+.atlas-bottom-search .atlas-search { flex: 1 1 auto; max-width: none; width: 100%; }
+.atlas-bottom-search .atlas-search input { box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.atlas .atlas-bottom-search .atlas-list { top: auto; bottom: calc(100% + 6px); }
+.atlas.intro .atlas-topnav, .atlas.intro .atlas-bottom-search { opacity: 0; }
+@media (min-width: 961px) and (max-width: 1400px) {
+  .atlas-stage .atlas-overlay { padding-top: 4.4rem; }
+  .atlas-stage .atlas-blurb { top: 4.6rem; }
+}
+@media (max-width: 960px) {
+  .atlas-stage { display: flex; flex-direction: column; }
+  .atlas-topnav { position: static; transform: none; order: -2; align-self: center; margin: .8rem 16px .2rem; flex-wrap: wrap;
+    justify-content: center; border-radius: 16px; }
+  .atlas-stage .atlas-overlay { order: -1; }
+  .atlas-stage .atlas-blurb { order: 0; }
+  .atlas-stage .globe-stage { order: 1; }
+  .atlas-bottom-search { position: static; transform: none; order: 2; margin: .8rem auto; }
+  .atlas-stage .atlas-stage-foot { order: 3; }
+  .atlas .atlas-bottom-search .atlas-list { top: calc(100% + 6px); bottom: auto; }
+  .atlas-overlay .atlas-head p.atlas-purpose { max-width: none; }
+}
+
+/* AI-assisted: Claude (Anthropic). A visible way back to the globe from every tool page. */
+.research-nav .nav-globe { display: inline-flex; align-items: center; gap: .35rem; }
+.research-nav .nav-globe svg { fill: none; stroke: currentColor; stroke-width: 1.4; flex: none; }
+
+/* AI-assisted: Claude (Anthropic). Names what the trends are about, above the home title. */
+.atlas-overlay .atlas-head .atlas-kicker { margin: 0 0 .35rem; font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #f1c56b; text-shadow: 0 0 12px rgba(2,4,12,.95), 0 1px 2px rgba(0,0,0,.9); }
+.atlas-overlay .atlas-head .atlas-kicker span { display: block; }
+
+/* AI-assisted: Claude (Anthropic). Cite this case. */
+.case-cite { margin-top: .6rem; }
+.case-cite textarea { display: block; width: 100%; box-sizing: border-box; margin: .5rem 0; padding: .55rem .7rem; border: 1px solid #d5dae3; border-radius: 8px;
+  font: inherit; font-size: .8rem; line-height: 1.5; color: #27295a; background: #f7f9fc; resize: vertical; }
+
+/* AI-assisted: Claude (Anthropic). A one-line statement, so the globe stays the protagonist. */
+.atlas-overlay .atlas-head p.atlas-purpose { margin-top: .5rem; max-width: 30ch; padding: .5rem .75rem; border-radius: 10px;
+  font-size: .92rem; line-height: 1.45; background: rgba(6,10,24,.5); }
+
+/* AI-assisted: Claude (Anthropic). Analyze has three tools now (compare, test the tests, sources). */
+@media (min-width: 961px) { .aq-tools-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
