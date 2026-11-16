@@ -6,8 +6,8 @@ import { detectAll } from "tinyld";
 import {
   CHAT_PAGES, CHAT_STREAM_TYPE, MAX_CHAT_CONTEXT_BYTES, MAX_CHAT_MESSAGES, MAX_CHAT_MESSAGE_CHARS,
   type ChatContext, type ChatEvent, type ChatMessage,
-} from "../src/chat-contract";
-import { OASIS_MANUAL } from "./chat-manual";
+} from "../src/chat-contract.js";
+import { OASIS_MANUAL } from "./chat-manual.js";
 
 // Both vite dev and the Vercel function use this Node handler.
 dns.setDefaultResultOrder("ipv4first");

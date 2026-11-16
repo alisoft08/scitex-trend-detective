@@ -1,5 +1,5 @@
 // AI-assisted: Codex (OpenAI).
-import { chatResponse } from "../server/chat";
+import { chatResponse } from "../server/chat.js";
 
 export default {
   fetch(request: Request) {
