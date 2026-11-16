@@ -29,6 +29,10 @@ function pathFrom(points: [number, number | null][]): string {
 }
 
 const W = 760;
+const monthFormats = {
+  en: new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }),
+  es: new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric", timeZone: "UTC" }),
+};
 
 /* ---------------------------------------------------------------- case trend chart */
 export function TrendChart(props: {
@@ -44,7 +48,7 @@ export function TrendChart(props: {
   window?: Window;
   onInspect?: (point: Omit<HoveredPoint, "chart">) => void;
 }) {
-  const { t, fmt } = useLocale();
+  const { t, fmt, language } = useLocale();
   const { series, trend, mode, tone, units, simple, reference, referenceLabel, window, onInspect } = props;
   const H = props.height ?? 300;
   const m = { l: 58, r: 14, t: 14, b: 30 };
@@ -96,6 +100,7 @@ export function TrendChart(props: {
     }
   }
   const hp = hover !== null ? series[hover] : null;
+  const inspectedMonth = hp && monthFormats[language].format(new Date(`${hp.date}-01T00:00:00Z`));
   const hv = hover !== null ? ys[hover] : null;
   const rv = hover !== null ? comparison?.[hover] : null;
 
@@ -130,12 +135,12 @@ export function TrendChart(props: {
           <line className="axis" x1={x(hover! / 12)} x2={x(hover! / 12)} y1={m.t} y2={m.t + ih} />
           <circle cx={x(hover! / 12)} cy={y(hv)} r={3.5} fill="var(--ink)" />
           <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">
-            {hp.date}: {fmt(hv)} {units}{rv != null && ` · ${referenceLabel ?? t("reference", "referencia")} ${fmt(rv)}`}
+            {inspectedMonth} · {fmt(hv)} {units}{rv != null && ` · ${referenceLabel ?? t("reference", "referencia")} ${fmt(rv)}`}
           </text>
         </g>
       )}
       {hp && hv === null && (
-        <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">{hp.date}: {t("no data", "sin datos")}</text>
+        <text x={W - m.r} y={m.t + 12} textAnchor="end" className="label-strong">{inspectedMonth} · {t("no data", "sin datos")}</text>
       )}
     </svg>
   );

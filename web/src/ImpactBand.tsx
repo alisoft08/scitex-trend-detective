@@ -23,7 +23,6 @@ export function ImpactBand({ m, onOpen }: { m: Manifest; onOpen: (target: string
           <span className="eyebrow">From space</span>
           <strong className="num">{im.footprint_to_irrigated}×</strong>
           <p>larger than the farms: the area one GRACE measurement averages, so the satellites cannot localise the loss.</p>
-          <button className="text-button" onClick={() => onOpen("#map")}>{t("Open the Ica wells and satellite map →", "Abrir el mapa de pozos y satélites de Ica →")}</button>
         </article>
         <article className="impact-tile">
           <span className="eyebrow">Honest statistics</span>

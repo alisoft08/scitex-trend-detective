@@ -114,10 +114,6 @@ const masks: Record<string, Translation> = {
   Z4: ["Above 2,500 m (SRTM) within the level-7 HydroBASINS Ica basin.", "Por encima de 2.500 m (SRTM) dentro de la cuenca de Ica de nivel 7 de HydroBASINS."],
 };
 
-export const WELL_SOURCE = "https://www.juasvi.com/pdfs/1760390572-informe-rmp-sep2025.pdf";
-export const GRACE_SOURCE = "https://data.nasa.gov/dataset/jpl-grace-and-grace-fo-mascon-ocean-ice-and-hydrology-equivalent-water-height-coastal-reso-30063";
-export const GLDAS_SOURCE = "https://disc.gsfc.nasa.gov/datasets/GLDAS_CLSM025_DA1_D_2.2/summary";
-
 export function useEvidence() {
   const { t, fmt, signed } = useLocale();
   const zoneName = (id: string, fallback = id) => {

@@ -102,16 +102,15 @@ field lab remain in the code for reference. The app does not display a reading-l
   comparison with another aquifer, the trend lab and the sources. The bar's Detective desk and Compare open the
   aquifer you were viewing. Each page also has Ica's tools: impact volumes (GRACE trend x area; crop
   evapotranspiration x cropland), an evidence map (per-pixel greenness trend), cropland against natural land in the
-  same box (greenness and heat gaps, like Ica's fields against the desert) and guided cases.
+  same box (greenness and heat gaps, like Ica's fields against the desert).
 - **Ica deep dive** (`#ica`): the detective's lens over Ica (Landsat 2004 vs 2024) and the impact band; Ica is the
   only aquifer with field wells.
 - **Field lab** (hidden with the Explorer level): four instruments and a field notebook in four languages.
 - **Detective desk:** pick a place and a NASA variable; each case file shows the verdict, the series, the false-alarm
   warning, years to detect when unproven, and (Expert) windows, jackknife and a reproduction ZIP.
-- **Trend lab, Compare cases** and **Sources**; the Ica evidence map (per-pixel greenness trend and field wells) opens
-  from the Ica deep dive.
+- **Trend lab, Compare cases** and **Sources**.
 
-Direct links (hash): `#atlas` is on the home page; `#investigate?case=ZIN_tws_grace`, `#map`, `#method`, `#compare?left=ZW_tws_grace&right=ZC_tws_grace`, `#sources`.
+Direct links (hash): `#atlas` is on the home page; `#investigate?case=ZIN_tws_grace`, `#method`, `#compare?left=ZW_tws_grace&right=ZC_tws_grace`, `#sources`.
 
 Python precomputes the evidence into `web/public/data/*.json`, and the browser draws it from those static files. Datron is available on the aquifer pages and research tools. It sends the conversation and a compact summary of the active screen to `/api/chat`. In Detective desk the summary includes the loaded case, selected period and chart controls. The server adds the app manual.
 

@@ -369,11 +369,6 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
 .witness-status { font-weight: 500; font-size: .66rem; }
 .compare-toggle { display: flex; gap: .55rem; align-items: center; line-height: 1.4; padding-top: .65rem; border-top: 1px solid var(--line); font-size: .82rem; cursor: pointer; font-weight: 600; }
 .compare-toggle input { accent-color: var(--accent); }
-.lead-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .55rem; }
-.lead-card { display: grid; gap: .3rem; align-content: start; min-height: 82px; text-align: left; font-size: .8rem; border: 1px solid #d6e2f4;
-  background: linear-gradient(155deg, #eaf2ff, #fff); border-radius: 9px; padding: .55rem .65rem; cursor: pointer; }
-.lead-card:hover { border-color: var(--accent-2); }
-.lead-card strong span { color: var(--accent-2); }
 .prediction-feedback { display: grid; gap: .5rem; align-items: start; justify-items: start; padding: .8rem .9rem; border-radius: 10px; background: #eef3fc; }
 .prediction-feedback p { margin-top: .25rem; }
 .toggle { flex-wrap: wrap; margin-bottom: 0; border-radius: 11px; overflow: visible; }
@@ -412,26 +407,6 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
 .audit-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid var(--line); }
 .audit-list strong { font-size: .78rem; align-self: center; }
 
-/* Map and regional evidence */
-.map-witness-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
-.map-witness-switch button { display: grid; gap: .15rem; background: #fff; border: 1px solid #cddbef; border-radius: 12px; cursor: pointer; text-align: left; padding: .6rem .85rem; }
-.map-witness-switch button[aria-pressed="true"] { background: #27295a; border-color: #27295a; color: #fff; }
-.map-witness-switch button span { font-size: .75rem; opacity: .9; }
-.evidence-map-grid { display: grid; grid-template-columns: minmax(0, 1.17fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
-.witness-map { margin: 0; min-width: 0; }
-.witness-map svg { display: block; aspect-ratio: 1; width: 100%; max-height: 66vh; background: #171d38; border-radius: 16px; }
-.witness-map figcaption { padding-top: .4rem; }
-.map-svg-label { fill: white; stroke: #171d38; stroke-width: 2.8px; stroke-linejoin: round; paint-order: stroke; vector-effect: non-scaling-stroke; font-weight: 700; }
-.map-boundary, .map-scale { fill: none; stroke: #fff; stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
-.map-boundary { opacity: .55; }
-.layer-footprint { fill: #729ef3; fill-opacity: .18; stroke: #bdd9ff; stroke-width: 2px; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
-.layer-local-point, .well-point { fill: #2c3f79; stroke: white; stroke-width: 1px; vector-effect: non-scaling-stroke; }
-.well-point { cursor: pointer; }
-.well-point.rise { fill: #fff; stroke: #29315b; }
-.well-point.flat { fill: #e9b364; stroke: #29315b; }
-.well-point.selected, .layer-local-point { stroke: #a8ddff; stroke-width: 3px; }
-.well-reading { background: #e8f1fc; border-radius: 10px; padding: .7rem .85rem; display: grid; gap: .24rem; }
-.well-reading .num { font-size: 1.37rem; font-weight: 750; }
 .simulation-sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem 1rem; }
 .simulation-sliders label { display: grid; gap: .25rem; }
 .simulation-sliders input { width: 100%; accent-color: var(--accent); }
@@ -468,13 +443,11 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
   .research-nav .nav { order: 3; flex: 1 1 100%; margin: 0; overflow-x: auto; scrollbar-width: thin; }
   .research-nav .nav a { flex: 0 0 auto; min-height: 38px; align-items: center; }
   .research-nav .level-select { display: none; }
-  .lead-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 730px) {
-  .research-desk, .evidence-map-grid, .comparison-columns { grid-template-columns: minmax(0, 1fr); }
+  .research-desk, .comparison-columns { grid-template-columns: minmax(0, 1fr); }
   .research-witnesses { display: none; }
   .witness-select { display: grid; }
-  .witness-map svg { max-height: 54vh; }
   .hm-stage { min-height: 610px; --r: 67px; }
   .hm-shade { background: linear-gradient(0deg, rgba(21,24,45,.97), rgba(21,24,45,.68) 54%, transparent 88%); }
   .hm-copy { padding-bottom: 50px; }
@@ -489,9 +462,6 @@ button:disabled { cursor: default; opacity: .55; transform: none; }
   .research-nav .brand { font-size: .9rem; }
   .research-heading h1 { font-size: 2rem; }
   .research-page { gap: .8rem; }
-  .map-witness-switch { gap: .3rem; }
-  .map-witness-switch button { font-size: .74rem; padding: .45rem; }
-  .map-witness-switch button span { font-size: .64rem; }
   .compare-selectors, .catalogue-row, .test-grid, .lab-side { grid-template-columns: minmax(0, 1fr); }
   .catalogue-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .catalogue-row .toggle { justify-self: start; }
@@ -904,15 +874,15 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .aq-tool-row select { font: inherit; font-size: .88rem; padding: .4rem .6rem; border: 1px solid #d5dae3; border-radius: 6px; background: #fff; color: #27295a; }
 @media (max-width: 960px) { .aq-tools-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.6rem; } .aq-tools-grid > div:nth-child(3) { padding-left: 0; border-left: 0; } }
 @media (max-width: 560px) { .aq-tools-grid { grid-template-columns: minmax(0, 1fr); } .aq-tools-grid > div { padding-left: 0; border-left: 0; } }
-/* AI-assisted: Claude (Anthropic). Ica's tools for every aquifer: impact, evidence map, gaps, guided cases. */
+/* AI-assisted: Claude (Anthropic). Aquifer impact, the greenness map and reference land contrasts. */
 .aq-impact { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 2.2rem; padding-block: 1.4rem; border-block: 1px solid var(--hair); }
 .aq-impact > div { padding: 0 1.4rem; border-left: 1px solid var(--hair); display: grid; gap: .35rem; align-content: start; }
 .aq-impact > div:first-child { padding-left: 0; border-left: 0; }
 .aq-impact strong { font-size: clamp(1.6rem, 1.1rem + 1.4vw, 2.3rem); font-weight: 300; letter-spacing: -.02em; color: #27295a; }
 .aq-impact span { font-size: .86rem; line-height: 1.5; color: #4d5170; }
-.aq-map, .aq-gaps, .aq-leads { margin-top: clamp(2.2rem, 4vw, 3.5rem); }
+.aq-map, .aq-gaps { margin-top: clamp(2.2rem, 4vw, 3.5rem); }
 .aq-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .6rem; }
-.aq-map h2, .aq-gaps h2, .aq-leads h2 { margin: 0 0 .9rem; font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem); font-weight: 300; letter-spacing: -.02em; color: #27295a; }
+.aq-map h2, .aq-gaps h2 { margin: 0 0 .9rem; font-size: clamp(1.4rem, 1rem + 1.2vw, 2rem); font-weight: 300; letter-spacing: -.02em; color: #27295a; }
 .aq-switch { font-size: .85rem; color: #4d5170; display: inline-flex; gap: .4rem; align-items: center; cursor: pointer; }
 .aq-map-figure { position: relative; margin: 0; }
 .aq-map-figure img { display: block; width: 100%; height: min(70vh, 720px); object-fit: cover; border-radius: 4px; }
@@ -922,15 +892,8 @@ table.data a { color: var(--accent); overflow-wrap: anywhere; }
 .aq-map-legend i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
 .aq-gaps-lede { margin: -.3rem 0 1rem; max-width: 72ch; font-size: .95rem; line-height: 1.6; color: #4d5170; }
 .aq-gaps .aq-witnesses { margin-top: 0; }
-.aq-leads-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--hair); }
-.aq-leads-grid button { display: grid; gap: .35rem; align-content: start; text-align: left; padding: 1rem 1.2rem 1rem 0; border: 0; border-bottom: 1px solid var(--hair); background: none; font: inherit; cursor: pointer; }
-.aq-leads-grid button + button { padding-left: 1.2rem; border-left: 1px solid var(--hair); }
-.aq-leads-grid button:hover strong { text-decoration: underline; text-underline-offset: 4px; }
-.aq-leads-grid strong { font-size: 1rem; font-weight: 600; color: #304b9a; }
-.aq-leads-grid span { font-size: .86rem; line-height: 1.5; color: #4d5170; }
 @media (max-width: 860px) {
   .aq-impact { grid-template-columns: minmax(0, 1fr); row-gap: 1.2rem; } .aq-impact > div { padding-left: 0; border-left: 0; }
-  .aq-leads-grid { grid-template-columns: minmax(0, 1fr); } .aq-leads-grid button + button { padding-left: 0; border-left: 0; }
 }
 /* AI-assisted: Claude (Anthropic). Phones: title above the globe, dots only (mini cards would cover it), no sideways scroll. */
 @media (max-width: 700px) {

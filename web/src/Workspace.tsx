@@ -3,7 +3,7 @@ import { useState, type MutableRefObject } from "react";
 import type { ChatContext } from "./chat-contract";
 import { CaseFileView } from "./CaseFile";
 import { useEvidence } from "./evidence";
-import { useLocale, type Translation } from "./i18n";
+import { useLocale } from "./i18n";
 import type { Level } from "./levels";
 import type { CaseRef, Manifest } from "./types";
 
@@ -16,13 +16,6 @@ export const WITNESSES = [
   { id: "gws", symbol: "≋" },
   { id: "tws_grace", symbol: "◎" },
 ] as const;
-
-const LEADS: { title: Translation; text: Translation; caseId: string; tool?: "map" | "lab" }[] = [
-  { title: ["The greening desert", "Un desierto más verde"], text: ["See the monthly MODIS greenness series and the trend in Villacurí.", "Consulta la serie mensual de verdor de MODIS y su tendencia en Villacurí."], caseId: "Z2_ndvi" },
-  { title: ["The invisible drop", "El descenso invisible"], text: ["Open the Ica map to see what individual wells, GLDAS and GRACE show at different scales.", "Abre el mapa de Ica para ver qué muestran los pozos, GLDAS y GRACE a distintas escalas."], caseId: "ZW_tws_grace", tool: "map" },
-  { title: ["The cooling oasis", "Un oasis que se enfría"], text: ["See how the surface temperature gap between fields and desert changed over time.", "Consulta cómo cambió con el tiempo la brecha de temperatura superficial entre los campos y el desierto."], caseId: "Z2_vs_Z5_lst" },
-  { title: ["When tests disagree", "Cuando las pruebas discrepan"], text: ["Compare how often statistical tests report a false alarm in a simulation.", "Compara con qué frecuencia las pruebas estadísticas reportan una falsa alarma en una simulación."], caseId: "ZW_gws", tool: "lab" },
-];
 
 function Prediction({ refCase }: { refCase: CaseRef }) {
   const { t, signed } = useLocale();
@@ -65,10 +58,9 @@ function Prediction({ refCase }: { refCase: CaseRef }) {
   );
 }
 
-export function Workspace({ m, level, selected, onCase, caseLink, onLead, chatContextRef }: {
+export function Workspace({ m, level, selected, onCase, caseLink, chatContextRef }: {
   m: Manifest; level: Level; selected: CaseRef; onCase: (id: string) => void; caseLink: (id: string) => string;
   chatContextRef: MutableRefObject<(() => ChatContext) | null>;
-  onLead: (id: string, tool?: "map" | "lab") => void;
 }) {
   const { t } = useLocale();
   const { zoneName, variableName } = useEvidence();
@@ -95,21 +87,6 @@ export function Workspace({ m, level, selected, onCase, caseLink, onLead, chatCo
         <h1>{t("Detective desk", "Mesa de investigación")}</h1>
         <p>{t("Explore how NASA variables change over time and check which trends the statistical tests support.", "Explora cómo cambian las variables de NASA con el tiempo y comprueba qué tendencias respaldan las pruebas estadísticas.")}</p>
       </div>
-
-      <details className="research-details lead-list" open>
-        <summary>{t("Follow a guided case", "Explora un caso guiado")}</summary>
-        <div className="lead-grid">
-          {LEADS.filter((lead) => m.cases.some((c) => c.id === lead.caseId)).map((lead) => (
-            <button key={lead.caseId} className="lead-card" onClick={() => {
-              setSelectionNotice(undefined);
-              onLead(lead.caseId, lead.tool);
-            }}>
-              <strong>{t(...lead.title)} <span aria-hidden="true">↗</span></strong>
-              <span>{t(...lead.text)}</span>
-            </button>
-          ))}
-        </div>
-      </details>
 
       <div className="research-desk">
         <aside className="desk-controls panel">

@@ -5,7 +5,7 @@ import { asset, useJSON } from "./data";
 import { HeroMap } from "./HeroMap";
 import { LensHero, type LensStop } from "./LensHero";
 import { fmt } from "./format";
-import { amount, dirOf, proven, short, Spark, Verdict, WITNESSES } from "./Atlas";
+import { amount, dirOf, short, Spark, Verdict, WITNESSES } from "./Atlas";
 import { useLocale } from "./i18n";
 import type { AtlasEntry, Manifest } from "./types";
 
@@ -36,7 +36,7 @@ export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
     heading?.scrollIntoView({ block: "start" });
   };
   return <>
-  {ica ? <HeroMap m={m} primary={{ label: t("Go to the NASA variables table ↓", "Ir a la tabla de variables de NASA ↓"), go: toWitnesses }} onMap={() => onGo("#map")} />
+  {ica ? <HeroMap m={m} primary={{ label: t("Go to the NASA variables table ↓", "Ir a la tabla de variables de NASA ↓"), go: toWitnesses }} />
     : <AquiferLens m={m} a={a} onWitnesses={toWitnesses} onBack={onBack} />}
   <section className="aq-page" aria-labelledby="aq-title">
     <div className="wrap wide">
@@ -79,7 +79,7 @@ export function AquiferPage({ m, id, onCase, onIca, onBack, onGo }: {
         })}</tbody>
       </table>
       </section>
-      <AquiferExtras m={m} a={a} onCase={onCase} onGo={onGo} />
+      <AquiferExtras m={m} a={a} onCase={onCase} />
       <AquiferTools m={m} a={a} onCase={onCase} onGo={onGo} />
     </div>
   </section>
@@ -157,25 +157,16 @@ function AquiferTools({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCa
 
 const fmtN = (x: number | null | undefined, d = 1) => x === null || x === undefined ? "n/a" : Math.abs(x).toLocaleString("en-US", { maximumFractionDigits: d });
 
-/** Impact figures, the evidence map, cropland against natural land, and guided cases: Ica's tools for every aquifer. */
-function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onCase: (id: string) => void; onGo: (hash: string) => void }) {
+/** Impact figures, per-pixel greenness and contrasts with reference land. */
+function AquiferExtras({ m, a, onCase }: { m: Manifest; a: AtlasEntry; onCase: (id: string) => void }) {
   const { t } = useLocale();
   const [layer, setLayer] = useState(true);
   const im = a.impact;
   const ica = a.id === "ZW";
-  const falling = proven(a.tws) && (a.tws.per_decade ?? 0) < 0;
-  const alarm = WITNESSES.map(({ key }) => a[key]).find((w) => w?.classic_false_alarm);
   const gaps = [
     { w: a.ndvi_gap, name: t("Greenness gap", "Brecha de verdor"), text: t("Cropland greenness minus natural land, both standardized by calendar month.", "Verdor de los cultivos menos el del terreno natural. Ambas series se estandarizan por mes calendario.") },
     { w: a.lst_gap, name: t("Surface temperature gap", "Brecha de temperatura superficial"), text: t("Cropland surface temperature minus natural land, both standardized by calendar month.", "Temperatura superficial de los cultivos menos la del terreno natural. Ambas series se estandarizan por mes calendario.") },
   ].filter((g) => g.w);
-  const leads = [
-    { title: falling ? t("Investigate the decline in total water", "Investigar el descenso de agua total") : t("Investigate total water storage", "Investigar el almacenamiento total de agua"), text: t("See the monthly GRACE series, its trend and uncertainty.", "Consulta la serie mensual de GRACE, su tendencia y su incertidumbre."), go: () => onCase(a.tws.id) },
-    a.ndvi_gap && { title: t("Greener than the land around", "Más verde que el terreno cercano"), text: t("See how the greenness gap between cropland and natural land changed over time.", "Consulta cómo cambió con el tiempo la brecha de verdor entre cultivos y terreno natural."), go: () => onCase(a.ndvi_gap!.id) },
-    a.lst_gap && { title: t("Hot or cool fields?", "¿Campos más cálidos o más fríos?"), text: t("See how the surface temperature gap between cropland and natural land changed over time.", "Consulta cómo cambió con el tiempo la brecha de temperatura superficial entre cultivos y terreno natural."), go: () => onCase(a.lst_gap!.id) },
-    alarm ? { title: t("When tests disagree", "Cuando las pruebas discrepan"), text: t("See which statistical tests detected a trend in this record and which did not.", "Consulta qué pruebas estadísticas detectaron una tendencia en esta serie y cuáles no."), go: () => onCase(alarm.id) }
-      : { title: t("When tests disagree", "Cuando las pruebas discrepan"), text: t("Explore a simulation to see how often tests detect a trend in series with no trend.", "Explora una simulación para ver con qué frecuencia las pruebas detectan una tendencia en series sin tendencia."), go: () => onGo("#method") },
-  ].filter(Boolean) as { title: string; text: string; go: () => void }[];
 
   return <>
     {im && <section className="aq-impact" aria-label="Impact">
@@ -188,14 +179,9 @@ function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onC
       <div><strong className="num">{fmtN(a.grace_footprints, 2)}</strong><span>Approximate GRACE footprints covered by the study area. Spatial scale affects how well GRACE can resolve local changes.</span></div>
     </section>}
 
-    {ica && <section className="aq-map" aria-labelledby="aq-map-title">
-      <div className="aq-section-head"><h2 id="aq-map-title">{t("Evidence map", "Mapa de evidencias")}</h2></div>
-      <p className="aq-gaps-lede">{t("Open the interactive map to select a well or switch to the GLDAS and GRACE views.", "Abre el mapa interactivo para seleccionar un pozo o cambiar entre las vistas de GLDAS y GRACE.")}</p>
-      <button className="aq-link" onClick={() => onGo("#map")}>{t("Open the Ica evidence map", "Abrir el mapa de evidencias de Ica")}</button>
-    </section>}
     {!ica && <section className="aq-map" aria-labelledby="aq-map-title">
       <div className="aq-section-head">
-        <h2 id="aq-map-title">{t("Evidence map", "Mapa de evidencias")}</h2>
+        <h2 id="aq-map-title">{t("Greenness trend map", "Mapa de tendencias de verdor")}</h2>
         <label className="aq-switch"><input type="checkbox" checked={layer} onChange={(e) => setLayer(e.target.checked)} /> {t("Show greenness changes on the image", "Mostrar cambios de verdor sobre la imagen")}</label>
       </div>
       <figure className="aq-map-figure">
@@ -203,7 +189,7 @@ function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onC
         {layer && <img className="aq-map-layer" src={asset(`img/aquifers/${a.id}_trend.png`)} alt="Per-pixel trend of annual maximum greenness, 2004–2024" />}
         <figcaption>
           <span className="aq-map-legend"><i style={{ background: "#3f3e3d" }} />less green <i style={{ background: "#b0afae" }} /> <i style={{ background: "#7fa6d6" }} /> <i style={{ background: "#3c78bb" }} />greener</span>
-          Sen slope of the annual maximum NDVI per pixel (MODIS MOD13Q1), 2004–2024, shown where it exceeds 0.04 per decade, over the 2024 MODIS picture. Same method as Ica's map.
+          Sen slope of the annual maximum NDVI per pixel (MODIS MOD13Q1), 2004–2024, shown where it exceeds 0.04 per decade, over the 2024 MODIS picture.
         </figcaption>
       </figure>
     </section>}
@@ -225,9 +211,5 @@ function AquiferExtras({ m, a, onCase, onGo }: { m: Manifest; a: AtlasEntry; onC
       </table>
     </section>}
 
-    <section className="aq-leads" aria-labelledby="aq-leads-title">
-      <h2 id="aq-leads-title">{t("Guided cases", "Casos guiados")}</h2>
-      <div className="aq-leads-grid">{leads.map((l) => <button key={l.title} type="button" onClick={l.go}><strong>{l.title}</strong><span>{l.text}</span></button>)}</div>
-    </section>
   </>;
 }

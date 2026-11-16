@@ -277,7 +277,7 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
     {caseChartVisible && <section className="panel analysis-panel">
       <div className="analysis-toolbar">
         <div className="panel-heading">
-          <h3 id="case-chart-title" className="action-scroll-target" tabIndex={-1}>{comparison ? (comparison.desert.zone === "Z5" ? t("Standardized field–desert gap", "Brecha estandarizada entre campo y desierto") : t("Standardized cropland–natural land gap", "Brecha estandarizada entre cultivo y terreno natural")) : t("Monthly chart", "Gráfico mensual")}</h3>
+          <h3 id="case-chart-title" className="action-scroll-target" tabIndex={-1}>{comparison ? (comparison.desert.zone === "Z5" ? t("Monthly standardized field–desert gap", "Brecha mensual estandarizada entre campo y desierto") : t("Monthly standardized cropland–natural land gap", "Brecha mensual estandarizada entre cultivo y terreno natural")) : t("Monthly data series", "Serie de datos mensuales")}</h3>
           {!explorer && <p>{t(`${cf.n_valid} of ${cf.n} valid months`, `${cf.n_valid} de ${cf.n} meses válidos`)} · {resolution(cf)}</p>}
         </div>
         {!explorer && !comparison && <div className="toggle" role="group" aria-label={t("Chart values", "Valores del gráfico")} aria-describedby="chart-mode-help">
@@ -285,6 +285,10 @@ export function CaseFileView({ caseRef, level, manifest, href, comparison, chatC
           <button aria-pressed={showRaw} onClick={() => setMode("value")}>{t("Original values", "Valores originales")}</button>
         </div>}
       </div>
+      <p className="control-help">{t(
+        "The thin line connects one value per valid month. The years on the horizontal axis are reference marks. Hover over the chart to see the month and its value.",
+        "La línea fina conecta un valor por cada mes válido. Los años del eje horizontal son marcas de referencia. Pasa el cursor sobre el gráfico para ver el mes y su valor.",
+      )}</p>
       {!explorer && !comparison && <p className="control-help" id="chart-mode-help">{showRaw ? t(
         "The chart shows the original monthly values. Switch to Anomalies to see the long-term trend with the typical seasonal cycle removed.",
         "El gráfico muestra los valores mensuales originales. Cambia a Anomalías para ver la tendencia de largo plazo tras descontar el ciclo estacional típico.",

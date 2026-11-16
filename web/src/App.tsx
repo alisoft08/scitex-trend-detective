@@ -8,7 +8,6 @@ import { Workspace } from "./Workspace";
 import { ComparisonDesk } from "./ComparisonDesk";
 import { comparisonPair } from "./comparisons";
 import { Lab } from "./Lab";
-import { MapView } from "./MapView";
 import { Sources } from "./Sources";
 import { ImpactBand } from "./ImpactBand";
 import { Audiences } from "./Audiences";
@@ -24,7 +23,6 @@ const DEFAULT_PAIR = [DEFAULT_CASE, "ZIN_tws_grace"] as const;
 const VIEWS = [
   { id: "ica", label: ["Ica deep dive", "Análisis de Ica"] },
   { id: "investigate", label: ["Detective desk", "Mesa de investigación"] },
-  { id: "map", label: ["Ica evidence map", "Mapa de evidencias de Ica"] },
   { id: "method", label: ["Trend lab", "Laboratorio de tendencias"] },
   { id: "compare", label: ["Compare cases", "Comparar casos"] },
   { id: "sources", label: ["Sources", "Fuentes"] },
@@ -33,7 +31,7 @@ const VIEWS = [
 function readRoute() {
   const [hash, query] = location.hash.slice(1).split("?");
   const params = new URLSearchParams(query);
-  const aliases: Record<string, string> = { evidence: "investigate", why: "map", where: "map", methods: "method", about: "sources" };
+  const aliases: Record<string, string> = { evidence: "investigate", methods: "method", about: "sources" };
   const view = /^(mission|explorer)(-[0-5])?$/.test(hash) || hash === "field-lab" ? "investigate"
     : Object.prototype.hasOwnProperty.call(aliases, hash) ? aliases[hash] : hash;
   return { view, params };
@@ -86,10 +84,6 @@ export default function App() {
   const caseLink = (id: string) => `#investigate?case=${encodeURIComponent(id)}`;
   const pairLink = (pair: readonly [string, string]) => `#compare?left=${encodeURIComponent(pair[0])}&right=${encodeURIComponent(pair[1])}`;
   const selectCase = (id: string) => { setLastCase(id); navigate(caseLink(id)); };
-  const followLead = (id: string, tool?: "map" | "lab") => {
-    setLastCase(id);
-    navigate(tool === "map" ? "#map" : tool === "lab" ? "#method" : caseLink(id));
-  };
   const selectPair = (pair: readonly [string, string]) => {
     setLastPair(pair);
     navigate(pairLink(pair));
@@ -97,7 +91,7 @@ export default function App() {
   const selectedCase = manifest?.cases.find((c) => c.id === route.params.get("case"))
     ?? manifest?.cases.find((c) => c.id === lastCase) ?? manifest?.cases[0];
   const pair = linkedPair ?? lastPair;
-  const visible = VIEWS.filter((v) => v.id !== "map" && v.id !== "ica");
+  const visible = VIEWS.filter((v) => v.id !== "ica");
   const isAquifer = view === "aquifer";
   const isHome = !VIEWS.some((v) => v.id === view) && !isAquifer;
   // On the globe home the white bar stays hidden until the visitor picks an aquifer; other pages always show it.
@@ -132,12 +126,11 @@ export default function App() {
         <main className={`research-app lv-${LEVEL} ${showNav ? "" : "no-nav"}`}>
           {isHome && <Atlas m={manifest} showLanguage={!showNav} onIca={() => navigate("#ica")} onPick={() => setPicked(true)} onOpen={(id) => navigate(`#aquifer?id=${id}`)} />}
           {isAquifer && <AquiferPage m={manifest} id={route.params.get("id") ?? ""} onCase={selectCase} onIca={() => navigate("#ica")} onBack={() => navigate("#atlas")} onGo={navigate} />}
-          {view === "ica" && <HeroMap m={manifest} primary={{ label: t("View the selected variable’s trend analysis →", "Ver análisis de tendencia de la variable seleccionada →"), go: () => selectCase(lastCase) }} onMap={() => navigate("#map")} />}
+          {view === "ica" && <HeroMap m={manifest} primary={{ label: t("View the selected variable’s trend analysis →", "Ver análisis de tendencia de la variable seleccionada →"), go: () => selectCase(lastCase) }} />}
           {view === "ica" && <ImpactBand m={manifest} onOpen={navigate} />}
           {isHome && <Audiences onCompare={() => selectPair(DEFAULT_PAIR)} onLab={() => navigate("#method")} />}
           {view === "investigate" && <Workspace m={manifest} level={LEVEL} selected={selectedCase} onCase={selectCase}
-            caseLink={caseLink} onLead={followLead} chatContextRef={caseChatRef} />}
-          {view === "map" && <MapView m={manifest} level={LEVEL} onCase={selectCase} />}
+            caseLink={caseLink} chatContextRef={caseChatRef} />}
           {view === "method" && <section className="wrap wide research-page">
             <div className="research-heading"><p className="eyebrow">{t("Simulation", "Simulación")}</p><h1>{t("Trend lab", "Laboratorio de tendencias")}</h1></div>
             <Lab level={LEVEL} onCase={() => selectCase("ZW_gws")} />

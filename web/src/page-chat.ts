@@ -7,7 +7,6 @@ import type { AtlasEntry, AtlasWitness, CaseRef, Manifest } from "./types";
 const TITLES: Record<ChatPage, Translation> = {
   aquifer: ["Aquifer", "Acuífero"],
   ica: ["Ica deep dive", "Análisis de Ica"],
-  map: ["Evidence map", "Mapa de evidencias"],
   method: ["Trend lab", "Laboratorio de tendencias"],
   compare: ["Compare cases", "Comparar casos"],
   sources: ["Sources", "Fuentes"],
@@ -22,12 +21,7 @@ const QUESTIONS: Record<ChatPage, Translation[]> = {
   ica: [
     ["How do I read the satellite lens?", "¿Cómo leo la lupa satelital?"],
     ["Why can wells and GRACE disagree?", "¿Por qué pueden discrepar los pozos y GRACE?"],
-    ["Where can I see the evidence map?", "¿Dónde veo el mapa de evidencias?"],
-  ],
-  map: [
-    ["What do the map layers represent?", "¿Qué representan las capas del mapa?"],
-    ["What is the difference between a well and a GRACE pixel?", "¿En qué se diferencian un pozo y un píxel de GRACE?"],
-    ["How do I read the vegetation overlay?", "¿Cómo leo la capa de vegetación?"],
+    ["How are GRACE and GLDAS different in Ica?", "¿En qué se diferencian GRACE y GLDAS en Ica?"],
   ],
   method: [
     ["What does the trend lab simulate?", "¿Qué simula el laboratorio de tendencias?"],
@@ -92,8 +86,6 @@ export function pageChatContext(view: string, params: URLSearchParams, manifest:
         const c = manifest.cases.find((item) => item.id === id);
         return c ? [caseFact(c)] : [];
       }) };
-    case "map":
-      return { ...page, facts: [{ label: "Field wells in the dataset (JUASVI)", value: `${manifest.wells.n}; ${manifest.wells.period}` }] };
     case "sources":
       return { ...page, facts: DATASETS.slice(0, 7).map(([label, agency, kind, , url]) => ({
         label, value: `${agency} · ${kind} · ${url}`,

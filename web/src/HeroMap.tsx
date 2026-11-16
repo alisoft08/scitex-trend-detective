@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { asset, useJSON } from "./data";
 import { LensHero, type LensLabel, type LensStop } from "./LensHero";
 import { signed } from "./format";
-import { useLocale } from "./i18n";
 import type { Manifest, MapMeta } from "./types";
 
 interface HeroMeta extends MapMeta {
@@ -22,10 +21,9 @@ const LABELS: LensLabel[] = [
 
 const RATIO = 2118 / 1200;   // hero image aspect
 
-export function HeroMap({ m, primary, onMap }: {
-  m: Manifest; primary: { label: string; go: () => void }; onMap: () => void;
+export function HeroMap({ m, primary }: {
+  m: Manifest; primary: { label: string; go: () => void };
 }) {
-  const { t } = useLocale();
   const { data: meta } = useJSON<HeroMeta>("map.json");
   const evidence: Evidence[] = useMemo(() => {
     const c = (id: string) => m.cases.find((k) => k.id === id);
@@ -51,6 +49,6 @@ export function HeroMap({ m, primary, onMap }: {
     kicker="Ica, Peru · NASA Earth observations"
     title={<>Greener fields.<br />Falling water levels in <em>monitored wells</em>.</>}
     lede="Follow the evidence from an individual well to NASA satellites. Test what each dataset can tell you about Ica."
-    primary={primary} secondary={{ label: t("Open the Ica wells and satellite map", "Abrir el mapa de pozos y satélites de Ica"), go: onMap }}
+    primary={primary}
     credit="Landsat 5 (2004) · Landsat 8/9 (2024) · NASA/USGS via Google Earth Engine" />;
 }
